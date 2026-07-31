@@ -20,7 +20,7 @@ Mirroring is one of the Fabric data ingestion options. It's specific role is to 
 
 ## 1.2 Release History
 
-The [Book Update History](../history.md) records dated Fabric Mirroring milestones and documentation changes. Use the [appendix](../appendix.md) for the current source and availability matrix.
+The Book Update History records dated Fabric Mirroring milestones and documentation changes. Use the [appendix](../appendix.md) for the current source and availability matrix.
 
 ## 1.3 The Problem Mirroring Solves
 
@@ -92,4 +92,4 @@ Fabric supports three official mirroring types:
 
 The next chapter separates the three mirroring types and shows which sources belong to each one. That distinction matters because setup, data movement, and operational responsibility differ by type.
 
-**Contents:** [Table of Contents](../index.md) | **Next:** [Chapter 2: Types of Mirroring in Fabric](chapter-02.md)
+**Contents:** [Table of Contents](../index.md) | **Next:** Chapter 2: Types of Mirroring in Fabric

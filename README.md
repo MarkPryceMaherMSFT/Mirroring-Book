@@ -33,7 +33,7 @@ Keeping the book on GitHub also makes errors visible and fixable. If you find so
 
 **Public-information policy:** This book uses publicly available information. Unclear, conflicting, internal, or private-preview claims are tracked separately rather than presented as product facts.
 
-The [book update history](docs/history.md) records documentation reviews, product-status changes, and material corrections.
+The book update history records documentation reviews, product-status changes, and material corrections.
 
 ## Copyright and Permissions
 
