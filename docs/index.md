@@ -25,35 +25,36 @@ Fabric includes 1 TB of free mirrored storage per purchased CU. An F2 capacity i
 * Chapter 7: Deploying a Mirrored Database Using CI/CD
 * Chapter 8: Using a Mirrored Database
 * Chapter 9: Extended Capabilities
+* Chapter 10: Billing and Capacity Management
 
 ### Part 2: Source-Specific Mirroring Guides
 
-* Chapter 10: Azure SQL Database
-* Chapter 11: Azure SQL Managed Instance
-* Chapter 12: Azure Cosmos DB
-* Chapter 13: Azure Databricks (Unity Catalog) - metadata mirroring
-* Chapter 14: Google BigQuery - Public Preview
-* Chapter 15: Oracle
-* Chapter 16: PostgreSQL
-* Chapter 17: MySQL - Public Preview
-* Chapter 18: SAP
-* Chapter 19: SharePoint List - Public Preview
-* Chapter 20: Snowflake
-* Chapter 21: SQL Server 2016–2022
-* Chapter 22: SQL Server 2025
-* Chapter 23: Fabric SQL Database
-* Chapter 24: Dremio Catalog Mirroring - Public Preview
+* Chapter 11: Azure SQL Database
+* Chapter 12: Azure SQL Managed Instance
+* Chapter 13: Azure Cosmos DB
+* Chapter 14: Azure Databricks (Unity Catalog) - metadata mirroring
+* Chapter 15: Google BigQuery - Public Preview
+* Chapter 16: Oracle
+* Chapter 17: PostgreSQL
+* Chapter 18: MySQL - Public Preview
+* Chapter 19: SAP
+* Chapter 20: SharePoint List - Public Preview
+* Chapter 21: Snowflake
+* Chapter 22: SQL Server 2016–2022
+* Chapter 23: SQL Server 2025
+* Chapter 24: Fabric SQL Database
+* Chapter 25: Dremio Catalog Mirroring - Public Preview
 
-> **Note:** Chapter 13 and Chapter 24 cover metadata mirroring rather than database mirroring. Chapters 14, 17, 19, and 24 cover Public Preview sources.
+> **Note:** Chapter 14 and Chapter 25 cover metadata mirroring rather than database mirroring. Chapters 15, 18, 20, and 25 cover Public Preview sources.
 
 ### Part 3: Open Mirroring
 
-* Chapter 25: What is Open Mirroring and Why It's Useful
-* Chapter 26: Setting Up Open Mirroring: Step-by-Step Configuration
-* Chapter 27: Code Samples and the Fabric Toolbox
-* Chapter 28: Use Cases and Examples
-* Chapter 29: Metadata and Change Files
-* Chapter 30: Common Issues and Troubleshooting
+* Chapter 26: What is Open Mirroring and Why It's Useful
+* Chapter 27: Setting Up Open Mirroring: Step-by-Step Configuration
+* Chapter 28: Code Samples and the Fabric Toolbox
+* Chapter 29: Use Cases and Examples
+* Chapter 30: Metadata and Change Files
+* Chapter 31: Common Issues and Troubleshooting
 
 ### Appendix
 

@@ -16,7 +16,7 @@ Microsoft Fabric is a Software as a Service analytics platform that combines dat
 
 Fabric is built around **OneLake**, the tenant-wide storage layer used by Fabric workloads. OneLake stores data in open formats and provides a common location for lakehouses, warehouses, shortcuts, and mirrored data.
 
-Mirroring is one of the Fabric data ingestion options. It's specific role is to keep a replica of source data available in Fabric with minimal setup and low operational overhead.
+Mirroring is one of the Fabric data ingestion options. Its specific role is to keep a replica of source data available in Fabric with minimal setup and low operational overhead.
 
 ## 1.2 Release History
 
@@ -78,15 +78,11 @@ At a high level, mirroring follows the same broad pattern across sources: Fabric
 
 Fabric manages the replication pipeline, including connection handling, schema tracking, and offset tracking. The exact change capture mechanism depends on the source.
 
-<br />
-
 Fabric supports three official mirroring types:
 
 * **Database mirroring** copies source data into OneLake.
 * **Metadata mirroring** syncs metadata and uses shortcuts to data that remains in the source.
 * **Open mirroring** lets a custom or partner solution write data into the mirroring landing zone.
-
-<br />
 
 ## What comes next
 

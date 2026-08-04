@@ -8,22 +8,22 @@ Fabric includes 1 TB of free mirrored storage per purchased CU. An F2 capacity i
 
 | Platform | Mirroring Type | Status | Near-Real-Time Replication | Chapter |
 |---|---|---|---|---|
-| Azure SQL Database | Database mirroring | GA | Yes | Chapter 10 |
-| Azure SQL Managed Instance | Database mirroring | GA | Yes | Chapter 11 |
-| Azure Cosmos DB (NoSQL API only) | Database mirroring | GA | Yes | Chapter 12 |
-| Azure Databricks (Unity Catalog) | Metadata mirroring | GA | Metadata sync only | Chapter 13 |
-| Google BigQuery | Database mirroring | Public Preview | Yes | Chapter 14 |
-| Oracle | Database mirroring | GA | Yes | Chapter 15 |
-| Azure Database for PostgreSQL (flexible server) | Database mirroring | GA | Yes | Chapter 16 |
-| Azure Database for MySQL (flexible server) | Database mirroring | Public Preview | Yes | Chapter 17 |
-| SAP (via SAP Datasphere) | Database mirroring | GA | Yes | Chapter 18 |
-| SharePoint List | Database mirroring | Public Preview | Yes | Chapter 19 |
-| Snowflake | Database mirroring | GA | Yes | Chapter 20 |
-| SQL Server 2016–2022 | Database mirroring | GA | Yes | Chapter 21 |
-| SQL Server 2025 | Database mirroring | GA | Yes | Chapter 22 |
-| Fabric SQL Database | Database mirroring | GA | Yes | Chapter 23 |
-| Open Mirrored Databases | Open mirroring | GA | Depends on implementation | Chapters 25–30 |
-| Dremio (catalog) | Metadata mirroring | Public Preview | Metadata sync only | Chapter 24 |
+| Azure SQL Database | Database mirroring | GA | Yes | Chapter 11 |
+| Azure SQL Managed Instance | Database mirroring | GA | Yes | Chapter 12 |
+| Azure Cosmos DB (NoSQL API only) | Database mirroring | GA | Yes | Chapter 13 |
+| Azure Databricks (Unity Catalog) | Metadata mirroring | GA | Metadata sync only | Chapter 14 |
+| Google BigQuery | Database mirroring | Public Preview | Yes | Chapter 15 |
+| Oracle | Database mirroring | GA | Yes | Chapter 16 |
+| Azure Database for PostgreSQL (flexible server) | Database mirroring | GA | Yes | Chapter 17 |
+| Azure Database for MySQL (flexible server) | Database mirroring | Public Preview | Yes | Chapter 18 |
+| SAP (via SAP Datasphere) | Database mirroring | GA | Yes | Chapter 19 |
+| SharePoint List | Database mirroring | Public Preview | Yes | Chapter 20 |
+| Snowflake | Database mirroring | GA | Yes | Chapter 21 |
+| SQL Server 2016–2022 | Database mirroring | GA | Yes | Chapter 22 |
+| SQL Server 2025 | Database mirroring | GA | Yes | Chapter 23 |
+| Fabric SQL Database | Database mirroring | GA | Yes | Chapter 24 |
+| Open Mirrored Databases | Open mirroring | GA | Depends on implementation | Chapters 26–31 |
+| Dremio (catalog) | Metadata mirroring | Public Preview | Metadata sync only | Chapter 25 |
 
 Note: Fabric SQL Database mirroring is auto-configured when you create a Fabric SQL Database. SharePoint List mirroring is a native Preview connector: Document Library data is exposed through OneLake shortcuts, and list row data is replicated into Delta tables.
 
@@ -61,7 +61,7 @@ Note: Fabric SQL Database mirroring is auto-configured when you create a Fabric 
 | **SQL Analytics Endpoint** | The automatically provided T-SQL endpoint for querying mirrored tables in Fabric. |
 | **CDC (Change Data Capture)** | A mechanism that captures inserts, updates, and deletes from a source so Fabric can apply incremental changes. |
 | **Watermark** | The position marker, such as a timestamp, token, or log sequence value, that records the last processed change. |
-| **Backoff** | A retry state where Fabric waits before trying again after a transient failure or throttling event. |
+| **Backoff** | Retry behaviour where Fabric waits before trying again after a transient failure or throttling event. It is not a distinct replication status value; it occurs while a mirror shows Running or Running with warning. |
 | **Snapshot** | The initial full load that establishes the starting state of mirrored tables. |
 | **Incremental replication** | The ongoing processing of changes after the initial snapshot completes. |
 | **_metadata.json** | The per-table Open Mirroring file that defines key columns and optional delimited-text or file-detection settings. |
@@ -85,4 +85,4 @@ Note: Fabric SQL Database mirroring is auto-configured when you create a Fabric 
 | Fabric samples on GitHub | `https://github.com/microsoft/fabric-samples` |
 | Open mirroring partners | `https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-partners-ecosystem` |
 
-**Contents:** [Table of Contents](index.md) | **Previous:** Chapter 30: Common Issues and Troubleshooting | **Next:** Book Update History
+**Contents:** [Table of Contents](index.md) | **Previous:** Chapter 31: Common Issues and Troubleshooting | **Next:** Book Update History
