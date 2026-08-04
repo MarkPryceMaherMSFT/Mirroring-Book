@@ -88,4 +88,4 @@ Fabric supports three official mirroring types:
 
 The next chapter separates the three mirroring types and shows which sources belong to each one. That distinction matters because setup, data movement, and operational responsibility differ by type.
 
-**Contents:** [Table of Contents](../index.md) | **Next:** Chapter 2: Types of Mirroring in Fabric
+**Contents:** [Table of Contents](../index.md) | **Next:** [Chapter 2: Types of Mirroring in Fabric](chapter-02.md)

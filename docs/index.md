@@ -17,15 +17,15 @@ Fabric includes 1 TB of free mirrored storage per purchased CU. An F2 capacity i
 ### Part 1: Concepts and Architecture
 
 * [Chapter 1: Introduction to Fabric Mirroring](Part%201%20-%20Concepts%20and%20Architecture/chapter-01.md)
-* Chapter 2: Types of Mirroring in Fabric
-* Chapter 3: Methods of Mirroring: Push, Pull or Polling, and Shortcuts
-* Chapter 4: The Anatomy of a Mirrored Database
-* Chapter 5: Monitoring a Mirrored Database
-* Chapter 6: Using the Fabric REST API
-* Chapter 7: Deploying a Mirrored Database Using CI/CD
-* Chapter 8: Using a Mirrored Database
-* Chapter 9: Extended Capabilities
-* Chapter 10: Billing and Capacity Management
+* [Chapter 2: Types of Mirroring in Fabric](Part%201%20-%20Concepts%20and%20Architecture/chapter-02.md)
+* [Chapter 3: Methods of Mirroring: Push, Pull or Polling, and Shortcuts](Part%201%20-%20Concepts%20and%20Architecture/chapter-03.md)
+* [Chapter 4: The Anatomy of a Mirrored Database](Part%201%20-%20Concepts%20and%20Architecture/chapter-04.md)
+* [Chapter 5: Monitoring a Mirrored Database](Part%201%20-%20Concepts%20and%20Architecture/chapter-05.md)
+* [Chapter 6: Using the Fabric REST API](Part%201%20-%20Concepts%20and%20Architecture/chapter-06.md)
+* [Chapter 7: Deploying a Mirrored Database Using CI/CD](Part%201%20-%20Concepts%20and%20Architecture/chapter-07.md)
+* [Chapter 8: Using a Mirrored Database](Part%201%20-%20Concepts%20and%20Architecture/chapter-08.md)
+* [Chapter 9: Extended Capabilities](Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md)
+* [Chapter 10: Billing and Capacity Management](Part%201%20-%20Concepts%20and%20Architecture/chapter-10.md)
 
 ### Part 2: Source-Specific Mirroring Guides
 
