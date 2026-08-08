@@ -12,10 +12,10 @@ A mirrored database in Fabric is not just a copied set of tables. It is a manage
 
 When you create a mirrored database, Fabric creates **two** items:
 
-1. The **mirrored database item** itself, which owns the landing zone, Delta tables, replication settings, and monitoring state.
+1. The **mirrored database item** itself, which owns the landing zone, Delta tables, replicator engine, replication settings, and monitoring state.
 2. The **SQL analytics endpoint**, which exposes the mirrored tables through a read-only SQL surface.
 
-Conceptually, you can think of the mirrored database item as the ingestion and storage layer, and the SQL analytics endpoint as the query layer that sits over the resulting Delta tables.
+Conceptually, you can think of the mirrored database item as the ingestion and storage layer, which can be the source of a Fabric shortcut or queried using a Delta reader, and the SQL analytics endpoint as the query layer that sits over the resulting Delta tables.
 
 ***
 
@@ -30,10 +30,10 @@ The **landing zone** is a transient staging area inside the mirrored database it
 
 **Key points:**
 
-* The landing zone is Fabric-managed and is not intended as a user-facing storage location. \[Except for Open Mirroring]
-* The exact file pattern depends on the source and mirroring method.
+* The landing zone is Fabric-managed and is not intended as a user-facing storage location. *(Except for Open Mirroring)*
+* The exact file pattern depends on the source and mirroring method. (These are hidden from the user)
 * Retention and cleanup behaviour depend on the mirroring type and source.
-* Open Mirroring moves processed files to an internal cleanup folder and removes them after **7 days**, while retaining the latest processed data file.
+* Replicator engine moves processed files to an internal cleanup folder and removes them after **7 days**, while retaining the latest processed data file.
 
 ### Delta Tables
 
@@ -43,7 +43,9 @@ After Fabric processes the landing zone files, the replicated data is written in
 
 * The table layer is stored in **Delta** format.
 * Delta transaction logs preserve table state and change application order.
-* This is the main queryable data layer for SQL, Spark, and DirectLake scenarios.
+* This is the main queryable data layer for SQL, Spark, and DirectLake scenarios. 
+* Anything that can read/understand Delta can query the data.
+* Change Data Feed (CDF) can be enabled for an additional cost.
 * The mirrored database item owns these tables even though users often access them through the SQL analytics endpoint.
 
 ***
@@ -66,7 +68,7 @@ The **replicator** is the Fabric service that manages extraction, landing zone w
 [![Figure 4.2: Replicator state machine and lifecycle](../assets/diagrams/chapter-04/diagram-02.png)](../assets/diagrams/chapter-04/diagram-02.excalidraw.png)
 *Figure 4.2: Replicator state machine and lifecycle*
 
-This is a conceptual model of what the replicator does internally. It does not map one-to-one to the replication status values returned by the Fabric portal or the REST API, covered in Section 4.6 and Chapter 5.
+This is a conceptual model of what the replicator does internally. It does not map one-to-one to the replication status values returned by the Fabric portal or the REST API, covered in Chapter 5.
 
 * **Initial snapshot:** Fabric performs a full load of the selected objects.
 * **Incremental replication:** Fabric switches to change processing after the snapshot completes.
@@ -80,9 +82,9 @@ This is a conceptual model of what the replicator does internally. It does not m
 
 ## 4.3 Configuration Screens and Management
 
-Mirrored databases are created and managed in the Fabric portal.
+Mirrored databases are created and managed in the Fabric portal, REST API or via the deployment process.
 
-### Create a Mirrored Database
+### Create a Mirrored Database \[in the UX]
 
 1. Open the target workspace.
 2. Select **New item** and choose the relevant mirrored database source.
@@ -119,7 +121,9 @@ Every mirrored database also creates a **SQL analytics endpoint**. This is the r
 * It can be used from tools such as SQL Server Management Studio, Azure Data Studio, Power BI, and other SQL clients.
 * The mirrored database item and the SQL analytics endpoint are separate Fabric items, even though users often move between them during normal work.
 
-> **Note:** The SQL analytics endpoint metadata sync can lag behind the Delta tables. If newly mirrored tables do not appear, use the **Refresh** action in the SQL analytics endpoint context menu. A new metadata sync option is in Public Preview; see [SQL analytics endpoint metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) for details.
+> **Note:** The SQL analytics endpoint metadata sync can lag behind the data arriving in the Delta tables. If newly mirrored tables do not appear, use the **Refresh** action in the SQL analytics endpoint context menu. A new metadata sync option is in Public Preview; see [SQL analytics endpoint metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) for details.
+>
+> As of writing, you can use the new Preview feature of MD Sync v2. This has a significantly improved implementation, so the latency challenges you may see in MD Sync v1 are no longer a problem.
 >
 > The SQL analytics endpoint is a whole book in its own right. It is the same engine used by the Fabric Data Warehouse.
 
@@ -180,41 +184,6 @@ For setup steps, see [Get started with OneLake security](https://learn.microsoft
 * Data in transit uses TLS.
 * Data at rest in OneLake is encrypted by Fabric.
 * **Azure Cosmos DB mirroring does not support customer-managed keys on OneLake.** Refer to the [Azure Cosmos DB mirroring limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-limitations) for current guidance.
-
-***
-
-## 4.6 The Backoff Algorithm
-
-When the replicator hits a transient issue, Fabric reduces retry frequency for a period instead of retrying continuously.
-
-[![Figure 4.4: Exponential backoff flow](../assets/diagrams/chapter-04/diagram-04.png)](../assets/diagrams/chapter-04/diagram-04.excalidraw.png)
-*Figure 4.4: Exponential backoff flow*
-
-### What Backoff Does
-
-1. Fabric attempts the next replication cycle.
-2. If the source responds normally, the schedule returns to its shorter interval.
-3. If the source is unavailable, throttled, or otherwise transiently failing, Fabric waits before retrying.
-4. Repeated failures increase the waiting period up to a maximum cap.
-5. When the issue clears, normal cadence resumes.
-
-### Effect on Freshness
-
-During backoff, mirrored data continues to lag behind the source until retries succeed. The longer the backoff period, the larger the lag becomes.
-
-### Replication States
-
-The Fabric portal and REST API report these database-level replication statuses:
-
-| State                    | Description                                                                              |
-| ------------------------ | ---------------------------------------------------------------------------------------- |
-| **Running**              | Replication is currently running, bringing snapshot and change data into OneLake.        |
-| **Running with warning** | Replication is running, with transient errors.                                           |
-| **Stopping/Stopped**     | Replication has stopped.                                                                 |
-| **Failed**               | Fatal error in replication that can't be recovered.                                      |
-| **Paused**               | Replication is paused. This happens when the Fabric capacity is paused and then resumed. |
-
-**Backoff is not a separate status value.** It is retry behaviour that can occur while a mirror still shows **Running** or **Running with warning**. See Chapter 5 for the full monitoring picture, including per-table status.
 
 ***
 

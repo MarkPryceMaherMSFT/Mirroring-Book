@@ -10,6 +10,8 @@ Fabric Mirroring continuously replicates data from supported operational and ana
 
 Mirrored data is stored in OneLake and can then be used from SQL, Spark, Power BI, and other Fabric workloads.
 
+> Why am I not using the term '*near real-time replication*'? This is a great marketing term, but it's a relative term. i.e. you bring your own interpretation of what 'near real-time' means. So I avoid it.
+
 ## 1.1 What Is Microsoft Fabric?
 
 Microsoft Fabric is a Software as a Service analytics platform that combines data integration, engineering, warehousing, real-time analytics, data science, and business intelligence in one product.
@@ -43,7 +45,7 @@ Mirroring addresses these issues by keeping a managed replica in Fabric, storing
 | Maintenance    | Managed by Fabric for supported sources                                                                                                                                                                              | Ongoing pipeline ownership required                                 |
 | Storage format | Delta Lake in OneLake                                                                                                                                                                                                | Varies by tool and destination                                      |
 | Consumption    | Native access from SQL, Spark, and Power BI                                                                                                                                                                          | Often needs extra modelling or connectors                           |
-| Cost           | Replication compute is free. Mirrored storage is free up to 1 TB per purchased capacity unit (a F4 capacity includes 4 TB free mirrored storage). Querying via SQL, Spark, or Power BI is charged at standard rates. | Separate ingestion compute plus destination storage and query costs |
+| Cost           | Replication compute is free. Mirrored storage is free up to 1 TB per purchased capacity unit (an F4 capacity includes 4 TB free mirrored storage). Querying via SQL, Spark, or Power BI is charged at standard rates. | Separate ingestion compute plus destination storage and query costs |
 
 Mirrored storage allowance is calculated at the capacity level. The free allowance scales with purchased capacity units rather than with the number of mirrored databases.
 

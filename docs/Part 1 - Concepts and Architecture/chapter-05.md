@@ -8,6 +8,14 @@
 
 ## Overview
 
+There are a number of ways to get information on the status of Fabric Mirroring
+
+* The Replication Status tab
+* Fabric Mirroring Item REST API
+* Workspace Monitoring: MirroredDatabaseTableExecutionLogs table
+
+<br />
+
 [![chapter-05 diagram 1](../assets/diagrams/chapter-05/diagram-01.png)](../assets/diagrams/chapter-05/diagram-01.excalidraw.png)
 
 *Figure 5.1: Monitoring options for a mirrored database*
@@ -26,7 +34,7 @@ Open the mirrored database item and select the **Replication Status** tab. See [
 
 * **Overall replication status**: **Running**, **Running with warning**, **Stopping/Stopped**, **Failed**, or **Paused**
 * **Per-table replication status**: **Running**, **Running with warning**, **Stopping/Stopped**, or **Failed**
-* **Rows replicated**: approximate count of rows written during the current session
+* **Rows replicated**: approximate count of rows written during the current session (*This is not the number of rows in the tables*)
 * **Last replicated time**: timestamp of the most recent successful replication batch for each table
 * **Replication lag**: estimated time difference between the latest source change and the last change applied in Fabric
 * **Error messages**: human-readable details when replication enters a failed state
@@ -39,12 +47,14 @@ Status meanings:
 * **Failed**: replication hit a fatal, unrecoverable failure and needs intervention
 * **Paused**: replication is paused because the Fabric capacity was paused and then resumed (database-level status only)
 
+**Backoff is not a separate status value.** It is retry behaviour, described in Chapter 3, that can occur while a mirror still shows **Running** or **Running with warning**.
+
 ### Table-Level Detail
 
 Clicking an individual table in the Replication Status tab opens a detail view showing:
 
 * Current replication mode (snapshot or incremental)
-* Number of rows processed in the last cycle
+* Number of rows processed in the last cycle  (*This is not the number of rows in the tables*)
 * Watermark or LSN position
 * Any warnings or errors specific to that table
 
@@ -96,6 +106,21 @@ The paginated table-status response includes metrics:
 ```
 
 Use database status for lifecycle checks and table status for snapshot, replication, reseed, failure, row, byte, and latency details.
+
+[Mirroring - Get Tables Mirroring Status - REST API (MirroredDatabase) | Microsoft Learn](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/mirroring/get-tables-mirroring-status?tabs=HTTP#tablemirroringmetrics)
+
+### **TableMirroringMetrics**
+
+Object
+
+Table mirroring metrics.
+
+| Name                     | Type               | Description                                                                                                                                                                       |
+| ------------------------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| lastSyncDateTime         | string (date-time) | Last processed time of the table in UTC, using the YYYY-MM-DDTHH:mm:ssZ format.                                                                                                |
+| lastSyncLatencyInSeconds | integer (int32)    | Latency in seconds between source commit time and target commit time of last processed change. For sources whose source commit time is not available, this value is not returned. |
+| processedBytes           | integer (int64)    | Processed bytes for this table.                                                                                                                                                   |
+| processedRows            | integer (int64)    | Processed row count for this table.                                                                                                                                               |
 
 ### SQL-Based Monitoring
 
@@ -227,13 +252,13 @@ For the full walkthrough, see [Create Activator alerts from a Real-Time Dashboar
 
 Focus on these metrics in production:
 
-| Metric                         | Description                                           | Healthy Range                                       | Action if Outside Range                                                        |
-| ------------------------------ | ----------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ |
-| **Replication lag**            | Time between source change and availability in Fabric | Usually low and stable for the workload             | Investigate source load, connectivity, throttling, or downstream backlog       |
-| **Table replication status**   | State of each table                                   | `Running` or `Running with warning` with stable lag | If warning persists or lag grows, inspect workspace logs and source health     |
-| **Rows replicated per hour**   | Throughput of the replication pipeline                | Consistent with source change rate                  | Investigate if it drops unexpectedly                                           |
-| **Snapshot completion time**   | Time to complete the initial full table scan          | Depends on table size and source performance        | Long times may be normal for large tables, but track trend and blocking issues |
-| **Error rate**                 | Number of fatal or repeated errors                    | Zero                                                | Investigate schema changes, permissions, or source connectivity                |
+| Metric                       | Description                                           | Healthy Range                                       | Action if Outside Range                                                        |
+| ---------------------------- | ----------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **Replication lag**          | Time between source change and availability in Fabric | Usually low and stable for the workload             | Investigate source load, connectivity, throttling, or downstream backlog       |
+| **Table replication status** | State of each table                                   | `Running` or `Running with warning` with stable lag | If warning persists or lag grows, inspect workspace logs and source health     |
+| **Rows replicated per hour** | Throughput of the replication pipeline                | Consistent with source change rate                  | Investigate if it drops unexpectedly                                           |
+| **Snapshot completion time** | Time to complete the initial full table scan          | Depends on table size and source performance        | Long times may be normal for large tables, but track trend and blocking issues |
+| **Error rate**               | Number of fatal or repeated errors                    | Zero                                                | Investigate schema changes, permissions, or source connectivity                |
 
 ***
 

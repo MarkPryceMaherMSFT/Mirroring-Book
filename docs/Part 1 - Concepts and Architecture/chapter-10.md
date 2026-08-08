@@ -35,7 +35,7 @@ Every Fabric workload, including mirroring, runs on a **Fabric capacity**. A cap
 | F1024 |                 1024 |
 | F2048 |                 2048 |
 
-A **running** Fabric capacity is required to set up and operate mirroring, and the capacity must not be throttled when you configure a new mirror. If a capacity is paused or deleted, mirroring stops replicating data, even though the background replication compute itself does not consume capacity units while it runs. See [Understand Microsoft Fabric licenses](https://learn.microsoft.com/en-us/fabric/enterprise/licenses) for the full SKU and licensing reference.
+> A **running** Fabric capacity is required to set up and operate mirroring, and the capacity must not be throttled when you configure a new mirror. If a capacity is paused or deleted, mirroring stops replicating data, even though the background replication compute itself does not consume capacity units while it runs. See [Understand Microsoft Fabric licenses](https://learn.microsoft.com/en-us/fabric/enterprise/licenses) for the full SKU and licensing reference.
 
 ***
 

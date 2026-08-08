@@ -14,9 +14,9 @@ This chapter walks through each type in turn: what is replicated, what Fabric cr
 
 Fabric groups mirroring into three types:
 
-* **Database mirroring** replicates data into OneLake. (Moves data)
-* **Metadata mirroring** syncs metadata and points Fabric to data that stays in the source. (Doesn't move data)
-* **Open mirroring** lets users build their own mirroring solution. (Moves data)
+* **Database mirroring** replicates data into OneLake. (*Moves data*)
+* **Metadata mirroring** syncs metadata and points Fabric to data that stays in the source. (*Does not move data*)
+* **Open mirroring** lets users build their own mirroring solution. (*Moves data*)
 
 These types are different from the transport methods covered in Chapter 3. The type tells you what Fabric creates and where the data lives.
 
@@ -61,15 +61,21 @@ Database mirroring is the standard pattern for supported source databases and pl
 * SQL Server 2025
 * Fabric SQL Database *(auto-configured)*
 
-SharePoint List is classified as database mirroring, but it uses a hybrid mechanism: Document Library data is surfaced through OneLake shortcuts, and list row data is replicated into Delta tables. Chapter 20 covers this in detail.
+SharePoint List is classified as database mirroring, but it uses a hybrid mechanism: Document Library data is surfaced through OneLake shortcuts, and list row data is replicated into Delta tables. Chapter 21 covers this in detail.
 
 Snowflake also supports **view replication** as a separate paid extended capability. That capability is covered in Chapter 9.
 
-> A key point of Database Mirroring is that control is handed off to Fabric, so the user doesn't control when the replication happens, or add any transformations into the mirroring process. This does not suit everyone, so if more control is needed there are plenty of other ETL, ELT, or near real-time streaming solutions in Fabric.
+> A key point of Database Mirroring is that control is handed off to Fabric, so the user doesn't control when the replication happens, or add any transformations into the mirroring process. This does not suit everyone, so if more control is needed there are plenty of other ETL, ELT, or near real-time streaming solutions in Fabric, including Open Mirroring.
 
 ## Metadata Mirroring
 
 Metadata mirroring does not copy table data into OneLake. Instead, Fabric syncs metadata from the source catalogue and exposes the data through **OneLake shortcuts**. The data remains in the source system.
+
+<br />
+
+Metadata has one huge advantage over Database Mirroring and Open Mirroring: it relies on [OneLake Shortcuts](https://learn.microsoft.com/en-us/fabric/onelake/onelake-shortcuts) - so there is no lag when the source is in ADLS - so the data change is instant. OneLake shortcuts to sources like S3 and GCP have a caching mechanism to reduce costs, so understanding the limitations of shortcut [caching](https://learn.microsoft.com/en-us/fabric/onelake/onelake-shortcuts#caching) is very important.
+
+<br />
 
 **What is replicated:**
 
@@ -92,9 +98,13 @@ Metadata mirroring does not copy table data into OneLake. Instead, Fabric syncs 
 **Supported sources for metadata mirroring:**
 
 * Azure Databricks (Unity Catalog) *(GA)*
+* Azure Monitor *(Public Preview)*
 * Dremio *(Public Preview)*
+* AWS Glue *(Public Preview)*
 
-For Dremio, Fabric uses **credential vending** or a personal access token to access the underlying Iceberg data through the mirrored metadata path. Chapter 25 covers Dremio catalog mirroring in detail.
+For Dremio and AWS Glue, Fabric connects to an Iceberg REST Catalog endpoint (credential vending or a personal access token for Dremio; an IAM access key for AWS Glue) to access the underlying Iceberg data through the mirrored metadata path. Chapter 26 covers Dremio catalog mirroring and Chapter 27 covers AWS Glue catalog mirroring in detail.
+
+Azure Monitor follows a different mechanism within this same type: instead of an Iceberg catalog, it connects to a Log Analytics workspace and exposes the workspace's own Delta Parquet storage through OneLake shortcuts and a Fabric Eventhouse endpoint, with no separate catalog-sync step. Chapter 15 covers Azure Monitor mirroring in detail.
 
 > [Microsoft Dataverse direct link to Microsoft Fabric](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric) is not technically in the Mirroring family, but it works in the same way as Metadata Mirroring, so it's worth mentioning here.
 
@@ -103,6 +113,12 @@ Metadata Mirroring uses shortcuts, so no data is moved and there is no lag befor
 ## Open Mirroring
 
 Open mirroring is the extensibility model. A partner solution or custom application writes data and metadata files into the open mirroring landing zone, and Fabric processes them into Delta tables.
+
+Open Mirroring might appear intimidating at first, but it's actually a simple solution to implement. It is the most powerful of all the Mirroring solutions as you can fully customise the behaviour and add functionality that is not supported in Mirroring today. You can implement soft deletes, add additional columns such as metadata or CDC information, mirror views or mirror the permissions from the source. Open Mirroring is only limited by your imagination and coding abilities. There are some examples on the [Fabric Toolbox.](https://github.com/microsoft/fabric-toolbox)
+
+But building your own Mirroring solution is not for everyone, which is why a number of [3rd parties have built their own solutions to Mirror data](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-partners-ecosystem) from sources that Microsoft does not support.
+
+> I have built a Mirroring solution using Open Mirroring to mirror data from sources like [SQL Server 1.0](https://youtu.be/Q86zvv2cQ4M?si=PQ58nP8JqztDTnVr), [SQL Server 2008, Access,](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/GenericMirroring) [Excel,](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring) [Snowflake Views and Dynamic tables, MySQL, SharePoint](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring).
 
 **What is replicated:**
 
@@ -135,7 +151,7 @@ Open mirroring is the extensibility model. A partner solution or custom applicat
 | **Spark access**                    | Yes                                                    | Yes                             | Yes                                         |
 | **Source coverage**                 | Fixed supported source list                            | Fixed supported source list     | Any source with a compatible implementation |
 | **Operational responsibility**      | Mostly Fabric                                          | Shared with source platform     | Application owner                           |
-| **Typical examples**                | Azure SQL Database, Snowflake, Oracle, SharePoint List | Azure Databricks, Dremio        | Custom applications, ISV connectors         |
+| **Typical examples**                | Azure SQL Database, Snowflake, Oracle, SharePoint List | Azure Databricks, Azure Monitor, Dremio, AWS Glue | Custom applications, ISV connectors         |
 
 ## Selection Decision Framework
 
