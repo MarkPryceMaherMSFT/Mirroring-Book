@@ -10,6 +10,14 @@ This book explains those differences without making readers assemble the story f
 
 It all started with a couple of sources and now it supports over 14 different sources.
 
+The main reason for doing this book is that I get asked the same Mirroring questions over and over again. Some of that I put on my [blog](https://medium.com/@sqltidy), but some things just need a longer explanation. So the aim is this should actually save me time.
+
+<br />
+
+I am also publishing it in sections. As of today, 'Concepts and architecture' is fully published. Now just Source-specific guides and Open Mirroring to go...
+
+<br />
+
 **[Read the book](docs/index.md)**
 
 ## What You Will Find
@@ -38,6 +46,22 @@ Keeping the book on GitHub also makes errors visible and fixable. If you find so
 **Public-information policy:** This book uses publicly available information. Unclear, conflicting, internal, or private-preview claims are tracked separately rather than presented as product facts.
 
 The book update history records documentation reviews, product-status changes, and material corrections.
+
+<br />
+
+## AI and why you should not steal this book
+
+Before you go too far, you might ask: did I use AI to help write this book? Yes, I did. I'm using AI to edit the book. The content and ideas are mine, because AI will make stuff up and it doesn't always like to be told it's wrong.
+
+So while it's built from my experience of working on Fabric Mirroring and the years of helping customers - AI is too useful not to use. I tell it to check my edits, look for updates in the public docs (since putting this online, 2 more Mirroring sources appeared). So there are things in here, like Chapter 3, you will not find anywhere else.
+
+And it's also why this book is online and free, I don't think I could sell a book if AI has helped work on it.
+
+<br />
+
+If there is an issue or you think I've got something wrong, then raise an issue. If you know a specific Mirroring source really well, then feel free to lean in and help out on a chapter.
+
+So don't steal, join in!
 
 ## Copyright and Permissions
 
