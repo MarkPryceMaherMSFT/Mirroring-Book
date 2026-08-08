@@ -1,5 +1,7 @@
 # Fabric Mirroring: A Practical Guide
 
+![Front cover of Fabric Mirroring: A Practical Guide](docs/assets/cover/front-cover.png)
+
 > **Start with the source.** Almost every Fabric Mirroring question begins with the same reply: *What is the source?*
 
 I was one of the Product Managers who helped bring Fabric Mirroring to customers. The idea sounds simple: keep an analytical copy of operational data in OneLake. The details are not. Each source has its own replication mechanism, permissions, network requirements, limitations, and failure modes.

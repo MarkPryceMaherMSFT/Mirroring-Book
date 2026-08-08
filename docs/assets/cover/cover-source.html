@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1600px;
+    height: 2400px;
+    overflow: hidden;
+    font-family: 'Segoe UI', 'Segoe UI Semibold', system-ui, -apple-system, Arial, sans-serif;
+  }
+  .cover {
+    position: relative;
+    width: 1600px;
+    height: 2400px;
+    background:
+      radial-gradient(1200px 900px at 78% 60%, rgba(52,211,153,0.14) 0%, rgba(52,211,153,0) 60%),
+      radial-gradient(1000px 800px at 15% 50%, rgba(96,165,250,0.18) 0%, rgba(96,165,250,0) 60%),
+      linear-gradient(160deg, #0A1730 0%, #0D2149 45%, #0B2E4A 78%, #0A3A50 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+  }
+
+  /* subtle grid texture */
+  .grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0) 78%);
+  }
+
+  .top-bar {
+    position: absolute;
+    top: 128px;
+    left: 128px;
+    right: 128px;
+  }
+  .kicker {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 6px;
+    color: #9FC6FF;
+    text-transform: uppercase;
+  }
+
+  .title-block {
+    position: absolute;
+    top: 255px;
+    left: 128px;
+    right: 128px;
+  }
+  .title {
+    font-size: 148px;
+    font-weight: 700;
+    line-height: 1.03;
+    letter-spacing: -2px;
+    color: #FFFFFF;
+  }
+  .subtitle {
+    margin-top: 30px;
+    font-size: 56px;
+    font-weight: 400;
+    color: #8FD9C4;
+    letter-spacing: 0.5px;
+  }
+  .rule {
+    margin-top: 46px;
+    width: 160px;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #60A5FA, #34D399);
+  }
+
+  /* Abstract reflection motif: a shape and its mirrored twin across a horizon line */
+  .reflection {
+    position: absolute;
+    top: 900px;
+    left: 0;
+    width: 1600px;
+    height: 1150px;
+  }
+  .horizon {
+    position: absolute;
+    top: 575px;
+    left: 300px;
+    right: 300px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(147,197,253,0) 0%, rgba(147,197,253,0.55) 50%, rgba(52,211,153,0) 100%);
+  }
+  .horizon-glow {
+    position: absolute;
+    top: 560px;
+    left: 300px;
+    right: 300px;
+    height: 32px;
+    background: radial-gradient(ellipse at center, rgba(147,197,253,0.18) 0%, rgba(147,197,253,0) 75%);
+  }
+
+  .author-block {
+    position: absolute;
+    left: 128px;
+    right: 128px;
+    bottom: 168px;
+  }
+  .author-name {
+    font-size: 50px;
+    font-weight: 600;
+    color: #FFFFFF;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+  <div class="cover">
+    <div class="grid"></div>
+
+    <div class="top-bar">
+      <div class="kicker">Microsoft Fabric</div>
+    </div>
+
+    <div class="title-block">
+      <div class="title">Fabric<br>Mirroring</div>
+      <div class="subtitle">A Practical Guide</div>
+      <div class="rule"></div>
+    </div>
+
+    <div class="reflection">
+      <svg width="1600" height="1150" viewBox="0 0 1600 1150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="shapeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#60A5FA"></stop>
+            <stop offset="100%" stop-color="#34D399"></stop>
+          </linearGradient>
+          <clipPath id="topHalf">
+            <rect x="0" y="0" width="1600" height="575"></rect>
+          </clipPath>
+        </defs>
+
+        <!-- upper shape -->
+        <g opacity="0.9">
+          <polygon points="800,180 970,280 970,470 800,570 630,470 630,280"
+            fill="url(#shapeGrad)" fill-opacity="0.22" stroke="url(#shapeGrad)" stroke-width="3"></polygon>
+        </g>
+
+        <!-- mirrored (reflected) lower shape -->
+        <g opacity="0.32" transform="translate(0, 1150) scale(1,-1)">
+          <polygon points="800,180 970,280 970,470 800,570 630,470 630,280"
+            fill="url(#shapeGrad)" fill-opacity="0.22" stroke="url(#shapeGrad)" stroke-width="3"></polygon>
+        </g>
+      </svg>
+      <div class="horizon-glow"></div>
+      <div class="horizon"></div>
+    </div>
+
+    <div class="author-block">
+      <div class="author-name">Mark Pryce-Maher</div>
+    </div>
+  </div>
+</body>
+</html>
