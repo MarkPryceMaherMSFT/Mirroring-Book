@@ -4,6 +4,8 @@
 >
 > **Purpose:** Use this chapter to automate mirrored database operations, status checks, and operational workflows through the Fabric REST API.
 
+**Part index:** [Chapters in Part 1](readme.md)
+
 ---
 
 ## Overview
@@ -25,7 +27,10 @@ Before using the Fabric REST API for mirroring operations, make sure the followi
 Fabric REST API calls require a valid **Microsoft Entra ID** bearer token. You can authenticate as:
 
 - **A user** with delegated permissions, suitable for interactive scripts and development
-- **A service principal** with application permissions, suitable for CI/CD, scheduled jobs, and other automation
+- **A service principal**, suitable for CI/CD, scheduled jobs, and other automation
+- **A managed identity**, where the automation host supports it
+
+Service principals and managed identities require the **Service principals can use Fabric APIs** tenant setting and the appropriate workspace or item permissions. Delegated OAuth scopes apply to user tokens, not app-only tokens. See [Fabric API identity support](https://learn.microsoft.com/en-us/rest/api/fabric/articles/identity-support).
 
 **Obtaining a token (service principal example):**
 
@@ -48,18 +53,62 @@ The calling identity must have at least:
 | Operation | Required Role |
 |---|---|
 | Read mirroring status | Workspace Viewer or item Read permission |
-| Start or stop mirroring | Workspace Contributor or item Write permission |
-| Create mirrored database | Workspace Member or Admin |
+| Start or stop mirroring | Workspace Contributor or higher, or item Read and Write permissions |
+| Create mirrored database | Workspace Contributor or higher |
+| Get or update the item definition | Workspace Contributor or higher, or item Read and Write permissions |
 
-**Managed identity nuance:** when you create a mirrored database in the Fabric portal and choose a managed identity such as a system-assigned or user-assigned managed identity, Fabric grants the managed identity the required Fabric item permissions automatically. If you create the item through the API or through automated deployment pipelines, you must grant that managed identity **Read** and **Write** permission on the mirrored database item yourself.
+For delegated user tokens, status calls accept `MirroredDatabase.Read.All`, `MirroredDatabase.ReadWrite.All`, `Item.Read.All`, or `Item.ReadWrite.All`. Create, start, stop, and definition operations require `MirroredDatabase.ReadWrite.All` or `Item.ReadWrite.All`. Even `getDefinition` requires **Read and Write**, not just Read.
+
+**Source managed identity nuance:** the source server's managed identity is separate from the identity calling the API. Azure SQL Database, Azure SQL Managed Instance, Azure Database for PostgreSQL, Azure Database for MySQL, and SQL Server 2025 require their source managed identity to have **Read and Write** permission on the mirrored database. Portal creation grants this automatically; API or deployment-pipeline creation requires you to grant it separately. See [Share and manage permissions](https://learn.microsoft.com/en-us/fabric/mirroring/share-and-manage-permissions).
 
 ### 3. Fabric Workspace and Item IDs
 
-All API calls require the **Workspace ID** and **Mirrored Database Item ID**. You can get these from the Fabric portal URL or by listing workspaces:
+Item-specific calls require the **Workspace ID** and **Mirrored Database Item ID**. Create and list calls need only the Workspace ID. You can get IDs from the Fabric portal URL or list workspaces first:
 
 ```http
 GET https://api.fabric.microsoft.com/v1/workspaces
 ```
+
+---
+
+## Create and Update a Mirrored Database
+
+[Create an item](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/items/create-mirrored-database) with `POST /v1/workspaces/{workspaceId}/mirroredDatabases`. The request requires `displayName` and a `definition`; creating an empty mirrored database without a definition is not supported.
+
+```json
+{
+  "displayName": "Sales Database Mirror",
+  "definition": {
+    "parts": [
+      {
+        "path": "mirroring.json",
+        "payload": "<base64-encoded-definition>",
+        "payloadType": "InlineBase64"
+      }
+    ]
+  }
+}
+```
+
+The decoded `mirroring.json` contains a `properties` object with `source`, `target`, and optional `mountedTables`. Omit `mountedTables` to mirror all supported tables, including newly added tables. For connection-based sources, create the Fabric connection first and use its ID in the definition; credentials do not belong in the payload. Use the [item definition reference](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition) for source-specific properties.
+
+A successful create returns **201 Created**. The SQL analytics endpoint can still be provisioning, so wait for `getMirroringStatus` to return `Initialized` before starting replication.
+
+Two update paths serve different purposes:
+
+| Operation | Method and workspace-relative path | Purpose |
+|---|---|---|
+| Update item metadata | `PATCH /mirroredDatabases/{mirroredDatabaseId}` | Change `displayName` or `description` |
+| Get definition | `POST /mirroredDatabases/{mirroredDatabaseId}/getDefinition` | Retrieve the Base64-encoded definition parts |
+| Update definition | `POST /mirroredDatabases/{mirroredDatabaseId}/updateDefinition` | Replace the configuration using a `definition.parts` request |
+
+For a configuration change, get the current definition, decode `mirroring.json`, change only the required properties, and re-encode it locally. `updateDefinition` replaces the definition; it is not a partial JSON patch. Preserve existing configuration, including the table selection.
+
+The [mirroring REST guide](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-rest-api#update-mirrored-database-definition) documents adding or removing tables through `mountedTables`. It allows changes to the connection ID, database name, and default schema only when status is `Initialized` or `Stopped`. Plan any required stop/start as a potential reseed, not a routine configuration refresh.
+
+`getDefinition` and `updateDefinition` can return **202 Accepted**. Follow the `Location` operation URL and `Retry-After` header until the long-running operation completes; a 202 response is not completion. See [Get definition](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/items/get-mirrored-database-definition) and [Update definition](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/items/update-mirrored-database-definition).
+
+For `getDefinition`, retrieve the operation result after it succeeds to obtain the definition payload. The final `Location` header points to that result. See [Long-running operations](https://learn.microsoft.com/en-us/rest/api/fabric/articles/long-running-operation).
 
 ---
 
@@ -80,8 +129,9 @@ Content-Type: application/json
 **Notes:**
 
 - If mirroring has never been started, the API initiates the initial snapshot and then ongoing replication.
-- Calling `startMirroring` on an already running item is generally safe.
-- **Important:** For database mirroring sources, stopping mirroring and then restarting it triggers a **full reseed**. All previously replicated data is re-replicated from the initial snapshot. The stop/start pattern does not resume from a watermark. Use stop/start only when a full reseed is acceptable. This behaviour is documented in the [Azure SQL Database FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-mirroring-faq) and [Snowflake FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-mirroring-faq). Individual source chapters provide source-specific detail.
+- Check status first. Do not call `startMirroring` while the item is `Initializing`, or issue repeated start requests while it is `Starting`.
+- **Important:** For sources such as Azure SQL Database and Snowflake, stopping mirroring and then restarting it triggers a **full reseed**, not a resume from a watermark. All selected tables are fetched again. Use stop/start only when full re-replication is acceptable. See the [Azure SQL Database FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-mirroring-faq), [Snowflake FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-mirroring-faq), and the relevant source chapter.
+- An open mirrored database also restarts from the beginning after stop/start. Do not use this database-wide operation to recover one table. Follow the table-specific recovery procedure in [Open mirroring best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery).
 
 ---
 
@@ -99,8 +149,9 @@ Content-Type: application/json
 
 **Notes:**
 
+- Poll `getMirroringStatus` until the item is `Stopped` before a change that requires a stopped item.
 - Stopping mirroring does not delete the Delta tables in OneLake. Existing data remains queryable.
-- For database mirroring sources, a later `startMirroring` call triggers a full reseed rather than a simple resume.
+- A later `startMirroring` call can trigger a full reseed, as documented for Azure SQL Database and Snowflake above.
 - Treat stop/start as an operational reset only when full re-replication is acceptable.
 
 ---
@@ -124,7 +175,7 @@ The database status can be **Initializing**, **Initialized**, **Starting**, **Ru
 }
 ```
 
-Call `getTablesMirroringStatus` with `POST` when you need per-table states and metrics. Table states include **Initialized**, **Snapshotting**, **Replicating**, **Reseeding**, **Stopped**, and **Failed**.
+Call `getTablesMirroringStatus` with `POST` when you need per-table states and metrics. Table states include **Initialized**, **Snapshotting**, **Replicating**, **Reseeding**, **Stopped**, and **Failed**. Read every page using `continuationUri` or `continuationToken`, and inspect optional `error` fields. Database `Running` alone does not prove that every table is healthy.
 
 ---
 
@@ -150,6 +201,8 @@ Authorization: Bearer {token}
   ]
 }
 ```
+
+Follow the continuation information when the list spans multiple pages.
 
 ---
 
@@ -182,7 +235,7 @@ def get_mirroring_status(workspace_id: str, database_id: str, token: str) -> dic
         f"/mirroredDatabases/{database_id}/getMirroringStatus"
     )
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.post(url, headers=headers)
+    response = requests.post(url, headers=headers, timeout=30)
     response.raise_for_status()
     return response.json()
 ```
@@ -195,22 +248,22 @@ Pipelines can call the REST API after deployment to:
 - confirm that the item exists and is reachable
 - check status before promoting downstream configuration
 
-Be careful with automated stop/start steps for database mirroring sources, because restart triggers a full reseed.
+Be careful with automated stop/start steps for database mirroring sources, because restart can trigger a full reseed.
 
 ---
 
 ## API Rate Limits and Best Practices
 
 - **Rate limiting**: Fabric REST API calls are subject to throttling.
-- **Polling frequency**: avoid polling `getMirroringStatus` more often than every 30 seconds per mirrored database to stay within published rate limits.
-- **Error handling**: implement retry logic with exponential backoff for `429 Too Many Requests` and `503 Service Unavailable`.
-- **Idempotent operations**: `startMirroring` and `stopMirroring` are designed to be safe to call repeatedly, but for database mirroring a stopped item that is started again triggers a full reseed rather than a simple resume.
-- **Token expiry**: bearer tokens typically expire after about one hour, so long-running automation should refresh tokens.
+- **Polling frequency**: choose an interval that meets your monitoring needs, for example 30 to 60 seconds. This is an operational starting point, not a published per-item rate limit.
+- **Error handling**: honour `Retry-After` on `429 Too Many Requests`, and use bounded retries with backoff for transient failures such as `503 Service Unavailable`.
+- **State-aware operations**: check status before repeating start or stop requests. Do not assume retrying a stop/start sequence is harmless; it can trigger full re-replication.
+- **Token expiry**: refresh tokens using the expiry returned by your authentication library rather than assuming a fixed lifetime.
 
 ---
 
 ## Summary
 
-The Fabric REST API gives you practical control over mirrored database operations: start, stop, list, and check status. Use Microsoft Entra ID for authentication, grant permissions carefully for managed identities in automated deployments, and remember that for database mirroring a stop followed by start causes a full reseed.
+The Fabric REST API gives you practical control over mirrored database operations: create, update, start, stop, list, and check status. Use Microsoft Entra ID for authentication, handle definition permissions and long-running operations, and grant source managed identities access in automated deployments. Treat stop/start as a potential full reseed.
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 5: Monitoring a Mirrored Database](chapter-05.md) | **Next:** [Chapter 7: Deploying a Mirrored Database Using CI/CD](chapter-07.md)

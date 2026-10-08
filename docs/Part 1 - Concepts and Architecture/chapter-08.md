@@ -4,6 +4,8 @@
 >
 > **Purpose:** Use this chapter to query, secure, and combine mirrored data after replication is running.
 
+**Part index:** [Chapters in Part 1](readme.md)
+
 ***
 
 ## Overview
@@ -14,6 +16,8 @@ Mirrored data is a read-only analytical asset that you can query, join to other 
 *Figure 8.1 - Analytics capabilities powered by a mirrored database*
 
 > **Important:** Source-level security, including row-level security, column-level security, and data masking, is **not** propagated to the mirrored database in Fabric. Any granular security that existed in the source must be reconfigured separately in Fabric. See [Row-level security](https://learn.microsoft.com/en-us/fabric/data-warehouse/row-level-security), [Column-level security](https://learn.microsoft.com/en-us/fabric/data-warehouse/column-level-security), and [Dynamic data masking](https://learn.microsoft.com/en-us/fabric/data-warehouse/dynamic-data-masking) for how to apply these controls.
+
+SQL endpoint security protects queries through that endpoint, not direct access through Spark or OneLake. Review both SQL and OneLake access before sharing. Item **Read** alone does not grant access to all table data; **ReadData** grants SQL data access and **ReadAll** grants OneLake data access. See [Share and manage permissions](https://learn.microsoft.com/en-us/fabric/mirroring/share-and-manage-permissions) and [SQL analytics endpoint security](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-sql-analytics-endpoint#security).
 
 ***
 
@@ -26,13 +30,17 @@ Every mirrored database exposes a **SQL analytics endpoint** for querying mirror
 * Mirrored tables are **read-only** through the SQL analytics endpoint.
 * `INSERT`, `UPDATE`, and `DELETE` statements against mirrored tables are not supported.
 * You **can** create SQL views and stored procedures on the SQL analytics endpoint. These are metadata-only objects and do not write to the mirrored tables.
-* Metadata synchronisation can lag behind the underlying Delta tables. If a newly mirrored table does not appear, use the **Refresh** action from the SQL analytics endpoint item menu.
+* Metadata synchronisation can lag behind the underlying Delta tables. If a newly mirrored table does not appear, use **Refresh** in the SQL analytics endpoint editor's **Explorer** toolbar.
 
-> **Note:** Query freshness through the SQL analytics endpoint depends on a second background process, often called **metadata sync**, not only on mirroring replication speed. Metadata sync keeps the endpoint's SQL view of the Delta tables current, detecting new or dropped tables, schema changes, and row-level data changes. Because it runs separately from mirroring, a short additional delay is possible between a change landing in the mirrored Delta tables and that change becoming visible through the SQL analytics endpoint. If you need the current state without waiting on sync, query through Spark or Power BI DirectLake instead, since both read the Delta files directly. See [SQL analytics endpoint metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) for how sync works, the newer low-latency metadata sync option in preview, and manual refresh options through the portal, REST API, or a T-SQL stored procedure.
+> **Note:** Query freshness through the SQL analytics endpoint depends on **metadata sync**, not only on mirroring replication speed. This separate process detects tables, schema changes, and row-level data changes in Delta. A change can therefore be visible in OneLake before it appears through SQL. Query the Delta table through Spark to distinguish replication delay from SQL sync delay. Direct Lake on SQL also depends on the endpoint for discovery and framing, so it is not a general bypass for metadata sync.
+
+The [new metadata sync option](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) is in preview. Enable it under **Workspace settings > Warehouse settings** before creating an endpoint; existing endpoints remain on legacy sync. The T-SQL refresh procedure `sys.sp_dw_refresh_ext_table` is available only on endpoints created with the new sync. Portal refresh and the metadata-refresh REST API provide other manual refresh paths.
 
 ### String Column Size Boundary
 
-String columns support up to 16 MB per value, equivalent to `varchar(max)`. Tables created under an earlier limit (8000 bytes) may need to be recreated. See the [Fabric Mirroring troubleshooting page](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting) for current guidance.
+The mirrored SQL analytics endpoint supports `varchar(max)` up to **16 MB**, but source-specific limits can be lower: **1 MB** for mirrored SQL Server, Azure SQL Database, and Azure SQL Managed Instance, and **2 MB** for mirrored Azure Cosmos DB. Older tables can still map strings to `varchar(8000)` and may need to be recreated. Check the actual column metadata and the [Fabric Mirroring troubleshooting guidance](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting#some-of-the-data-in-my-column-appears-to-be-truncated).
+
+A Lakehouse shortcut does not carry the mirrored endpoint's larger string limit into the Lakehouse SQL endpoint. The [Lakehouse SQL endpoint limitations](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-sql-analytics-endpoint#limitations) still document 8 KB truncation there, including shortcuts to mirrored items.
 
 ***
 
@@ -42,8 +50,8 @@ Mirrored data is stored as **Delta** tables in OneLake.
 
 **What this means in practice:**
 
-* Tools that can read Delta or Parquet can access mirrored data in OneLake.
-* OneLake exposes an [ADLS Gen2-compatible API](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction), so tools such as Azure Databricks, dbt, Trino, Presto, and Apache Spark can connect directly.
+* Use a Delta-aware reader that supports the table's Delta features. Reading individual Parquet files without the Delta transaction log can return obsolete rows or miss changes.
+* OneLake exposes [ADLS Gen2-compatible APIs](https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api), so compatible tools such as Azure Databricks and Apache Spark can read it with Microsoft Entra authentication and appropriate permissions.
 * You do not need to export mirrored data into another format before analysing it.
 * The format remains open even though the mirrored tables themselves stay read-only.
 
@@ -51,7 +59,7 @@ Mirrored data is stored as **Delta** tables in OneLake.
 
 ## Cross-Database Queries
 
-The SQL analytics endpoint supports **cross-database queries**, so you can join mirrored data with warehouses, lakehouse SQL endpoints, and other SQL-addressable Fabric items.
+The SQL analytics endpoint supports **cross-database queries** within the same workspace, so you can join mirrored data with warehouses and Lakehouse SQL endpoints using three-part names. For data in another workspace, use OneLake shortcuts where supported rather than assuming the same naming convention crosses workspace boundaries. See [Write a cross-database query](https://learn.microsoft.com/en-us/fabric/data-warehouse/query-warehouse#write-a-cross-database-query).
 
 ### Joining Mirrored and Warehouse Data
 
@@ -99,18 +107,20 @@ The shortcut then appears as a Lakehouse table that Spark and the Lakehouse SQL 
 
 ## Tool Ecosystem
 
-Mirrored databases can be consumed through the SQL analytics endpoint and through OneLake. In every case, mirrored tables remain read-only. No tool can write to the mirrored Delta tables.
+Mirrored databases can be consumed through the SQL analytics endpoint and through OneLake. Mirrored tables remain read-only to consumers. Direct edits to their Delta files are unsupported; update the source instead, or publish changes through the landing zone for open mirroring.
 
 ### SQL-Based Tools
 
 | Tool                                    | Connection Method           | Notes                                    |
 | --------------------------------------- | --------------------------- | ---------------------------------------- |
 | **SQL Server Management Studio (SSMS)** | TDS / SQL Server connection | Read-only access to mirrored tables      |
-| **Azure Data Studio**                   | TDS / SQL Server connection | Querying and notebook support            |
+| **Visual Studio Code with MSSQL**       | TDS / SQL Server connection | SQL querying and development              |
 | **DBeaver**                             | JDBC / SQL Server driver    | Community tool with broad compatibility  |
 | **Power BI Desktop**                    | DirectQuery or Import       | Uses Fabric and SQL connectivity options |
 | **Excel**                               | Get Data -> SQL Server      | Can read mirrored tables directly        |
 | **Tableau**                             | SQL Server connector        | Read-only analytics on mirrored data     |
+
+Azure Data Studio is retired and no longer receives security fixes. Use [Visual Studio Code with the MSSQL extension](https://learn.microsoft.com/en-us/sql/tools/whats-happening-azure-data-studio?view=sql-server-ver17) or SSMS for supported Microsoft desktop tooling.
 
 ### Spark / Notebook Tools
 
@@ -126,17 +136,17 @@ Mirrored databases can be consumed through the SQL analytics endpoint and throug
 
 Power BI is a common way to consume mirrored data in Fabric.
 
-### DirectLake Mode
+### Direct Lake Mode
 
-Power BI uses **DirectLake mode** when the semantic model is built over the Delta Parquet files in OneLake. The SQL analytics endpoint is not used in this path.
+Power BI **Direct Lake** loads data from Delta tables in OneLake into the semantic model's engine without a full Import-mode copy. There are two paths:
 
-[![Figure 8.2 - DirectLake mode reads Delta files directly from OneLake](../assets/diagrams/chapter-08/diagram-02.png)](../assets/diagrams/chapter-08/diagram-02.excalidraw.png)
-*Figure 8.2 - DirectLake mode reads Delta files directly from OneLake*
+* **Direct Lake on OneLake** accesses Delta tables without SQL endpoint discovery or DirectQuery fallback.
+* **Direct Lake on SQL** uses the SQL analytics endpoint for discovery and permission checks. It can fall back to DirectQuery, for example for SQL views or SQL row-level security.
 
-* DirectLake reads the Delta Parquet files directly from OneLake.
-* It avoids the SQL endpoint during query execution.
-* It does not require a scheduled import refresh.
-* It reflects newly replicated data as the semantic model sees updated files.
+[![Figure 8.2 - Direct Lake reads Delta files directly from OneLake](../assets/diagrams/chapter-08/diagram-02.png)](../assets/diagrams/chapter-08/diagram-02.excalidraw.png)
+*Figure 8.2 - Direct Lake data-reading path, excluding SQL-based discovery and any DirectQuery fallback*
+
+Direct Lake still needs a metadata refresh, called **framing**, to reference updated table files. Automatic updates can keep the model current without a scheduled full import, but mirroring a change does not guarantee that every report immediately sees it. See the [Direct Lake overview](https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview).
 
 ### Creating a Power BI Semantic Model from a Mirrored Database
 
@@ -148,7 +158,7 @@ Power BI uses **DirectLake mode** when the semantic model is built over the Delt
 
 ### DirectQuery Mode
 
-If DirectLake is unsuitable for a particular model, Power BI can use **DirectQuery** through the SQL analytics endpoint. In that case, queries are executed by the SQL engine rather than directly against OneLake files.
+If Direct Lake is unsuitable for a particular model, Power BI can use **DirectQuery** through the SQL analytics endpoint. In that case, queries are executed by the SQL engine rather than directly against OneLake files.
 
 ### Refreshing Imported Models
 

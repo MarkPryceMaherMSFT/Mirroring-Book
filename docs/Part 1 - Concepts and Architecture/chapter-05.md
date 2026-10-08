@@ -4,15 +4,17 @@
 >
 > **Purpose:** Use this chapter to choose the right monitoring path, detect replication problems, and gather evidence for troubleshooting.
 
+**Part index:** [Chapters in Part 1](readme.md)
+
 ***
 
 ## Overview
 
-There are a number of ways to get information on the status of Fabric Mirroring
+There are several ways to check the status of Fabric Mirroring:
 
-* The Replication Status tab
+* The mirrored database's Replication Status tab or monitoring section
 * Fabric Mirroring Item REST API
-* Workspace Monitoring: MirroredDatabaseTableExecutionLogs table
+* Workspace Monitoring: `MirroredDatabaseTableExecution` table
 
 <br />
 
@@ -24,41 +26,36 @@ There are a number of ways to get information on the status of Fabric Mirroring
 
 ## Fabric Portal Monitoring
 
-The fastest way to check a mirrored database is the **Replication Status** tab inside the mirrored database item itself in the Fabric portal.
+The fastest way to check a mirrored database is its item-level replication status view in the Fabric portal.
 
-> **Note:** This is not the same as the Fabric-wide **Monitoring hub** (opened by selecting **Monitor** in the navigation pane). The Monitoring hub tracks job activity for item types such as pipelines, notebooks, dataflows, and Spark job definitions, and mirrored databases are not one of the item types it covers. See the [Monitoring hub item types](https://learn.microsoft.com/en-us/fabric/admin/monitoring-hub) for the current supported list. To check replication status, open the mirrored database item directly and use its own **Replication Status** tab, described below.
+> **Note:** This is not the same as the Fabric-wide **Monitor hub**, opened by selecting **Monitor** in the navigation pane. Its **Job runs** page tracks activity for items such as pipelines, notebooks, dataflows, and Spark job definitions. Mirrored databases are not in its [supported item list](https://learn.microsoft.com/en-us/fabric/admin/monitoring-hub-jobs#supported-item-types-in-the-job-runs-page). To check replication status, open the mirrored database item directly.
 
-### Replication Status Tab
+### Replication Status and Monitor Replication
 
-Open the mirrored database item and select the **Replication Status** tab. See [Monitor mirrored database replication](https://learn.microsoft.com/en-us/fabric/mirroring/monitor) for the full walkthrough and current screenshots. The tab shows:
+Open the mirrored database item and use the **Replication Status** tab or monitoring section for that item experience. [Monitor mirrored database replication](https://learn.microsoft.com/en-us/fabric/mirroring/monitor) describes a **Monitor replication** section, illustrated on the item's Home page. That section heading does not establish a rename of the Replication Status tab. The item-level monitoring view shows:
 
 * **Overall replication status**: **Running**, **Running with warning**, **Stopping/Stopped**, **Failed**, or **Paused**
 * **Per-table replication status**: **Running**, **Running with warning**, **Stopping/Stopped**, or **Failed**
-* **Rows replicated**: approximate count of rows written during the current session (*This is not the number of rows in the tables*)
-* **Last replicated time**: timestamp of the most recent successful replication batch for each table
-* **Replication lag**: estimated time difference between the latest source change and the last change applied in Fabric
-* **Error messages**: human-readable details when replication enters a failed state
+* **Rows replicated**: cumulative count of replicated rows, including inserts, updates, and deletes applied to the target table. This is not the number of rows currently in the table.
+* **Last completed**: the last completed time for refreshing each mirrored table from the source
+
+For replication latency, use the REST API metrics or Workspace Monitoring logs described below.
 
 Status meanings:
 
-* **Running**: replication is active and healthy
-* **Running with warning**: replication is still active, but transient errors or lag growth need attention
+* **Running**: replication is running and bringing snapshot or change data into OneLake
+* **Running with warning**: replication is still active, but transient or nonfatal errors need attention
 * **Stopping/Stopped**: replication is being stopped or has already stopped
 * **Failed**: replication hit a fatal, unrecoverable failure and needs intervention
 * **Paused**: replication is paused because the Fabric capacity was paused and then resumed (database-level status only)
 
-**Backoff is not a separate status value.** It is retry behaviour, described in Chapter 3, that can occur while a mirror still shows **Running** or **Running with warning**.
+**Backoff is not a separate status value.** It is polling behaviour, described in Chapter 3, that can occur while a mirror still shows **Running** or **Running with warning**.
 
 ### Table-Level Detail
 
-Clicking an individual table in the Replication Status tab opens a detail view showing:
+Use the table rows in the item-level replication status view to identify affected tables. For snapshot or incremental state, processed rows and bytes, latency, and table-level errors, use `getTablesMirroringStatus`. For individual replication operations, use Workspace Monitoring.
 
-* Current replication mode (snapshot or incremental)
-* Number of rows processed in the last cycle  (*This is not the number of rows in the tables*)
-* Watermark or LSN position
-* Any warnings or errors specific to that table
-
-> The number of rows processed is NOT the number of rows in the table, it's the number of rows changed.
+Source-specific watermarks or LSN positions are not part of the documented common monitoring view or table-status API. Where supported, inspect them using the source's troubleshooting tools.
 
 ***
 
@@ -105,15 +102,13 @@ The paginated table-status response includes metrics:
 }
 ```
 
-Use database status for lifecycle checks and table status for snapshot, replication, reseed, failure, row, byte, and latency details.
+Use database status for lifecycle checks and table status for snapshot, replication, reseed, failure, row, byte, and latency details. Portal status labels and REST API status values differ; do not test API responses for portal labels such as `Running with warning`.
 
-[Mirroring - Get Tables Mirroring Status - REST API (MirroredDatabase) | Microsoft Learn](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/mirroring/get-tables-mirroring-status?tabs=HTTP#tablemirroringmetrics)
+Follow `continuationUri`, or pass `continuationToken` in another `POST`, until there are no more pages. Otherwise, a monitor can miss failed tables beyond the first page. Inspect the optional `error` field on both database and table responses.
 
-### **TableMirroringMetrics**
+### TableMirroringMetrics
 
-Object
-
-Table mirroring metrics.
+The [table-status API reference](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/mirroring/get-tables-mirroring-status#tablemirroringmetrics) defines these metrics:
 
 | Name                     | Type               | Description                                                                                                                                                                       |
 | ------------------------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -155,6 +150,8 @@ Workspace Monitoring stores telemetry in an **Eventhouse KQL database**, which i
 MirroredDatabaseTableExecution
 ```
 
+The current [Workspace Monitoring experience](https://learn.microsoft.com/en-us/fabric/fundamentals/workspace-monitoring-overview) uses a **monitoring item**. Creating the item does not start collection: enable data collection separately. It does not backfill earlier activity. The default log retention is 30 days, and monitoring consumes Fabric capacity.
+
 ### MirroredDatabaseTableExecution schema
 
 The table includes these columns, based on the [Mirrored database operation logs reference](https://learn.microsoft.com/en-us/fabric/mirroring/monitor-logs):
@@ -183,8 +180,8 @@ The table includes these columns, based on the [Mirrored database operation logs
 | `MirroringSourceType`          | string   | Source type such as `AzureSqlDatabase`, `AzurePostgreSql`, or `Snowflake`                                                                                                          |
 | `SourceTableName`              | string   | Source table name                                                                                                                                                                  |
 | `SourceSchemaName`             | string   | Source schema name                                                                                                                                                                 |
-| `ProcessedRows`                | long     | Number of rows processed in the batch                                                                                                                                              |
-| `ProcessedBytes`               | long     | Bytes processed in the batch                                                                                                                                                       |
+| `ProcessedRows`                | long     | Number of rows processed by the operation                                                                                                                                          |
+| `ProcessedBytes`               | long     | Bytes processed by the operation                                                                                                                                                  |
 | `ReplicatorBatchLatency`       | long     | Latency in **seconds** for the batch replication                                                                                                                                   |
 | `ErrorType`                    | string   | `UserError` or `SystemError`                                                                                                                                                       |
 | `ErrorMessage`                 | string   | Error message details                                                                                                                                                              |
@@ -216,23 +213,25 @@ See the [Workspace Monitoring log reference](https://learn.microsoft.com/en-us/f
 
 ## Alerting with Fabric Activator
 
-Workspace Monitoring gives you queryable replication history in Eventhouse, but someone still has to run a KQL query to notice a problem. **Fabric Activator** closes that gap. It is a no-code event detection engine that watches data continuously and automatically triggers an action, such as an email or a Microsoft Teams message, when a rule condition is met.
+Workspace Monitoring gives you queryable replication history in Eventhouse, but someone still has to run a KQL query to notice a problem. **Fabric Activator** can run that query on a schedule and trigger an action, such as an email or a Microsoft Teams message, when a rule condition is met.
 
 ### How It Fits Together
 
 1. Workspace Monitoring writes mirrored database replication events into `MirroredDatabaseTableExecution` in the Eventhouse KQL database, as covered above.
-2. Build a **Real-Time Dashboard** with a tile whose query reads that table, for example a query that surfaces rows where `ErrorType` is populated, or where `ReplicatorBatchLatency` exceeds a threshold.
+2. Build a **Real-Time Dashboard** with a supported visual, such as a stat tile showing the count of recent failures or a bar chart of latency by table. Table visuals do not support **Set alert**.
 3. From that tile, select **Set alert** to create a Fabric Activator rule.
-4. Define the rule's condition, for example "on each event when `ReplicatorBatchLatency` increases above X seconds" or "on each event when `ErrorType` becomes populated".
+4. Set the query frequency and condition, for example a failure count above zero or latency above an agreed threshold. Dashboard alerts query every five minutes by default; they do not react instantly to each log entry.
 5. Choose an action: **send an email**, or **send a Microsoft Teams message** to an individual, a group chat, or a channel, so the right person is notified to investigate.
 
 ### Example Alert Scenarios
 
-* Alert when `ErrorType` is `SystemError` for any table, so an admin is notified of a fatal replication issue as soon as it is logged.
+* Alert on `OperationName == "FailTable"` to identify table failures. Use `ErrorType` and `ErrorMessage` to diagnose them; `SystemError` alone does not mean an error is fatal.
 * Alert when `ReplicatorBatchLatency` on a specific table rises above an agreed threshold, to catch growing lag before users notice stale data.
-* Alert when a table stays in `StartReseeding` for longer than expected, which can indicate a stuck or repeated reseed.
+* Alert on repeated `StartReseeding` operations, or derive an elapsed-time check that finds a reseed without later progress. `StartReseeding` is an event, not a continuously updated status.
 
 > **Note:** Activator rules are built from a Real-Time Dashboard tile, an Eventstream, or certain other supported data sources, not by pointing Activator directly at a KQL table in the Fabric portal. Build a Real-Time Dashboard over the Workspace Monitoring KQL database first, then attach the alert to a tile in that dashboard.
+
+Allow for throttling in the alert design. Activator alerts that use Workspace Monitoring still respect capacity throttling, even though monitoring Eventhouse queries can continue.
 
 For the full walkthrough, see [Create Activator alerts from a Real-Time Dashboard](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/activator-get-data-real-time-dashboard) and [What is Fabric Activator?](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/activator-introduction).
 
@@ -255,7 +254,7 @@ Focus on these metrics in production:
 | Metric                       | Description                                           | Healthy Range                                       | Action if Outside Range                                                        |
 | ---------------------------- | ----------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ |
 | **Replication lag**          | Time between source change and availability in Fabric | Usually low and stable for the workload             | Investigate source load, connectivity, throttling, or downstream backlog       |
-| **Table replication status** | State of each table                                   | `Running` or `Running with warning` with stable lag | If warning persists or lag grows, inspect workspace logs and source health     |
+| **Table replication status** | State of each table                                   | Portal `Running`, or API `Replicating` after snapshot | If warning persists or lag grows, inspect workspace logs and source health     |
 | **Rows replicated per hour** | Throughput of the replication pipeline                | Consistent with source change rate                  | Investigate if it drops unexpectedly                                           |
 | **Snapshot completion time** | Time to complete the initial full table scan          | Depends on table size and source performance        | Long times may be normal for large tables, but track trend and blocking issues |
 | **Error rate**               | Number of fatal or repeated errors                    | Zero                                                | Investigate schema changes, permissions, or source connectivity                |
@@ -272,7 +271,7 @@ Focus on these metrics in production:
 2. **Set up alerting early**: build a Fabric Activator rule on Workspace Monitoring data before moving a workload into production, rather than relying on someone to check the portal.
 3. **Monitor the source too**: replication lag often starts with source-side CPU, I/O, locking, or network issues.
 4. **Track lag, not just status**: `Running with warning` may still be acceptable short term, but persistent lag growth needs investigation.
-5. **Automate response carefully**: for database mirroring sources, a stop followed by start causes a full reseed. Do not use that pattern as routine recovery unless re-replication is acceptable.
+5. **Automate response carefully**: a stop followed by start can cause a full reseed, as documented for Azure SQL Database and Snowflake. Do not use that pattern as routine recovery unless re-replication is acceptable.
 
 ***
 

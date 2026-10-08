@@ -4,13 +4,15 @@
 >
 > **Purpose:** This chapter explains what Fabric Mirroring is, the problem it solves, how it works, and how mirrored storage costs are calculated so you can decide whether it fits your workload.
 
+**Part index:** [Chapters in Part 1](readme.md)
+
 ***
 
-Fabric Mirroring continuously replicates data from supported operational and analytical systems into Microsoft Fabric so that the data can be queried in OneLake as Delta tables. Instead of building and operating separate ingestion pipelines, you configure mirroring on a supported source and Fabric manages the replication process.
+Fabric Mirroring makes supported operational and analytical data available to Fabric workloads. Database mirroring replicates source data into Delta tables in OneLake. Metadata mirroring exposes data in place through shortcuts, while open mirroring accepts changes supplied by a custom or partner integration.
 
-Mirrored data is stored in OneLake and can then be used from SQL, Spark, Power BI, and other Fabric workloads.
+For database mirroring, you configure a supported source and Fabric manages replication. You can then use the replicated data from SQL, Spark, Power BI, and other Fabric workloads.
 
-> Why am I not using the term '*near real-time replication*'? This is a great marketing term, but it's a relative term. i.e. you bring your own interpretation of what 'near real-time' means. So I avoid it.
+> I avoid treating "near real-time" as a latency promise. The useful question is how fresh the data needs to be for your workload, and whether your chosen source and query path can meet that requirement.
 
 ## 1.1 What Is Microsoft Fabric?
 
@@ -18,11 +20,11 @@ Microsoft Fabric is a Software as a Service analytics platform that combines dat
 
 Fabric is built around **OneLake**, the tenant-wide storage layer used by Fabric workloads. OneLake stores data in open formats and provides a common location for lakehouses, warehouses, shortcuts, and mirrored data.
 
-Mirroring is one of the Fabric data ingestion options. Its specific role is to keep a replica of source data available in Fabric with minimal setup and low operational overhead.
+Mirroring is one of Fabric's data integration options. Its role is to make source data available for analytics, either as a managed replica or through a supported metadata and shortcut integration.
 
 ## 1.2 Release History
 
-The Book Update History records dated Fabric Mirroring milestones and documentation changes. Use the [appendix](../appendix.md) for the current source and availability matrix.
+The [Book Update History](../history.md) records dated Fabric Mirroring milestones and documentation changes. Use the [appendix](../appendix.md) for the current source and availability matrix.
 
 ## 1.3 The Problem Mirroring Solves
 
@@ -34,20 +36,22 @@ Before mirroring, teams usually had to move operational data into an analytics p
 * Different tools produce different storage layouts and metadata conventions.
 * Analysts often need separate access paths for the same data.
 
-Mirroring addresses these issues by keeping a managed replica in Fabric, storing it in Delta format in OneLake, and making it available to multiple Fabric workloads without separate custom ingestion code for each consumer.
+Database mirroring addresses these issues by keeping a managed replica in Delta format in OneLake, available to multiple Fabric workloads without separate custom ingestion code for each consumer. It does not replace transformation pipelines, source administration, or monitoring.
 
-## 1.4 Core Value Proposition
+## 1.4 Mirroring Compared with Custom Ingestion
+
+This comparison applies to database mirroring. Metadata mirroring and open mirroring have different storage and operational responsibilities, covered in [Chapter 2](chapter-02.md).
 
 | Feature        | Fabric Mirroring                                                                                                                                                                                                     | Traditional ETL                                                     |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Setup time     | Usually minutes through a guided setup                                                                                                                                                                               | Days or weeks to design, build, test, and deploy                    |
-| Data freshness | Near real-time, source dependent                                                                                                                                                                                     | Usually batch-based                                                 |
-| Maintenance    | Managed by Fabric for supported sources                                                                                                                                                                              | Ongoing pipeline ownership required                                 |
+| Setup          | Guided connector setup, plus source permissions and network preparation | Pipeline design, configuration, and deployment |
+| Data freshness | Continuous replication with source-dependent latency | Batch or streaming, depending on the implementation |
+| Maintenance    | Fabric manages replication; you manage prerequisites, credentials, and monitoring | You own the ingestion pipeline and its operation |
 | Storage format | Delta Lake in OneLake                                                                                                                                                                                                | Varies by tool and destination                                      |
 | Consumption    | Native access from SQL, Spark, and Power BI                                                                                                                                                                          | Often needs extra modelling or connectors                           |
 | Cost           | Replication compute is free. Mirrored storage is free up to 1 TB per purchased capacity unit (an F4 capacity includes 4 TB free mirrored storage). Querying via SQL, Spark, or Power BI is charged at standard rates. | Separate ingestion compute plus destination storage and query costs |
 
-Mirrored storage allowance is calculated at the capacity level. The free allowance scales with purchased capacity units rather than with the number of mirrored databases.
+Mirrored storage allowance is calculated at the capacity level. The free allowance scales with purchased capacity units rather than with the number of mirrored databases. Source-side charges, networking, gateway hosting, querying, and optional extended capabilities can still incur costs. See [Chapter 10](chapter-10.md) and [Cost of mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/overview#cost-of-mirroring).
 
 ## 1.5 Ideal Use Cases
 
@@ -59,26 +63,26 @@ Mirroring works best when you need current source data in Fabric without buildin
 | **Cross-system analysis**      | Combine data from multiple source systems in one Fabric workspace.           |
 | **Reducing read load**         | Move reporting and analytical reads away from production databases.          |
 | **Access control separation**  | Let analysts work in Fabric without direct source-system access.             |
-| **Historical change analysis** | Retain replicated changes for downstream analysis in OneLake.                |
-| **Compliance and audit**       | Keep an analytical copy available for review, validation, or reconciliation. |
+| **Historical change analysis** | Use supported change feeds or downstream history tables; a current-state replica alone is not an archive. |
+| **Validation and reconciliation** | Compare the analytical copy with the source, allowing for replication lag. |
 
 ## 1.6 High-Level Architecture and Workflow
 
-At a high level, mirroring follows the same broad pattern across sources: Fabric connects to the source, reads an initial snapshot and later changes, writes files into a landing zone in OneLake, and makes the result available as Delta tables.
+For database mirroring, the broad pattern is an initial snapshot followed by changes, staged in a landing zone and applied to Delta tables. The source integration determines who extracts and sends those changes. Metadata mirroring does not use this row-replication pipeline, and open mirroring makes the publisher responsible for extraction.
 
 [![chapter-01 diagram 1](../assets/diagrams/chapter-01/diagram-01.png)](../assets/diagrams/chapter-01/diagram-01.excalidraw.png)
 
-*Figure 1.1: End-to-end Fabric Mirroring architecture*
+*Figure 1.1: Database mirroring architecture*
 
 **Key components:**
 
 * **Source system**: The database, platform, or application being mirrored.
-* **Fabric Replication Engine**: The Fabric service that reads source changes and writes them into OneLake.
+* **Fabric Replication Engine**: The managed processing that applies incoming changes to the mirrored tables.
 * **Landing zone**: The OneLake location where mirroring writes source files before they are materialised as tables.
 * **Delta tables**: The queryable tables created from mirrored data in OneLake.
 * **SQL analytics endpoint**: The auto-provisioned T-SQL endpoint over the mirrored tables.
 
-Fabric manages the replication pipeline, including connection handling, schema tracking, and offset tracking. The exact change capture mechanism depends on the source.
+For supported database connectors, Fabric manages the replication pipeline alongside the source-specific integration. The change capture mechanism and supported schema changes depend on the source.
 
 Fabric supports three official mirroring types:
 

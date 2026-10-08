@@ -353,7 +353,7 @@
       "lastCommittedPoint": null,
       "startBinding": {
         "elementId": "A",
-        "focus": 4.311162461607601E-06,
+        "focus": 0.000004311162461607601,
         "gap": 1
       },
       "endBinding": {
@@ -411,7 +411,7 @@
       "lastCommittedPoint": null,
       "startBinding": {
         "elementId": "A",
-        "focus": -4.311162462067489E-06,
+        "focus": -0.000004311162462067489,
         "gap": 1
       },
       "endBinding": {
@@ -469,12 +469,12 @@
       "lastCommittedPoint": null,
       "startBinding": {
         "elementId": "D",
-        "focus": 3.3653846151735547E-06,
+        "focus": 0.0000033653846151735547,
         "gap": 1
       },
       "endBinding": {
         "elementId": "E",
-        "focus": -2.657176749546605E-06,
+        "focus": -0.000002657176749546605,
         "gap": 4
       },
       "startArrowhead": null,
@@ -527,12 +527,12 @@
       "lastCommittedPoint": null,
       "startBinding": {
         "elementId": "F",
-        "focus": -9.67468861476032E-07,
+        "focus": -9.67468861476032e-7,
         "gap": 1
       },
       "endBinding": {
         "elementId": "G",
-        "focus": 9.615384618848999E-07,
+        "focus": 9.615384618848999e-7,
         "gap": 4
       },
       "startArrowhead": null,
@@ -585,12 +585,12 @@
       "lastCommittedPoint": null,
       "startBinding": {
         "elementId": "G",
-        "focus": -9.615384618848999E-07,
+        "focus": -9.615384618848999e-7,
         "gap": 1
       },
       "endBinding": {
         "elementId": "H",
-        "focus": 9.615384619098532E-07,
+        "focus": 9.615384619098532e-7,
         "gap": 4
       },
       "startArrowhead": null,
@@ -605,7 +605,7 @@
       "width": 176.0888671875,
       "height": 41.4,
       "angle": 0,
-      "strokeColor": "#1e1e1e",
+      "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 2,
@@ -637,12 +637,12 @@
     {
       "id": "k6lX-dIxwlTCPm0RuIht2",
       "type": "text",
-      "x": 13.4345703125,
-      "y": 201.3,
-      "width": 193.130859375,
-      "height": 41.4,
+      "x": 1.9736328125,
+      "y": 190.95,
+      "width": 216.052734375,
+      "height": 62.099999999999994,
       "angle": 0,
-      "strokeColor": "#1e1e1e",
+      "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 2,
@@ -654,20 +654,20 @@
       "index": "aE",
       "roundness": null,
       "seed": 1038346016,
-      "version": 4,
+      "version": 6,
       "versionNonce": 853983384,
       "isDeleted": false,
       "boundElements": null,
-      "updated": 1784230217676,
+      "updated": 1791302592864,
       "link": null,
       "locked": false,
-      "text": "Fabric portal: mirrored\ndatabase Replication Status tab",
+      "text": "Fabric portal: mirrored item\nReplication Status /\nMonitor replication",
       "fontSize": 18,
       "fontFamily": 2,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "B",
-      "originalText": "Fabric portal: mirrored\ndatabase Replication Status tab",
+      "originalText": "Fabric portal: mirrored item\nReplication Status /\nMonitor replication",
       "autoResize": true,
       "lineHeight": 1.15
     },
@@ -679,7 +679,7 @@
       "width": 239.080078125,
       "height": 20.7,
       "angle": 0,
-      "strokeColor": "#1e1e1e",
+      "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 2,
@@ -716,7 +716,7 @@
       "width": 237.1376953125,
       "height": 41.4,
       "angle": 0,
-      "strokeColor": "#1e1e1e",
+      "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 2,
@@ -753,7 +753,7 @@
       "width": 285.15234375,
       "height": 62.099999999999994,
       "angle": 0,
-      "strokeColor": "#1e1e1e",
+      "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 2,
@@ -790,7 +790,7 @@
       "width": 194.115234375,
       "height": 20.7,
       "angle": 0,
-      "strokeColor": "#1e1e1e",
+      "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 2,
@@ -827,7 +827,7 @@
       "width": 203.1064453125,
       "height": 41.4,
       "angle": 0,
-      "strokeColor": "#1e1e1e",
+      "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 2,
@@ -864,7 +864,7 @@
       "width": 225.1318359375,
       "height": 62.099999999999994,
       "angle": 0,
-      "strokeColor": "#1e1e1e",
+      "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "fillStyle": "solid",
       "strokeWidth": 2,
@@ -900,4 +900,3 @@
   },
   "files": {}
 }
-

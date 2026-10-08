@@ -4,11 +4,13 @@
 >
 > **Purpose:** Use this chapter to choose and implement a repeatable deployment pattern for mirrored databases across environments.
 
+**Part index:** [Chapters in Part 1](readme.md)
+
 ---
 
 ## Overview
 
-Fabric supports four verified deployment patterns for mirrored databases: Git integration, Deployment Pipelines, REST API scripting, and the Fabric Terraform provider.
+Fabric supports Git integration, deployment pipelines, REST API scripting, and the Fabric Terraform provider for mirrored databases. These deploy configuration, not a copy of the mirrored data. See [CI/CD for mirrored databases](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-cicd).
 
 [![Figure 7.1 - CI/CD pipeline flow for mirrored databases](../assets/diagrams/chapter-07/diagram-01.png)](../assets/diagrams/chapter-07/diagram-01.excalidraw.png)
 *Figure 7.1 - CI/CD pipeline flow for mirrored databases*
@@ -30,10 +32,12 @@ Fabric workspaces can be connected to a **Git repository** in Azure DevOps or Gi
 **Mirrored database artefacts in Git** include:
 
 - `<mirrored-database-name>.MirroredDatabase/` directory
-- `item.config.json` for item metadata such as name, type, and description
-- `item.definition.json` for the source connection reference, table selection, and mirroring configuration
+- `.platform` for system-generated item metadata
+- `mirroring.json` for the source connection reference, table selection, and mirroring configuration
 
-**Important:** Source credentials are **not** stored in Git. The connection reference, typically the Connection ID, is stored in the item definition, but the actual credentials remain in Fabric's connection store. Because connection IDs differ between environments, they must be parameterised during promotion.
+Only the mirrored database item is tracked. Its SQL analytics endpoint, SQL views, and other child items are not tracked in this Git representation. Manage any SQL objects you create separately.
+
+**Important:** Source credentials are **not** stored in Git. The connection reference, typically the Connection ID, is stored in the item definition, but the actual credentials remain in Fabric's connection store. When environments use different connections, substitute the correct connection IDs during promotion.
 
 ### Fabric Deployment Pipelines
 
@@ -42,6 +46,8 @@ Fabric **Deployment Pipelines** support promotion across environments, usually D
 - Promotion of individual items or all items in a workspace
 - Deployment rules for environment-specific values
 - A controlled path for validation before production release
+
+Deployment does **not** start mirroring. Start it explicitly after validating the target configuration and permissions. Child items such as SQL views are not deployed across stages with the mirror.
 
 ---
 
@@ -55,16 +61,20 @@ For teams that want scripted deployment, the two current programmatic paths are 
 resource "fabric_mirrored_database" "sales_mirror" {
   workspace_id = var.workspace_id
   display_name = "Sales Database Mirror"
+  format       = "Default"
 
   definition = {
-    source_connection_id = var.sql_connection_id
-    source_database_name = "SalesDB"
-    tables = ["dbo.Orders", "dbo.Customers", "dbo.Products"]
+    "mirroring.json" = {
+      source = "${path.module}/mirroring.json.tmpl"
+      tokens = {
+        CONNECTION_ID = var.sql_connection_id
+      }
+    }
   }
 }
 ```
 
-*Note: Verify resource names and attribute schemas against the current Fabric Terraform provider documentation before deployment.*
+The template must contain a valid [mirrored database definition](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition), using `{{ .CONNECTION_ID }}` in `properties.source.typeProperties.connection`. Table selection belongs in the definition's `mountedTables` array, not in standalone Terraform attributes. Start from a definition exported from a working mirror and parameterise only the environment-specific values. Pin and check the [Fabric provider version and resource schema](https://registry.terraform.io/providers/microsoft/fabric/latest/docs/resources/mirrored_database) used by your release.
 
 ### REST API Deployment Script
 
@@ -89,13 +99,13 @@ curl -X POST "https://api.fabric.microsoft.com/v1/workspaces/${WORKSPACE_ID}/mir
   }'
 ```
 
-This approach is also the most practical option when you need custom environment substitution, release orchestration, or infrastructure-as-code patterns that are not yet covered by Terraform.
+Replace the payload placeholder with the locally Base64-encoded `mirroring.json` definition. This approach is useful when you need custom environment substitution or release orchestration. For updates, retrieve the current definition before calling `updateDefinition`, and handle asynchronous responses as described in Chapter 6.
 
 ---
 
 ## Service Principal and Permissions
 
-Automated deployments should authenticate as a **service principal** rather than a user account.
+Automated deployments should use a **service principal** or supported **managed identity** rather than a personal user account. The following steps cover a service principal.
 
 ### 1. Create a Service Principal
 
@@ -108,7 +118,7 @@ In the Azure portal under **Microsoft Entra ID**:
 
 In the Fabric portal:
 1. Open the target workspace settings.
-2. Under **Access**, add the service principal as a **Member** or **Admin**.
+2. Under **Access**, add the service principal as a **Contributor** for item creation and management. Use **Member** or **Admin** only if the release also needs permissions such as sharing or workspace administration.
 
 ### 3. Enable Service Principal Access in Fabric Admin Settings
 
@@ -121,6 +131,8 @@ In the Fabric Admin portal:
 
 The service principal must also have access to the **Fabric Connection** used by the mirrored database:
 - Add the service principal as an owner or user of the connection in **Manage connections and gateways**.
+
+For sources that publish using a source managed identity, also grant that identity **Read and Write** on the newly deployed mirrored database before starting it. This is separate from the deployment service principal's access. Chapter 6 lists the applicable sources and permission steps.
 
 ---
 
@@ -138,9 +150,9 @@ Use deployment parameters to supply environment-specific values during promotion
 | `source_database_name` | `SalesDB_Dev` | `SalesDB_Test` | `SalesDB` |
 | `workspace_id` | `ws-dev-xxxxx` | `ws-test-xxxxx` | `ws-prod-xxxxx` |
 
-In Deployment Pipelines, configure these values through **Deployment rules**.
+In deployment pipelines, configure the **connection ID** and, where applicable to the source type, **database name** through **Data source rules** on the target stage. The target workspace is assigned to the pipeline stage, not set by a data source rule. Rules take effect on the next deployment.
 
-In scripted releases, use environment variables, parameter files, or your CI/CD platform's secret and variable store.
+The names in the table are release-parameter examples, not literal fields in `mirroring.json`. In scripted releases, map them to the source-specific definition properties using environment variables, parameter files, or your CI/CD platform's secret and variable store. Change the source connection ID, database name, or default schema only while the target mirror is `Initialized` or `Stopped`.
 
 ### Promotion Workflow
 
@@ -154,8 +166,8 @@ A typical workflow looks like this:
 After promotion to a new environment:
 
 1. Verify that the connection resolves to the correct server, database, and stored credentials.
-2. Start mirroring if the release process does not already do so.
-3. Confirm that the initial snapshot or resumed replication completes successfully.
+2. Confirm that required source managed identity permissions are granted. For a new mirror, wait for `Initialized`; for a previously stopped mirror, verify `Stopped`. Then explicitly start mirroring.
+3. Confirm that the initial snapshot completes and table replication is healthy. Do not assume a newly deployed mirror resumes a source-stage replication watermark.
 4. Compare row counts or sample records against the source.
 5. Enable or confirm monitoring and alerting. See Chapter 5 for monitoring guidance.
 
