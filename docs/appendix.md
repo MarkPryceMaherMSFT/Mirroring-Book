@@ -23,12 +23,33 @@ Fabric includes 1 TB of free mirrored storage per purchased CU. An F2 capacity i
 | SQL Server 2016–2022 | Database mirroring | GA | CDC-based replication | Chapter 23 |
 | SQL Server 2025 | Database mirroring | GA | Change feed | Chapter 24 |
 | Fabric SQL Database | Database mirroring | GA | Automatically configured replication | Chapter 25 |
-| Open Mirrored Databases | Open mirroring | GA | Depends on implementation | Chapters 28–33 |
+| Open Mirrored Databases | Open mirroring | GA | Depends on implementation | Chapters 30–35 |
 | Dremio (catalog) | Metadata mirroring | Public Preview | Metadata sync only | Chapter 26 |
 | AWS Glue (catalog) | Metadata mirroring | Public Preview | Metadata sync only | Chapter 27 |
-| Google Lakehouse Runtime Catalog | Metadata mirroring | Public Preview | Catalog sync and shortcuts to Google Cloud Storage | [Microsoft Learn guide](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime) |
+| Google Lakehouse Runtime Catalog | Metadata mirroring | Public Preview | Catalog sync and shortcuts to Google Cloud Storage | [Chapter 27 supplement](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-27.md#supplementary-setup-google-lakehouse-runtime-catalog) |
 
 Fabric SQL Database mirroring is auto-configured when you create a Fabric SQL Database. Source availability does not imply that every optional capability is GA, and no row in this table is a latency guarantee. See the [Fabric What's New page](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new#generally-available-features) for GA announcements, each source chapter for limitations, and the [review history](history.md) for documentation conflicts.
+
+### Related Source-Managed Integrations
+
+These entries extend the book's coverage, not Microsoft's three-type native Mirroring taxonomy. Do not infer native Mirrored Database API, monitoring, storage allowance, or permission behavior from a similar shortcut-based experience.
+
+| Integration | Data and ownership model | Chapter |
+|---|---|---|
+| Dataverse Link to Microsoft Fabric | Dataverse maintains an optimized Delta replica in Dataverse storage and manages shortcuts into a Fabric Lakehouse. The replica consumes Dataverse database capacity; shortcut consumption avoids a separate native-mirroring output copy. | [28: Dataverse Link](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) |
+| SAP Business Data Cloud Connect for Microsoft Fabric | Announced governed data-product sharing, not the Datasphere/ADLS replication path. The original Q3 2026 target was followed by a 31 August SAP Community answer targeting end-Q1 2027; neither is GA confirmation. No Fabric-specific public setup was verified. | [29: SAP BDC Connect](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) |
+
+### September 2026 FabCon Announcement Boundaries
+
+The [feature summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825) announces BigQuery and SharePoint List mirroring GA, extended capabilities GA, Snowflake security-role replication Preview, and Cosmos DB VNet gateway support. These are different scopes: a source's GA status does not make optional role replication GA or change the Cosmos DB replication network path. The [announcement-to-chapter record](history.md#8-october-2026-fabcon-announcement-coverage) identifies where each is covered.
+
+Its linked [OneLake FabCon companion](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabcon-and-sqlcon-barcelona-2026-what%E2%80%99s-new-in-microsoft-onelake-and-its-rapidly/5369146) also discusses catalog federation and additional integrations:
+
+| Integration | Treatment in this book |
+|---|---|
+| AWS Glue and Google Lakehouse Runtime Catalog | Existing Preview walkthroughs in [Chapter 27](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-27.md). These synchronize catalog metadata and expose S3/GCS data through shortcuts; they do not copy the underlying table data into OneLake. |
+| Dynamics 365 Business Central | The companion announces selected table/company data through mirroring, but gives no explicit lifecycle label. The linked [Business Central Fabric overview](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-fabric) does not establish a complete setup runbook. Listed as an announcement, not added to the configuration-ready source matrix above. |
+| CONNECT from AVEVA | Named as new catalog federation, without an explicit lifecycle status or setup link in the announcement. Do not infer authentication, replication, or support details, or present a fabricated walkthrough. |
 
 ## Section 2: Replication Mechanism Reference
 
@@ -76,6 +97,9 @@ Fabric SQL Database mirroring is auto-configured when you create a Fabric SQL Da
 | **Shortcut** | A OneLake reference that points to external or existing data without copying the files into a new location. |
 | **Continuous Backup** | The Azure Cosmos DB backup model used by Fabric mirroring to read changes from the retained backup history, not from Change Feed. |
 | **Metadata mirroring** | A mirroring mode that exposes data in place through OneLake shortcuts, using catalog synchronisation or a source-specific connection integration. |
+| **Source-managed analytical replica** | An analytical representation prepared and kept current by the source platform, such as Dataverse's optimized Delta tables; a Fabric shortcut can read it without owning a native Mirroring pipeline. |
+| **Dataverse Link to Fabric** | The Power Apps integration that prepares Dataverse analytical data and manages its link/shortcuts into Fabric; separate from a native Mirrored Database connector and from customer-storage Azure Synapse Link exports. |
+| **SAP BDC Connect for Microsoft Fabric** | The SAP Business Data Cloud integration for governed data-product sharing with Fabric, not the SAP Datasphere replication-flow/ADLS landing route in Chapter 20. |
 | **Change feed** | The native change stream used by selected sources, including Azure SQL Database and SQL Server 2025, to publish changes directly for Fabric mirroring. |
 | **Eventhouse** | A Fabric analytics item for event and log data, useful when you need to analyse high-volume telemetry alongside mirrored operational data. |
 
@@ -91,5 +115,6 @@ Fabric SQL Database mirroring is auto-configured when you create a Fabric SQL Da
 | Fabric Toolbox | [Open mirroring samples](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring) |
 | Open mirroring partners | [Partner ecosystem](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-partners-ecosystem) |
 | Product updates | [What's new in Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new) |
+| FabCon September 2026 announcements | [Feature summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825) and [book coverage record](history.md#8-october-2026-fabcon-announcement-coverage) |
 
-**Contents:** [Table of Contents](index.md) | **Previous:** [Chapter 44: Choosing a Solution, Shared Lessons, and Further Reading](Part%203%20-%20Open%20Mirroring/chapter-44.md) | **Next:** [Book Update History](history.md)
+**Contents:** [Table of Contents](index.md) | **Previous:** [Chapter 46: Choosing a Solution, Shared Lessons, and Further Reading](Part%203%20-%20Open%20Mirroring/chapter-46.md) | **Next:** [Book Update History](history.md)

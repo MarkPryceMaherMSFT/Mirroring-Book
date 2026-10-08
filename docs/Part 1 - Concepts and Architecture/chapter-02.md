@@ -2,7 +2,7 @@
 
 > **Part 1: Concepts and Architecture**
 >
-> **Purpose:** This chapter explains the three official mirroring types in Fabric and shows which sources belong to each one so you can choose the right pattern for your source.
+> **Purpose:** This chapter explains the three official mirroring types in Fabric and distinguishes related source-managed integrations, so you can choose the right pattern without assuming identical setup or operating rules.
 
 **Part index:** [Chapters in Part 1](readme.md)
 
@@ -56,7 +56,7 @@ Database mirroring is the standard pattern for supported source databases and pl
 * Azure Database for MySQL *(Public Preview)*
 * Google BigQuery
 * Oracle
-* SAP
+* SAP through the Datasphere replication-flow and ADLS Gen2 path in Chapter 20
 * SharePoint List
 * Snowflake
 * SQL Server 2016–2022
@@ -111,7 +111,18 @@ The Google catalog preview supports up to 500 Iceberg V2 tables with Parquet dat
 
 Azure Monitor follows a different mechanism within this same type: instead of an Iceberg catalog, it connects to a Log Analytics workspace and exposes the workspace's own Delta Parquet storage through OneLake shortcuts and a Fabric Eventhouse endpoint, with no separate catalog-sync step. Chapter 15 covers Azure Monitor mirroring in detail.
 
-> [Link Dataverse to Microsoft Fabric](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric) is a separate integration that also exposes data through shortcuts. Do not assume it has the same setup, storage behaviour, or limitations as a mirroring connector.
+## Related Source-Managed Integrations
+
+Some integrations deliver a similar analytical experience without following the native mirrored-database landing-zone pipeline. This book includes them as **mirroring-like patterns**, not as a fourth official Fabric Mirroring type.
+
+| Integration | What the source/platform manages | Why the distinction matters |
+|---|---|---|
+| [Dataverse Link to Microsoft Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) | Dataverse creates and maintains an optimized Delta/Parquet replica in Dataverse storage and links tables into a Fabric Lakehouse through managed shortcuts. | It resembles Unity Catalog metadata mirroring at the consumer edge, but the producer is Dataverse, not a Unity Catalog metastore. The linked item is a Lakehouse, not a native Mirrored Database. |
+| [SAP Business Data Cloud Connect for Microsoft Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) | Announced governed data-product sharing between SAP BDC and Fabric; a Fabric-specific GA/setup confirmation was not verified. | Do not reuse the SAP Datasphere-to-ADLS replication recipe or infer a universal SAP CDC connector. Follow the chapter's availability evidence and readiness gates, not an invented configuration procedure. |
+
+For Dataverse, **zero-copy access does not mean no replica exists**. The [Microsoft overview](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric) explicitly describes an optimized replica consuming additional **Dataverse database storage**. Fabric reads through shortcuts instead of owning a second native-mirroring output copy. Upstream replica freshness, shortcut authorization, and SQL/semantic-model freshness are still separate concerns.
+
+Likewise, a bidirectional data-sharing announcement is not a promise of bidirectional transactional replication or write-back through a shortcut. For both integrations, verify the actual source and consumer responsibilities, security boundary, item type, region rules, and commercial terms. Native Mirroring REST operations, monitoring tables, and free-storage allowances do not transfer merely because the user experience looks similar.
 
 ## Open Mirroring
 
@@ -169,6 +180,7 @@ Use this decision path to choose the right type.
 * Choose **database mirroring** when you need the data physically present in OneLake.
 * Choose **metadata mirroring** when the source already stores the data externally and you only need Fabric to surface it through synced metadata and shortcuts.
 * Choose **open mirroring** when the source is not natively supported but you can use or build a connector that emits the required files.
+* Check a **source-managed integration** first when the application platform supplies its own analytical replica or governed data products. Dataverse Link and SAP BDC Connect have dedicated chapters because their preparation and ownership differ from a native database mirror.
 * Check release status before committing to a source. Preview connectors can change more quickly than Generally Available ones.
 * Separate the mirroring type decision from the transport method decision. Chapter 3 covers push, pull or polling, and shortcut-based access.
 

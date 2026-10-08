@@ -46,6 +46,12 @@ The database engine continuously pushes changes from the transaction log into On
 
 ---
 
+## Change Event Streaming (September 2026 Preview)
+
+The [FabCon summary announces Change Event Streaming for SQL database in Fabric in Preview](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_118): committed insert/update/delete events are streamed from the transaction log into Eventstream as **CloudEvents JSON**. This complements automatic OneLake mirroring; it is not the same as consuming a mirrored Delta table's CDF.
+
+The summary's [linked event-streaming tutorial](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/event-streams/stream-sql-change-events-to-eventstream) currently demonstrates Azure SQL Database/SQL Server rather than establishing the newly announced Fabric SQL setup. Do not run those source-configuration commands against Fabric SQL by analogy or disable automatic mirroring to use the announcement. Follow the supported Fabric SQL procedure when available; [Chapter 9](../Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md#consuming-cdf-in-fabric-workloads) covers the separate mirrored-CDF consumer path.
+
 ## Network and Connectivity
 
 | Question | Answer |

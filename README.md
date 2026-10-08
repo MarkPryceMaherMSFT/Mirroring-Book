@@ -32,6 +32,8 @@ The source chapters are intentionally separate. A correct answer for Snowflake m
 
 Part 2 includes practical setup walkthroughs: source-side preparation and permissions, connection and network requirements, Fabric configuration, first-data checks, and troubleshooting. Use the [setup and troubleshooting directory](docs/index.md#setup-and-troubleshooting-directory) to jump straight to either section for each source. Microsoft documentation screenshots are credited beside each image; public community reports and search-index-only leads are clearly separated from documented product requirements.
 
+Part 2 also covers related source-managed integrations: [Dataverse Link to Microsoft Fabric](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) and the announced [SAP Business Data Cloud Connect](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md). They belong in the architectural discussion without assuming they share native database mirroring's item types, replication engine, permissions, or billing. The SAP BDC chapter records availability evidence and readiness requirements rather than claiming a released Fabric setup guide, and is separate from [SAP Datasphere replication through ADLS Gen2](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-20.md).
+
 ## Suggested Reading Paths
 
 * **New to Mirroring:** Start with [Chapter 1](docs/Part%201%20-%20Concepts%20and%20Architecture/chapter-01.md), then read Chapters 2 through 5.
@@ -71,6 +73,6 @@ So don't steal, join in!
 
 No part of this publication may be reproduced, distributed, transmitted, displayed, published, or broadcast in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of the author, except for brief quotations used in critical reviews and other noncommercial uses permitted by copyright law.
 
-**Third-party material:** separately credited Microsoft documentation images are excluded from the book's all-rights-reserved claim. They retain their stated [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) licence under the [Microsoft Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE). Captions identify the source article, original image and any modifications. Product names and trademarks remain the property of their respective owners; their inclusion does not imply endorsement.
+**Third-party material:** separately credited Microsoft documentation images are excluded from the book's all-rights-reserved claim. They retain their stated [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) licence under the applicable [Microsoft Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE) or [Power Apps documentation repository licence](https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE). Captions identify the source article, original image and any modifications. Product names and trademarks remain the property of their respective owners; their inclusion does not imply endorsement.
 
 For permission requests, contact <markpm@hotmail.co.uk>.

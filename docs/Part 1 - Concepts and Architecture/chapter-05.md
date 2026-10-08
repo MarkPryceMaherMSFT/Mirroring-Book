@@ -16,6 +16,8 @@ There are several ways to check the status of Fabric Mirroring:
 * Fabric Mirroring Item REST API
 * Workspace Monitoring: `MirroredDatabaseTableExecution` table
 
+These are **native Mirroring** monitoring surfaces, not a universal interface for every shortcut-backed integration. For Dataverse Link, inspect the Power Apps link/table synchronization state and the Fabric consumer separately; follow [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md). For SAP BDC Connect, use the product-sharing and consumer checks in [Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md), rather than assuming its activity appears in `MirroredDatabaseTableExecution`.
+
 <br />
 
 [![chapter-05 diagram 1](../assets/diagrams/chapter-05/diagram-01.png)](../assets/diagrams/chapter-05/diagram-01.excalidraw.png)
@@ -238,6 +240,19 @@ For the full walkthrough, see [Create Activator alerts from a Real-Time Dashboar
 ***
 
 ## Choosing a Monitoring Path
+
+### September 2026: Monitor the Consumer as Well as the Mirror
+
+The [FabCon feature summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825) adds useful operational options, but none replaces the mirroring status and latency checks in this chapter.
+
+| Announcement | Relevance and boundary |
+|---|---|
+| Copy Job workspace-monitoring integration - GA | Monitor downstream CDF-copy jobs separately from replication. The [Copy Job monitoring guide](https://learn.microsoft.com/en-us/fabric/data-factory/monitor-copy-job) also notes that a Lakehouse update produces before/after rows: rows read are not the number of business updates. |
+| Eventstream Azure Stream Analytics diagnostic logs - Preview | Enable workspace monitoring and **Log Eventstream activity** for the individual Eventstream. Use `EventStreamDiagnosticLogs` for consumer errors and correlation; repeated diagnostics can be aggregated. See [Eventstream workspace monitoring](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/event-streams/fabric-workspace-monitoring). |
+| Capacity alert templates and Capacity Overview Events - GA; Capacity Operation Events - Preview | Observe capacity health and workload consumption for paid extensions and downstream queries. These are not source-to-OneLake freshness measurements. See [overview events](https://learn.microsoft.com/en-us/fabric/real-time-hub/explore-fabric-capacity-overview-events) and [operation events](https://learn.microsoft.com/en-us/fabric/real-time-hub/explore-fabric-capacity-operation-events). |
+| Rules from OneLake Catalog and workspaces - Preview | The announcement includes mirrored-database **file/folder created or deleted** rules. A storage event is not a row-level change feed or evidence that replication is complete. Use [Chapter 9](chapter-09.md) for CDF consumers. |
+
+Correlate source capture, mirror table status, SQL endpoint freshness, and consumer-job progress. A healthy source mirror can coexist with a failing Eventstream or Copy Job.
 
 [![chapter-05 diagram 2](../assets/diagrams/chapter-05/diagram-02.png)](../assets/diagrams/chapter-05/diagram-02.excalidraw.png)
 

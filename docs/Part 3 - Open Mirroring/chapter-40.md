@@ -1,57 +1,62 @@
-# Chapter 40: PostgreSQL Through Debezium and Kafka
+# Chapter 40: BigQuery with FabricBQSync
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Follow a real PostgreSQL CDC pipeline and understand why source offsets must be tied to successful publication.
+> **Purpose:** Evaluate a configurable BigQuery accelerator that can publish through Open Mirroring, separately from Fabric's native BigQuery connector.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
 ---
 
-## Project and Data Flow
+## Project and Fit
 
-[DaSenf1860/mirror_postgres](https://github.com/DaSenf1860/mirror_postgres) supplies a Docker-based demonstration and Python publisher under the [MIT licence](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/LICENSE). This chapter examines revision `b8ffc51`.
+[microsoft/FabricBQSync](https://github.com/microsoft/FabricBQSync) is a Microsoft-published accelerator with [MIT-licensed source](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/LICENSE). It supports multiple destination modes. For this chapter, explicitly choose **`MIRRORED_DATABASE`**; a successful Lakehouse synchronization is not evidence that Open Mirroring was used.
+
+The inspected revision is `a8bf1f1`, with release log version 2.2.0 and mirrored-database support recorded in 2.1.0. Review the [release log](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Docs/ReleaseLog.md) and pin the version used in your lab. Repository ownership is not a product-support commitment; the inspected support file does not establish one.
+
+Choose this project when you want its configurable extraction and scheduling machinery and are prepared to own its Fabric Spark execution. Compare that ownership and cost with the [native BigQuery guide](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-16.md).
+
+## Architecture
 
 ```text
-PostgreSQL logical replication
-    -> Debezium pgoutput
-    -> Kafka topics
-    -> Python transformation
-    -> Parquet in OneLake
+BigQuery extraction strategy
+    -> Fabric Spark DataFrame
+    -> row-operation and type conversion
+    -> per-table scratch Parquet
+    -> numbered landing-zone files
+    -> Fabric ingestion
 ```
 
-Unlike the polling project in [Chapter 41](chapter-41.md), this design obtains change events from logical replication. It can represent deletes, not just rows still present when a query runs. It is nevertheless a demonstration with important startup and acknowledgement behaviour to change before adopting it as a continuous service.
+Trace [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py), [Mirror.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py), and [FileSystem.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py) together. The source query, Spark output partitioning and publication sequence are separate parts of the implementation.
 
-## Setting Up a Controlled Lab
+## Setup Walkthrough
 
-Use the repository's Docker/configuration assets to prepare PostgreSQL, Kafka and the Debezium connector. Configure logical replication and the connector's source permissions for the exact deployment. Set the source tables, Fabric workspace/database identifiers and service-principal credentials. Apply the shared destination setup from [Chapter 29](chapter-29.md).
+Follow the project's [installation guide](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Docs/Installation.md). Import the installer notebook, attach the required Lakehouse for supporting metadata, configure GCP service-account access and select the project/dataset. Select the mirrored-database target and enable the schema configuration required by that path.
 
-Read [mirrorpostgres.py](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/mirrorpostgres.py) before starting it. Startup creates timestamp-based consumer-group identifiers, recreates the connector and resets target folders. That is a reseeding workflow, not a transparent resume. Use an expendable mirrored database.
+Keep credentials in protected configuration. Record the installed package version because automatic upgrades can change the code beneath a scheduled run. Begin with a small keyed table and an explicit extraction strategy. Prepare the destination and permissions using [Chapter 31](chapter-31.md).
 
-The connector configuration uses `snapshot.mode=always`. Source snapshot behaviour, Kafka history and destination reset must be considered together. A fresh consumer group is not a durable continuation of the previous consumer's checkpoint.
+Inspect the initial file, table key and destination row values before enabling broad table discovery or scheduling. Initialization/overwrite paths can drop a mirrored table folder and reseed it; they are not harmless incremental operations.
 
-## Row Conversion and Keys
+## Changes, Keys and Schema
 
-The [transformation module](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/mirroring_postgres_utils.py) maps snapshot/create/update operations to marker `4` and deletes to `2`. It derives Arrow types from PostgreSQL metadata and appends the row marker last.
+The query builder includes BigQuery `CHANGES`/`APPENDS` strategies and ordinary watermark predicates. These have different source prerequisites and completeness guarantees. A strict timestamp predicate does not acquire CDC semantics just because its output is sent to an Open Mirrored Database.
 
-The inspected key assumption is hardcoded to `id`. Extend key metadata and event handling together before using a composite key or a differently named primary key. Test a source key change explicitly.
+The mirror conversion maps keyed change operations to Fabric markers, handles initial/no-key insert semantics and converts complex values to JSON strings. Internal source CDC columns are removed. The inspected row selection puts the marker before data columns, which differs from the current documented final-column requirement; resolve that discrepancy against [Chapter 34](chapter-34.md) when preparing the version you deploy.
 
-The batch reduction uses maximum `ts_ms` per key. Millisecond timestamps are not unique event sequence numbers; equal timestamps can select the wrong representative event. Preserve the ordering supplied by the source/Kafka partition rather than assuming timestamp reduction always yields the final state.
+Also test multiple changes to one key within a window. Spark partitioning and numbered output files do not independently establish source-event order after source ordering fields have been removed.
 
-## Offset Acknowledgement and Publication
+## Progress and Partial Publication
 
-In [list_kafka_messages.py](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/list_kafka_messages.py), auto-commit is enabled. The consumer returns messages before the caller publishes them. Kafka progress can therefore be independent of OneLake publication.
+The filesystem code discovers file progress, checks the expected next index and checks rename results before incrementing. This is useful implementation discipline, but it is not a complete crash-safe transaction spanning the source query and every published file.
 
-The [OneLake writer](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/mirroring_utils.py) writes directly to final paths with overwrite enabled. It does not implement the complete temporary-upload/atomic-rename/immutable-path protocol from [Chapter 32](chapter-32.md).
+[Schedule telemetry](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756) records both `max_watermark` and `mirror_file_index`. Keep them distinct from Fabric's ingestion completion.
 
-For a reliable adaptation, retain stable consumer identity, disable premature acknowledgement, persist each batch's source range and publication assignment, and commit only a contiguous durably published prefix. Preserve the same assignment after an ambiguous upload. Exactly-once delivery is not supplied merely by using Kafka and upsert markers.
+An especially useful exercise is to fail the second file of a multi-file publication. On retry, require reconciliation of the already-published first file and its source batch. Detecting a sequence mismatch is valuable; choosing another sequence or resetting the table automatically is not a general recovery solution.
 
-## A Practical Hardening Exercise
+## Operational Lessons
 
-Create one keyed table and exercise initial rows, an update, a delete and several rapid changes to the same key. Then make OneLake unavailable after Kafka consumption, restart the publisher, and observe source offsets and destination files.
+Monitor BigQuery query volume, Spark execution, source progress, staged files, published sequence and destination freshness. Include keyed updates/deletes and change-history expiry in the evaluation, not just a large initial load.
 
-Replace destructive startup with a deliberate initialization/resume distinction. Add failure propagation, typed-schema checks, partition ownership and source-retention monitoring. Do not broaden the advertised source list simply because Debezium supports other databases: their envelopes, types and snapshot semantics must be tested through this writer.
+Free Fabric replication compute does not make the extractor free. Budget BigQuery query charges, Fabric Spark, supporting storage and possible network egress. The project's value is inspectable orchestration and source-specific logic; the reader still owns its configuration, reliability and upgrades.
 
-Budget PostgreSQL source overhead, retained WAL, Kafka/Debezium hosting, publisher compute and Fabric consumption. The value of this repository is an inspectable end-to-end CDC architecture, not a promise that every operational responsibility has been solved.
-
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 39: MongoDB Through Change Streams](chapter-39.md) | **Next:** [Chapter 41: PostgreSQL Polling with impulse_sync](chapter-41.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 39: MariaDB Through MaxScale and Kafka](chapter-39.md) | **Next:** [Chapter 41: MongoDB Through Change Streams](chapter-41.md)

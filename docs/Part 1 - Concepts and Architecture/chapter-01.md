@@ -90,6 +90,8 @@ Fabric supports three official mirroring types:
 * **Metadata mirroring** syncs metadata and uses shortcuts to data that remains in the source.
 * **Open mirroring** lets a custom or partner solution write data into the mirroring landing zone.
 
+This book also covers **related source-managed integrations**. In [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md), Dataverse maintains an optimized Delta replica and manages shortcuts that expose it through a Fabric Lakehouse. That consumer pattern resembles metadata mirroring, but it is not a native Mirrored Database connector. The [SAP Business Data Cloud Connect chapter](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) covers a separate announced SAP data-product sharing path and its availability boundary. These additions do not redefine Microsoft's three official mirroring types.
+
 ## What comes next
 
 The next chapter separates the three mirroring types and shows which sources belong to each one. That distinction matters because setup, data movement, and operational responsibility differ by type.

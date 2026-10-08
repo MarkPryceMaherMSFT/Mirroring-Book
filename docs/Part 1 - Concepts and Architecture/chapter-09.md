@@ -2,7 +2,7 @@
 
 > **Part 1: Concepts and Architecture**
 >
-> **Purpose:** Use this chapter to assess Delta change data feed and Mirroring Views, including their limitations and billing, before enabling them.
+> **Purpose:** Use this chapter to assess Delta change data feed, Mirroring Views, and the announced Snowflake security-role replication preview, including their boundaries and billing.
 
 **Part index:** [Chapters in Part 1](readme.md)
 
@@ -10,16 +10,17 @@
 
 ## Overview
 
-The extended capabilities are:
+The extended capabilities covered here are:
 
 - **Delta change data feed** for row-level inserts, updates, and deletes
 - **Mirroring Views** for replicating selected source views
+- **Snowflake Security Roles Replication**, announced in Preview with rollout and configuration caveats below
 
-Core mirroring copies tables into OneLake. Extended capabilities add optional paid features that consume extra compute and follow different operational rules.
+Core mirroring copies tables into OneLake. Delta change data feed and Mirroring Views are optional paid extensions that consume extra compute and follow different operational rules. The newly announced security-role capability has a separate scope; its billing is not established by the CDF/views pricing below.
 
-Microsoft's [Fabric release announcements](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new) list extended mirroring capabilities, including change feeds and source-view mirroring, as generally available. The [extended-capabilities overview](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities) and dedicated Views guide still carry preview labels. The documentation is not yet consistent on status.
+The [September 2026 FabCon feature summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_130) explicitly announces **extended mirroring capabilities as generally available**, including Delta change feeds and source-view mirroring. It separately labels Snowflake security-role replication **Preview**. The [extended-capabilities overview](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities) and dedicated Views guide still carry preview labels when checked on **8 October 2026**. Use the announcement for its stated release status, but retain the source, refresh, consumption, and billing limits in the implementation guides.
 
-**Snowflake security-role mirroring** is separately announced as a preview that brings role definitions into Fabric. Do not read that as automatic replication of all source security policies: the [Snowflake security guide](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-how-to-data-security) still instructs users to reconfigure granular security in Fabric and does not describe the preview's policy coverage.
+**Snowflake security-role mirroring** is not included in the GA claim. Section 9.5 describes the announced role hierarchies, assignments, and grants, and the unresolved setup/availability boundary.
 
 ## 9.1 Core Mirroring vs. Extended Capabilities
 
@@ -36,6 +37,8 @@ Core mirroring compute remains free. Extended capabilities are billed only for t
 ## 9.2 Delta Change Data Feed
 
 Delta change data feed, usually shortened to CDF, records inserts, updates, and deletes at row level in the mirrored Delta tables. It is available across mirroring sources, including open mirroring partners. This is a feed of changes to the replicated Delta tables, not a replacement for source-side change capture. See [Delta change data feed in mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-delta-change-data-feed).
+
+**Related integration, separate controls:** Dataverse Link's low-latency synchronization also documents an optional Delta CDF, but that source-managed link is not the native mirrored database configured or billed in this chapter. Follow [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md#low-latency-sync-and-current-limits) for its own enablement, retention, and rollout boundaries.
 
 ### What It Does
 
@@ -103,9 +106,11 @@ The change data feed output includes three important metadata columns:
 
 ### Consuming CDF in Fabric Workloads
 
-**Eventstreams connector:** The [Mirrored Database Change Feed connector](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/event-streams/add-source-mirrored-database-change-feed) reads CDF-enabled mirrors directly. Its guide still labels it preview and documents **All tables** selection rather than individual tables, with no DeltaFlow transformation support. The Fabric release announcements also list it among generally available Eventstream connectors while retaining it in the preview list. Confirm the connector's available options in your workspace rather than assuming those documented restrictions have been removed.
+**Eventstreams connector:** The [September connector announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_62) places **Mirror DB Change Data Feed Connector under GA**. It reads changes directly from an actively syncing CDF-enabled mirror, including Open Mirroring. The [setup guide](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/event-streams/add-source-mirrored-database-change-feed) still says Preview, requires workspace Contributor or higher, and limits the current selection to **All tables**, raw events, and **no DeltaFlow transformations**. Its table-name/regex field description does not override the All tables restriction. Confirm supported options rather than treating the GA announcement as removal of those limits.
 
-**Copy Job:** Copy Job can read CDF incrementally through a **Lakehouse shortcut** to the mirrored table. Direct mirrored-database support remains in development; the shortcut path is available now.
+**Copy Job:** The summary announces **CDC and SCD Type 2 in Copy Job as GA**. For mirrored Delta CDF, keep the documented path **mirror → Lakehouse shortcut → Copy Job**; direct mirrored-database support is still described as in development. SCD2 maintains `Valid_From`, `Valid_To`, and `Is_Current`, but the [CDC guide](https://learn.microsoft.com/en-us/fabric/data-factory/cdc-copy-job) still labels SCD2 Preview and describes **net changes**, not every intermediate transaction. It is not a substitute for a separately retained, complete event audit.
+
+**Eventstream and Copy Job integration:** The separately announced **Preview** source/destination integration does not make direct mirrored-database CDF consumption by Copy Job documented. Likewise, **Eventstream workspace Private Link is Preview**, and its [current support matrix](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/event-streams/set-up-tenant-workspace-private-links) does not explicitly list the mirrored-database change-feed connector. Do not promise that network/connector combination from the two announcements alone.
 
 **Data Pipelines:** Use a Fabric Notebook activity within a Data Pipeline to run Spark code that reads from the CDF Lakehouse shortcut. A native Data Pipeline source connector for mirroring CDF is not currently available.
 
@@ -195,8 +200,16 @@ A Fabric capacity is still required for setup and execution. Extended capability
 
 ---
 
+## 9.5 Snowflake Security Roles Replication (Preview)
+
+The [dedicated FabCon announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_131) describes an Extended Capability that brings supported **Snowflake role hierarchies, role assignments, and grants** into Fabric alongside the data. Its illustrated entry point is **Manage OneLake security**.
+
+The feature summary says it will be available **shortly after FabCon EU 2026**, while the linked [OneLake companion announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabcon-and-sqlcon-barcelona-2026-what%E2%80%99s-new-in-microsoft-onelake-and-its-rapidly/5369146) says **now in public preview**. Neither statement proves availability in every tenant. The linked [extended-capabilities guide](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities) still provides no role-replication setup procedure, and the [Snowflake security guide](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-how-to-data-security) still requires separate Fabric security configuration.
+
+Before adopting it, confirm the rollout and supported identity mapping, grant classes, hierarchy interpretation, revocation behavior, synchronization cadence, source privileges, and billing. Those details are not established by the linked announcement/setup pages. Do not infer support for every row-access or masking policy, or apply the CDF/views pricing table to role replication without its billing specification. Until the supported configuration is available and validated, continue managing Fabric access explicitly. See [Chapter 22](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-22.md#snowflake-security-roles-replication-preview).
+
 ## Summary
 
-Extended capabilities add optional paid features on top of core mirroring. Delta CDF supports change-aware downstream processing, while Mirroring Views brings selected Snowflake views into OneLake on an approximately 12-hour refresh cycle. Check source and consumer limitations, and budget for the additional compute.
+Extended capabilities add optional features on top of core mirroring. Delta CDF supports change-aware downstream processing, while Mirroring Views brings selected Snowflake views into OneLake on an approximately 12-hour refresh cycle; both have documented additional compute charges. The Snowflake role-replication Preview has a separate availability and configuration boundary. Check the source, consumer, security, and billing details rather than treating the GA announcement as universal feature parity.
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 8: Using a Mirrored Database](chapter-08.md) | **Next:** [Chapter 10: Billing and Capacity Management](chapter-10.md)

@@ -282,7 +282,11 @@ SELECT SYSTEM$GET_ICEBERG_TABLE_INFORMATION(
 | **Security policies** | Snowflake row-level and column-level policies are not replicated. Reconfigure equivalent Fabric controls, and validate what the connection identity can read rather than assuming it bypasses source masking. |
 | **Schema and column names** | Source schemas and column names containing spaces or special characters are supported. Older mirrored items can require reconfiguration or recreation as described in the limitations article. |
 
-The [Fabric release notes](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new#features-currently-in-preview) also announce **Snowflake security-role mirroring** in preview. The linked extended-capabilities page does not yet provide its setup or permission-mapping rules. Do not interpret that announcement as automatic propagation of every Snowflake row, column, or masking policy.
+### Snowflake Security Roles Replication (Preview)
+
+The [September FabCon announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_131) specifies supported **role hierarchies, role assignments, and grants**, surfaced through **Manage OneLake security**. It says availability is shortly after FabCon EU, while the [OneLake companion announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabcon-and-sqlcon-barcelona-2026-what%E2%80%99s-new-in-microsoft-onelake-and-its-rapidly/5369146) says public preview is available now. Neither establishes rollout to every tenant.
+
+The linked extended-capabilities page still has no role-replication setup or complete permission-mapping specification. Do not invent additional Snowflake admin grants or a REST flag to enable it. Confirm supported identities/grants, source privileges, hierarchy mapping, sync cadence, revocation behavior, and billing before use. In particular, the announcement does not establish parity for all row-access or masking policies. Keep the explicit Fabric-side security handoff until the supported preview is configured and tested. See [Chapter 9, Section 9.5](../Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md#95-snowflake-security-roles-replication-preview).
 
 ---
 

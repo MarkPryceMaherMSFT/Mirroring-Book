@@ -12,6 +12,8 @@
 
 > **Note:** The Mirrored Database REST API operations covered in this chapter apply to **database mirroring** sources and **open mirroring** items. They do **not** apply to Azure Databricks mirrored catalogs (metadata mirroring). Databricks catalog mirroring is managed differently. See Chapter 14.
 
+They also do not manage the source-side link behind a [Dataverse-linked Lakehouse](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md). Do not call `startMirroring` or `stopMirroring` against that Lakehouse ID. For [SAP BDC Connect](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md), require its documented sharing/administration interface rather than inferring native Mirrored Database API support from the term "mirroring-like."
+
 [![chapter-06 diagram 1](../assets/diagrams/chapter-06/diagram-01.png)](../assets/diagrams/chapter-06/diagram-01.excalidraw.png)
 
 *Figure 6.1: Fabric REST API usage patterns*
@@ -259,6 +261,20 @@ Be careful with automated stop/start steps for database mirroring sources, becau
 - **Error handling**: honour `Retry-After` on `429 Too Many Requests`, and use bounded retries with backoff for transient failures such as `503 Service Unavailable`.
 - **State-aware operations**: check status before repeating start or stop requests. Do not assume retrying a stop/start sequence is harmless; it can trigger full re-replication.
 - **Token expiry**: refresh tokens using the expiry returned by your authentication library rather than assuming a fixed lifetime.
+
+## September 2026: Discovery and Automation Interfaces
+
+These [FabCon announcements](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825) complement the mirroring lifecycle API; they do not replace its permissions or source-specific setup.
+
+| Interface | Announced status | Use and limits |
+|---|---|---|
+| OneLake Catalog Search API enhancements | Preview | Standalone table discovery explicitly includes mirrored databases, with table/column/description searches and richer filters. Discovery follows **Read on the parent item**, not OneLake data-plane roles. The tenant's **Users can find objects in search** setting can disable object results. |
+| Fabric Core MCP Server | GA | Entra-authenticated discovery and item/workspace administration at `https://api.fabric.microsoft.com/v1/mcp/core`, respecting Fabric RBAC and auditing. This is not the Open Mirroring Python SDK and does not grant an agent unrestricted table access. |
+| Fabric Actions pipeline activity | Preview | Invoke supported Fabric REST actions through a managed connection and use responses downstream. The caller still needs operation-specific permissions; do not assume every Mirroring action is available in the picker. |
+
+The [Catalog Search API reference](https://learn.microsoft.com/en-us/rest/api/fabric/core/catalog/search) documents `POST /v1/catalog/search`, delegated `Catalog.Read.All`, supported identities, and continuation tokens. Its response/filter reference still trails parts of the announced table-discovery schema. Use the documented request format rather than inventing table filters or response fields from the announcement.
+
+For the other interfaces, see [Core MCP Server setup](https://learn.microsoft.com/en-us/rest/api/fabric/articles/mcp-servers/core-remote/get-started-core) and [Fabric Actions activity](https://learn.microsoft.com/en-us/fabric/data-factory/fabric-actions-activity). For the separate **OneLake Table Read API Preview**, which returns table data rather than managing a mirror, see [Chapter 8](chapter-08.md#onelake-table-read-api-preview).
 
 ---
 

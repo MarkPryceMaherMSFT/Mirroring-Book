@@ -1,65 +1,56 @@
-# Chapter 39: MongoDB Through Change Streams
+# Chapter 39: MariaDB Through MaxScale and Kafka
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Understand a document-database publisher, including initial scan handoff, resume tokens and BSON-to-table conversion.
+> **Purpose:** Understand a binlog-to-Kafka implementation and distinguish the open-source publisher from its separately licensed runtime.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
 ---
 
-## Project and Architecture
+## Project, Architecture and Licensing
 
-[MongoDB_Fabric_Mirroring](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring) is a public MongoDB partner implementation with an [Apache-2.0 licence](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/LICENSE.txt). This chapter uses revision `033d9d1`; its release notes list 1.4.4 dated 29 July 2026.
+[MariaDBMirroring](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring) provides a container-based sample:
 
 ```text
-MongoDB collection
-    -> initial scan and schema bootstrap
-    -> change-stream listener
-    -> typed rows and Parquet
-    -> OneLake publication
+MariaDB binlog -> MaxScale KafkaCDC -> Kafka
+    -> Python consumer -> Parquet -> OneLake landing zone
 ```
 
-This is an application you host and operate. The publisher licence does not replace the source database's own usage terms, nor does it make Atlas, hosting or Fabric analytics free.
+The publisher source is [MIT-licensed](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/LICENSE), but the complete supplied stack is **not unrestricted open source**. Its [Compose file](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/docker-compose.yml) uses `mariadb/maxscale:latest`, not a pinned version or digest.
 
-The useful starting points are [initial synchronization](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/init_sync.py), the [listener](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/listening.py), and the [publication helper](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/push_file_to_lz.py).
+The inspected MaxScale 24.02 [licence](https://github.com/mariadb-corporation/MaxScale/blob/844ab7ab5033a54c934757cefea05173ce50934e/licenses/LICENSE2402.TXT) is BSL 1.1 before its version-specific conversion. It permits additional production use with fewer than three server instances, and specifies 10 April 2027 as its change date to GPL-2.0-or-later, subject to the licence's conversion terms. Do not apply that date or grant to every MaxScale version. Pin and review the actual runtime selected for deployment.
 
-## Setup and First Collection
+This chapter includes the sample because its publisher implementation is public and instructive, with that limitation explicit. The sample collection's proof-of-concept disclaimer still applies.
 
-Follow the repository's configuration and deployment instructions for the selected revision. Supply MongoDB connectivity, database and collection selection, the Fabric landing-zone URL, Entra application credentials, and the batch/time thresholds. Use a source topology that supports the required change streams, with appropriate permissions and retained history.
+## Preparing the Lab
 
-Begin with one small collection containing stable `_id` values and representative BSON types. Create the Fabric item and identity using [Chapter 29](chapter-29.md). Size the host for the initial scan as well as steady-state change traffic; those are different workloads.
+Review the Compose services, [MaxScale configuration](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/config/maxscale/maxscale.cnf), and [consumer configuration](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/config.example.yaml). Configure source permissions, Kafka topic/partition, table keys, durable state storage and destination credentials.
 
-The application persists initial-load status, scan position, an upper `_id`, cluster-time information, file counter and schema-related state. Treat those files as recovery assets. Do not delete underscore-prefixed state because Fabric ignores it as data.
+The supplied consumer configuration uses local-only output, a 120-second poll interval and a 1,000-row per-table upload cap. Those are sample settings, not Fabric service limits. First prove the locally produced Parquet, then deliberately enable OneLake delivery using the permissions in [Chapter 31](chapter-31.md). Ensure publisher state survives container replacement.
 
-## Initial Scan and Incremental Handoff
+Do not put demonstration passwords on a shared network. Pin container images and dependencies, replace example credentials and restrict exposed ports before expanding the lab.
 
-The inspected [startup sequence](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/mongodb_generic_mirroring.py#L100-L117) finishes initial synchronization before starting the listener. The scan uses ordinary-session `_id` pagination, not a snapshot pinned to the earlier captured time.
+## Source Capture and State
 
-That makes concurrent-write testing essential. A record inserted after the captured boundary can potentially be seen by both the scan and the later stream. Ordinary stream inserts use marker `0`, which does not deduplicate merely because `_id` is declared as a key. Do not assume a special initialization mapping protects an overlap that occurs outside that code path.
+The [consumer](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py) contains more state machinery than a simple notebook. `snapshot_source_tables` starts a consistent-snapshot transaction and records GTID-related progress. `load_state` and `save_state` manage offsets, file counters, schemas and bootstrap state, using a temporary state file and replacement.
 
-This is a source-review question to test, not a claimed reproduced incident. Exercise inserts, updates and deletes during the scan and compare against a defined source boundary plus subsequent changes.
+`normalize_row` maps change events, including deletes; `flush_table_rows` writes sequential Parquet files. Snapshot output omits the row marker, while incremental output places it last. The local helper adds operations such as `upload_bytes`; those are extensions, not methods available in the standalone SDK from [Chapter 36](chapter-36.md).
 
-## Deletes, Replacement Documents and Schema
+A consistent source transaction plus a subsequently read global GTID does not by itself prove an exact scan/change-stream handoff under concurrent commits. Test the boundary against the actual server topology and binlog fields. The [GTID utilities](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/gtid_utils.py) also deserve attention for multidomain values.
 
-Delete events use `documentKey`; supported non-delete operations obtain full document values through the listener's configuration. The inspected operation map handles insert, update and delete, but not every change-stream event, including replacement documents. Check the actual event kinds generated by your application.
+## Recovery Work to Understand
 
-The [schema utilities](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/schema_utils.py) restore schema state and coerce BSON values for Parquet. Some failed conversions can fall back to typed nulls. Treat that as a data-quality policy requiring visibility and acceptance, not merely a formatting detail.
+In the inspected loop, offsets advance while rows are buffered. A flush can publish only the configured prefix while remaining rows stay in memory, after which state is saved. A saved offset must never acknowledge rows that exist only in memory. Crash recovery needs a durable pending batch or a checkpoint restricted to the contiguous published prefix.
 
-The inspected listener inserts the marker first; the current public contract says it must be last. Reconcile the deployed output with [Chapter 32](chapter-32.md), including mixed numeric types, dates, arrays/documents and added fields.
+File collision handling and counters are also not a complete source-batch journal. An existing destination filename must be reconciled with its assigned payload, not simply bypassed by choosing a new number. See the [publication design](chapter-31.md) for the distinction.
 
-## Publication and Resume Tokens
+The consumer manually assigns one partition. Do not infer distributed ownership or failover from Kafka's presence. The destination-validation path can select local-only operation, so monitoring must distinguish local exports from actual Fabric delivery.
 
-The publication helper makes create, append/flush and rename requests but does not enforce successful HTTP status for each response. The listener subsequently persists its resume token and file counter. A non-success response that does not raise a transport exception can therefore cross the checkpoint boundary unnoticed.
+## What to Measure and Test
 
-Harden error propagation and ambiguous-outcome recovery before treating upload completion as permission to advance the token. Keep a durable association between source events and their final publication path. A token records where to resume the source, not proof that Fabric applied those events.
+Track binlog/GTID progress, Kafka lag, durable pending batches, destination publication and Fabric table freshness separately. Test a crash with more than one flush worth of buffered rows, destination unavailability, retained Kafka history expiry, and several events for one key.
 
-On history loss, clearing a token does not recover missing events. Define an explicit resnapshot or reconciliation procedure before source retention expires, and alert rather than silently claiming continuity.
+The architecture demonstrates useful separation between capture, transport and publishing. It does not establish exactly-once delivery, full topology support or an unrestricted free runtime. Budget source resources, Kafka/MaxScale hosting, state storage, network transfer and Fabric analytics separately.
 
-## Evaluation Checklist
-
-Test scan/stream overlap, replacement events, source history expiry, HTTP 403/429/500 responses and a crash after rename but before checkpointing. Validate both row identity and values; matching counts can hide duplicates and missing documents that cancel each other numerically.
-
-The project is valuable because its real scan, stream, state and schema code can be studied and adapted. Evaluate the exact revision and source workload rather than inferring production reliability from the existence of a partner integration.
-
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 38: BigQuery with FabricBQSync](chapter-38.md) | **Next:** [Chapter 40: PostgreSQL Through Debezium and Kafka](chapter-40.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 38: Toolbox Notebook Solutions](chapter-38.md) | **Next:** [Chapter 40: BigQuery with FabricBQSync](chapter-40.md)

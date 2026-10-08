@@ -1,69 +1,124 @@
-# Chapter 36: Toolbox Notebook Solutions - Excel, SharePoint, MySQL, and Snowflake
+# Chapter 36: The Microsoft Open Mirroring Python SDK
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Learn from executable source-specific notebooks without confusing a scheduled demonstration with a complete replication service.
+> **Purpose:** Use Microsoft's Python helper to understand table creation and file publication, while keeping source capture and reliable recovery in your application.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
 ---
 
-## Why Group These Examples?
+## What the SDK Provides
 
-The [Toolbox sample collection](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring) contains several separate Python notebooks. They share the extraction-to-Parquet-to-OneLake pattern, but their source mechanisms differ considerably. Read them alongside the [SDK chapter](chapter-34.md), not as evidence that the SDK itself knows how to capture changes.
+The [Open Mirroring Python SDK](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK) was developed inside Microsoft and published in Fabric Toolbox. Its implementation is the `OpenMirroringClient` class in one Python module, `openmirroring_operations.py`. It is not a complete database connector or a replacement for the [shared build guidance](chapter-31.md).
 
-The inspected revision is `b0183fb`, and the [MIT licence](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/LICENSE) covers the repository source. The collection labels the examples proof-of-concept code, not production-ready software. Source-service licences and Fabric notebook compute remain separate costs.
+| Responsibility | SDK or application? |
+|---|---|
+| Authenticate with a client secret and address OneLake | SDK |
+| Create table folders and key metadata | SDK |
+| Discover a next filename and upload through a temporary name | SDK |
+| Read monitoring files | SDK; the inspected methods print their results |
+| Extract source rows, capture deletes and establish a snapshot boundary | Application |
+| Generate and validate Parquet, maintain durable checkpoints, coordinate writers | Application |
+| Create/start the Fabric mirrored database and operate a scheduler | Separate Fabric APIs and application |
 
-## Source Map
+**Source baseline:** [implementation at `b4636ef`](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py), reviewed for this chapter on 8 October 2026. Its [MIT licence](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/LICENSE.txt) permits reuse subject to its terms. Microsoft authorship does not create a production support guarantee; see the [Toolbox support statement](https://github.com/microsoft/fabric-toolbox#support).
 
-| Notebook | Real source code | Capture pattern |
-|---|---|---|
-| Excel Mirroring | [excelmirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Excel%20Mirroring/excelmirroring.ipynb) | Scan a OneLake folder and publish workbook sheets |
-| SharePoint Excel | [sharepoint-excel-mirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/SharepointExcelMirroring/sharepoint-excel-mirroring.ipynb) | Graph download followed by workbook conversion |
-| SharePoint Lists | [sharepoint-list-mirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/SharepointListMirroring/sharepoint-list-mirroring.ipynb) | Graph list response converted to a table |
-| MySQL | [mysqlmirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/mysql%20Mirroring/mysqlmirroring.ipynb) | Initial snapshot plus source triggers and a change table |
-| Snowflake | [snowflakeMirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Snowflake%20Mirroring/snowflakeMirroring.ipynb) | Snapshot plus Snowflake stream extraction |
+## Prepare a Small Lab
 
-These are custom publishers. They are not the native SharePoint, MySQL or Snowflake connectors described in Part 2.
+Create a new Open Mirrored Database and grant the publishing identity the permissions described in [Chapter 31](chapter-31.md). Use its complete landing-zone URL, not a Lakehouse URL or the SQL endpoint.
 
-## Getting Started
+Obtain the module from the pinned source and place it on your Python import path. The inspected folder is a source-module distribution; do not invent a `pip install OpenMirroringPythonSDK` package. Install its dependencies and a Parquet library for the example:
 
-Import the selected notebook into a test Fabric environment, install its stated dependencies, and identify every configuration and credential cell before execution. Grant source access separately from OneLake write access. Confirm that the network path exists from the notebook runtime; a working desktop connection does not prove that.
+```powershell
+python -m pip install azure-identity azure-storage-file-datalake requests pyarrow
+```
 
-Create an empty mirrored database and select one small keyed source object. Read every reset/setup cell before running the notebook: some delete destination tables or recreate source capture objects. Run initialization once, then schedule only the intended incremental cells after making their recovery safe.
+For reproducible deployments, record the tested dependency versions rather than continually installing the latest versions. Store credentials in protected configuration; the example reads environment variables so no credential is embedded in source.
 
-Use [Chapter 32](chapter-32.md) to inspect metadata, row-marker placement and file names. Embedded helper classes can differ from the standalone SDK. Do not assume that a method added to one notebook exists in `OpenMirroringPythonSDK`.
+```python
+import os
+import pyarrow as pa
+import pyarrow.parquet as pq
+from openmirroring_operations import OpenMirroringClient
 
-## Excel and SharePoint: Current State Is Not a Change Stream
+client = OpenMirroringClient(
+    client_id=os.environ["AZURE_CLIENT_ID"],
+    client_secret=os.environ["AZURE_CLIENT_SECRET"],
+    client_tenant=os.environ["AZURE_TENANT_ID"],
+    host=os.environ["FABRIC_LANDING_ZONE_URL"],
+)
 
-The workbook notebooks convert current sheet contents to Parquet, generate positional row identities and publish update/upsert-like rows. Reordering the workbook changes that identity, while removing rows does not automatically generate deletes. The `clean` argument in the Excel helper is compared with the string `"true"`; it controls a destructive remove/recreate path rather than an ordinary incremental refresh.
+client.create_table(
+    schema_name="demo", table_name="customers", key_cols=["id"]
+)
 
-The SharePoint Excel notebook adds a Graph download step. The inspected function processes a returned `children` page; pagination, deleted-file reconciliation and a durable download cursor are additional work. Similarly, the list notebook converts a returned list response rather than implementing a complete paginated delta protocol.
+schema = pa.schema([
+    pa.field("id", pa.int64(), nullable=False),
+    pa.field("name", pa.string()),
+])
+snapshot = pa.Table.from_pylist([
+    {"id": 1, "name": "Ada"},
+    {"id": 2, "name": "Grace"},
+], schema=schema)
+pq.write_table(snapshot, "customers-initial.parquet")
+client.upload_data_file(
+    schema_name="demo",
+    table_name="customers",
+    local_file_path="customers-initial.parquet",
+)
+```
 
-For a real synchronization service, keep stable source keys, fetch all pages, retain the last successfully published snapshot and publish missing-key deletes. The [file pattern in Chapter 31](chapter-31.md#use-case-4-excelcsv-mirroring) explains the division of responsibilities.
+Run table creation and this initial-load cell once against a fresh lab table. Do not rerun the whole cell as your incremental scheduler: allocating another marker-free snapshot file can insert duplicates. The SDK does not remember that the source batch has already been delivered.
 
-## MySQL: Trigger Capture and Delivery Acknowledgement
+After inspecting the actual file and Fabric table status, prepare a full-row upsert and a key-based delete:
 
-`setup_cdc_for_table` creates the source change table and insert/update/delete triggers. It can drop and recreate those objects, so it is not a harmless restart function. Inspect the generated SQL with the source owner before using it.
+```python
+change_schema = schema.append(
+    pa.field("__rowMarker__", pa.int32(), nullable=False)
+)
+changes = pa.Table.from_pylist([
+    {"id": 1, "name": "Ada Lovelace", "__rowMarker__": 4},
+    {"id": 2, "name": None, "__rowMarker__": 2},
+], schema=change_schema)
+pq.write_table(changes, "customers-changes.parquet")
+client.upload_data_file(
+    schema_name="demo",
+    table_name="customers",
+    local_file_path="customers-changes.parquet",
+)
+client.get_table_status(schema_name="demo", table_name="customers")
+```
 
-`export_cdc_to_parquet` selects unmoved changes, writes a local file, then marks currently unmoved rows as moved before a later upload cell runs. This separates acknowledgement from delivery. New changes arriving between selection and the broad update can also be acknowledged without belonging to that export.
+The marker is the final column. The delete retains the original typed schema, with a nullable non-key field. Expected final state is key `1` with the updated name and no key `2`. This is a method walkthrough, not a crash-safe publisher: it deliberately does not advance a source checkpoint after an upload call.
 
-A hardened design captures a bounded, ordered set of change identifiers, journals its payload, publishes it, and acknowledges exactly that set. It also establishes a snapshot/trigger boundary and handles primary-key changes as removal of the old identity plus publication of the new identity. A retry loop alone cannot fix an incorrectly advanced source checkpoint.
+## Read the Actual API
 
-## Snowflake: Stream Progress Is a Source Checkpoint
+| Method | Behaviour in the inspected module |
+|---|---|
+| `create_table(schema_name=None, table_name="", key_cols=[])` | Creates the folder and `_metadata.json` containing `keyColumns`; it does not validate the payload schema |
+| `get_next_file_name(schema_name=None, table_name="")` | Finds final `.parquet` names and returns a 20-digit next name |
+| `upload_data_file(schema_name=None, table_name="", local_file_path="")` | Reads the local file into memory, uploads under an underscore-prefixed name, flushes, and invokes REST rename |
+| `get_mirrored_database_status()` | Reads and prints `Monitoring/replicator.json` |
+| `get_table_status(schema_name=None, table_name=None)` | Reads and prints `Monitoring/tables.json`; filtering expects both schema and table |
+| `remove_table(schema_name=None, table_name="", remove_schema_folder=False)` | Deletes a table folder; the optional schema-folder deletion can affect other tables |
 
-The Snowflake notebook identifies object types, creates streams, extracts snapshots and queries stream changes. In the inspected incremental cell, `create_stream_if_supported` uses `CREATE OR REPLACE STREAM` after reading changes and before uploading them.
+Use keyword arguments: a positional table name could accidentally be interpreted as `schema_name`. Status methods do not return dictionaries. Do not build code around an invented success result from upload, either.
 
-Replacing a stream and publishing a OneLake file are not one transaction. Preserve the extracted changes and protect the source boundary before acknowledging or resetting the stream. Sorting by row ID and action is not a general guarantee of transaction order.
+## Limitations That Matter
 
-The notebook also defines its helper class after earlier cells that use it, so a clean top-to-bottom execution needs attention. This is precisely why source inspection is more useful than simply listing a notebook link.
+The [rename implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py#L201-L226) prints non-success HTTP responses instead of raising an exception. The upload caller can subsequently print a success message. Treat this as an implementation issue to correct before using method completion as permission to acknowledge source changes.
 
-## Lessons and Acceptance Exercises
+Filename discovery is not reservation. Two writers can choose the same next filename; a crash between publication and checkpointing can replay a batch under a different filename. Preserve a durable batch-to-path assignment, enforce immutable final paths, propagate errors and reconcile ambiguous outcomes as described in [Chapter 31](chapter-31.md). Ordinary cleanup retains the latest sequential file, but that does not replace your journal.
 
-Interrupt each notebook between export and upload, and again between upload and progress persistence. Test source changes during the initial scan, pagination, deletions, key changes and a schema change. Reconcile the resulting rows, not just the presence of a file.
+The module does not generate Parquet, validate markers, configure CSV metadata or expose the alternative file-detection strategy. An arbitrary local file can receive a `.parquet` destination name. Its raw rename request also lacks an explicit timeout. Large-file memory use, retry policy, structured monitoring results and credential flexibility are application-hardening work.
 
-These examples make source integration approachable. Their strongest lesson is that source capture, publication and acknowledgement are three separate steps. Use the [shared recovery guidance](chapter-33.md) and [acceptance exercises](chapter-44.md#acceptance-exercises) before scheduling them unattended.
+Prefer the documented [Fabric monitoring APIs](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/mirroring) for operational automation. A successful upload and a replicated table are different states.
 
-**Related article:** [Mirroring Excel into Fabric with Open Mirroring (2nd try)](https://medium.com/@sqltidy/mirroring-excel-into-fabric-with-open-mirroring-2nd-try-83690d950cf6) has matching Toolbox source and belongs here, not in the blog-only table.
+## What to Learn
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 35: GenericMirroring](chapter-35.md) | **Next:** [Chapter 37: MariaDB Through MaxScale and Kafka](chapter-37.md)
+This is a compact, useful reference for the OneLake side of a publisher. Reuse its understandable structure, not assumptions about end-to-end reliability. Before deployment, exercise failed rename, response loss, restart after publication, delete processing and two competing writers. Deleting a folder is a table-drop operation, not routine cleanup.
+
+**References:** [SDK source and README](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK), [landing-zone contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format), and [publication/recovery guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
+
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 35: Common Issues and Troubleshooting](chapter-35.md) | **Next:** [Chapter 37: GenericMirroring - A Multi-Source C# Publisher](chapter-37.md)

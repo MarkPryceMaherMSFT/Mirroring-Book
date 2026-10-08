@@ -1,8 +1,8 @@
-# Chapter 30: Code Samples and the Fabric Toolbox
+# Chapter 30: What is Open Mirroring and Why It's Useful
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Use this chapter to find official samples, APIs, SDKs, and community tools for an Open Mirroring implementation.
+> **Purpose:** Use this chapter to understand the Open Mirroring contract, decide when it fits, and separate developer responsibilities from Fabric responsibilities.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
@@ -10,164 +10,114 @@
 
 ## Overview
 
-Microsoft provides code samples, tutorials, REST APIs, and SDKs for Open Mirroring. This chapter identifies the main resources and where each one fits.
+**Open Mirroring** is the Fabric interface for custom and partner-managed replication. An application, platform, or data source can use it when the developer implements the required data-delivery contract.
 
-[![Figure 30.1: Developer toolchain for Open Mirroring implementations](../assets/diagrams/chapter-30/diagram-01.png)](../assets/diagrams/chapter-30/diagram-01.excalidraw.png)
-*Figure 30.1: Developer toolchain for Open Mirroring implementations*
-
----
-
-## Microsoft-Published Python SDK Sample
-
-Microsoft publishes the [Open Mirroring Python SDK](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK) in the Fabric Toolbox repository.
-
-The [repository support statement](https://github.com/microsoft/fabric-toolbox#readme) describes its assets as examples with best-effort issue support. Treat this SDK as a starting point, not a production reliability guarantee or a substitute for the public landing-zone contract.
-
-The `OpenMirroringClient` demonstrates how to:
-
-- authenticate to OneLake with a service principal
-- create schema and table folders
-- create per-table `_metadata.json`
-- determine the next sequential file name
-- upload through a temporary name and atomic rename
-- remove a table folder
-- read database and table monitoring status
-
-Review the [implementation](https://github.com/microsoft/fabric-toolbox/blob/main/tools/OpenMirroringPythonSDK/openmirroring_operations.py) before adopting it. It uses a direct REST rename and reads monitoring JSON files in OneLake; those are sample implementation choices. Its next-file lookup is not a durable sequence allocator, and its rename helper prints failures rather than raising them. Add explicit error handling, immutable publication, crash-safe batch assignments, and retry tests. Prefer the documented monitoring REST APIs for operational automation.
-
-The separate [Open Mirroring samples](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring) are explicitly proof-of-concept code, not production-ready connectors. The collection's `GenericMirroring` project includes SQL Server Change Tracking, Excel, CSV, Access, and SharePoint Lists examples.
-
-The dedicated [SDK walkthrough in Chapter 34](chapter-34.md) explains the actual methods, an initial-load and change-file example, and the limitations to address before connecting source checkpoints to publication. The SDK is a publishing helper, not a source connector: it does not capture CDC, generate Parquet, or provide a durable replication scheduler.
+Use Open Mirroring when no native connector exists or when you need direct control over what data is replicated, when it is delivered, and how it is formatted.
 
 ---
 
-## Microsoft Learn Tutorials
+## Definition and Extensibility
 
-Microsoft Learn provides structured tutorials for Fabric Mirroring:
+At its core, open mirroring is a contract between an application and Fabric:
 
-### Recommended References
+[![Figure 30.1: The Open Mirroring contract and division of responsibilities](../assets/diagrams/chapter-30/diagram-01.png)](../assets/diagrams/chapter-30/diagram-01.excalidraw.png)
+*Figure 30.1: The Open Mirroring contract and division of responsibilities*
 
-1. [Fabric Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/overview)
-2. [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring)
-3. [Open Mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial)
-4. [Landing-zone format](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format)
-5. [Publication, detection, recovery, and schema best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices)
-6. [Open Mirroring FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-faq)
-7. [Partner ecosystem](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-partners-ecosystem)
+- **The application** is responsible for extracting change data from its source system and writing it to the Fabric landing zone in the prescribed format.
+- **Fabric** is responsible for detecting new files in the landing zone, processing them into Delta tables, and making those tables available through the SQL analytics endpoint, Spark, and Power BI.
 
----
+The "open" in Open Mirroring refers to the interface. Any application that can:
 
-## Open-Source Solution Directory
+1. Authenticate with Microsoft Entra ID
+2. Write files to an ADLS Gen2-compatible OneLake endpoint
+3. Follow the landing zone file format and metadata conventions
 
-The following chapters examine real implementation code, not just articles or product announcements. Each separates implemented behaviour from work needed for a production deployment.
+An application that meets those requirements can publish through the interface. That does not make its implementation open source.
 
-| Project or family | Source or role | Read next |
-|---|---|---|
-| Microsoft Python SDK | Reusable OneLake publication helper | [Chapter 34](chapter-34.md) |
-| GenericMirroring | SQL Server Change Tracking, Excel, CSV, Access, SharePoint Lists | [Chapter 35](chapter-35.md) |
-| Toolbox notebooks | Excel, SharePoint files/lists, MySQL trigger capture, Snowflake streams | [Chapter 36](chapter-36.md) |
-| MariaDBMirroring | MariaDB binlog, MaxScale, Kafka and Python; runtime licence caveat | [Chapter 37](chapter-37.md) |
-| FabricBQSync | BigQuery extraction through Fabric Spark | [Chapter 38](chapter-38.md) |
-| MongoDB_Fabric_Mirroring | MongoDB initial scan and change streams | [Chapter 39](chapter-39.md) |
-| mirror_postgres | PostgreSQL, Debezium and Kafka | [Chapter 40](chapter-40.md) |
-| impulse_sync | PostgreSQL query-based incremental extraction | [Chapter 41](chapter-41.md) |
-| fabric-mirroring-synapse | Synapse dedicated SQL pool snapshot/diff and append-only extraction | [Chapter 42](chapter-42.md) |
-| File and test tools | Streamlit Excel publisher, synthetic CRUD, sink tests and benchmarking | [Chapter 43](chapter-43.md) |
+### Open Interface versus Open-Source Implementation
 
-Use [Chapter 44](chapter-44.md) for the source comparison, shared lessons, and a separate source-to-blog table where matching public producer code was not found. GitHub visibility alone is not an open-source licence. Conversely, the author's confirmation of customer reuse for the Synapse project is recorded explicitly rather than excluding that implementation.
+**Open Mirroring** names the Fabric ingestion contract. A publisher can be proprietary, a licensed open-source project, or custom code maintained by your organisation. A listing in the partner ecosystem does not establish that a product's source code is available.
 
-Do not count archived Toolbox predecessors as new solutions. Its GenericMirroring TODO entries for Synapse Gen2, BigQuery, Redshift and ODBC are not implemented connectors; the separate Synapse and FabricBQSync projects above have their own codebases.
+This part separates three kinds of resource:
 
----
-
-## Fabric REST API Reference
-
-Use the [item APIs](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/items) for lifecycle operations and the [mirroring APIs](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/mirroring) for replication control and monitoring.
-
-All paths below are relative to `https://api.fabric.microsoft.com/v1/workspaces/{workspaceId}`:
-
-| Method and path | Purpose |
+| Resource | What to verify before adopting it |
 |---|---|
-| `POST /mirroredDatabases` | Create an item using its definition |
-| `GET /mirroredDatabases` | List items |
-| `GET`, `PATCH`, `DELETE /mirroredDatabases/{id}` | Read, rename/update item metadata, or delete an item |
-| `POST /mirroredDatabases/{id}/getDefinition` | Read the replication definition |
-| `POST /mirroredDatabases/{id}/updateDefinition` | Update the replication definition |
-| `POST /mirroredDatabases/{id}/startMirroring` | Start replication |
-| `POST /mirroredDatabases/{id}/stopMirroring` | Stop replication |
-| `POST /mirroredDatabases/{id}/getMirroringStatus` | Get database status |
-| `POST /mirroredDatabases/{id}/getTablesMirroringStatus` | Get paginated table status and metrics |
+| **Open-source implementation** | A public GitHub repository containing the publisher code and an explicit open-source licence covering it. Check source support and recovery behaviour in the implementation, not only its README. |
+| **Source-available example** | Code is visible, but licence terms may be absent or restrictive. Do not assume permission to modify or redistribute it. |
+| **Blog or walkthrough** | Useful explanation, but not an implementation you can inspect, build, or maintain unless it links to suitable source code. |
 
-Open Mirroring uses `GenericMirror` as its source type and does not require a source connection ID. Its `mirroring.json` item definition is distinct from the per-table `_metadata.json` files in OneLake. See the [item definition](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition).
+Even a licensed repository can be an educational sample rather than a supported connector. Pin the version you evaluate, record its dependencies, and test the source-to-landing-zone failure cases before using it for a production workload.
 
-For example, the decoded `mirroring.json` payload for an Open Mirrored Database can be:
+Chapters [36](chapter-36.md)-[45](chapter-45.md) apply these distinctions to real GitHub projects. Start with the [source-to-project comparison](chapter-46.md#source-to-project-comparison) if you want an existing implementation rather than a custom build. The [Synapse chapter](chapter-44.md) records the author's explicit confirmation of open-source/customer use separately from the repository's unnamed licence terms.
 
-```json
-{
-  "properties": {
-    "source": {
-      "type": "GenericMirror",
-      "typeProperties": {}
-    },
-    "target": {
-      "type": "MountedRelationalDatabase",
-      "typeProperties": {
-        "defaultSchema": "dbo",
-        "format": "Delta"
-      }
-    }
-  }
-}
-```
-
-Base64-encode this JSON locally and supply it as the `InlineBase64` payload of the `mirroring.json` definition part in the create request. Do not upload it as table metadata. The [create API](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/items/create-mirrored-database) requires a workspace Contributor role and returns HTTP 201 on success. Poll mirroring status separately because SQL endpoint provisioning can still be in progress.
-
-These APIs support service principals and managed identities, subject to tenant settings and item permissions. Starting requires mirrored-item read and write permissions; status calls require read permission. Database and table status are separate: the database can return `Running`, while a table returns `Snapshotting`, `Replicating`, or `Failed`. Follow pagination and honour `Retry-After` on HTTP 429 responses. Starting is not supported while database status is `Initializing`.
+An open-source publisher can depend on commercially licensed or source-available components. Check the whole stack: the C# Excel example uses EPPlus, and the MariaDB sample uses MaxScale. Neither the publisher's licence nor free Fabric replication compute eliminates source-system, hosting, storage, networking, analytics, or maintenance costs.
 
 ---
 
-## Recommended Development Tools
+## Use Cases
 
-| Tool | Purpose |
+Open mirroring is well-suited for:
+
+| Use Case | Description |
 |---|---|
-| **Azure Storage Explorer** | Browse and inspect OneLake landing zone files and Delta table files |
-| **DBeaver** | Query the SQL analytics endpoint with a free SQL client |
-| **VS Code + MSSQL extension / SSMS** | Query the SQL analytics endpoint with supported Microsoft SQL tools |
-| **VS Code + Jupyter extension** | Develop and test Python open mirroring pipelines locally |
-| **Postman / Bruno** | Test Fabric REST API calls interactively |
-| **REST client or Python `requests`** | Script Fabric item lifecycle and monitoring operations |
-
-[Azure Data Studio is retired](https://learn.microsoft.com/en-us/sql/tools/whats-happening-azure-data-studio?view=sql-server-ver17) and no longer receives security fixes. Use VS Code with the MSSQL extension or SSMS instead.
+| **Unsupported source systems** | Legacy databases (e.g., DB2, Teradata, Sybase), custom application databases, or proprietary data stores not covered by Fabric's built-in connectors. |
+| **Custom CDC implementations** | Scenarios requiring custom change-extraction logic, such as event-sourcing systems, custom audit tables, or soft-delete patterns. |
+| **Multi-cloud data consolidation** | Bringing data from platforms in other clouds (AWS RDS, GCP Cloud SQL) where a native connector is not available. |
+| **IoT and streaming data** | High-velocity sensor or telemetry data that is batched and written in micro-batches. |
+| **SaaS application data** | Extracting data from SaaS APIs (Salesforce, ServiceNow, HubSpot) and landing it in Fabric. |
+| **Partner integrations** | ISV products that want to deliver data to Fabric customers without requiring a native Fabric connector. |
+| **Excel/CSV mirroring** | Periodically publishing supported delimited-text files or converting Excel workbooks to Parquet. Excel workbooks are not a landing-zone file format. |
 
 ---
 
-## Python Package Ecosystem
+## Built-In Analytics After Ingestion
 
-The following Python packages are commonly used in open mirroring implementations:
+Once Fabric processes landing-zone data into Delta tables, Open Mirroring supports the same main analytical experiences as database mirroring:
 
-| Package | Purpose |
+- **SQL analytics endpoint**: Read-only T-SQL access after replication and endpoint metadata synchronisation.
+- **Power BI Direct Lake**: Semantic models and reports over the mirrored data.
+- **Fabric Notebooks**: Spark-based processing and machine learning.
+- **OneLake Explorer**: Browse Delta table files directly.
+- **Cross-database queries**: Join mirrored tables with Warehouses and Lakehouse SQL analytics endpoints in the same workspace.
+
+Consumers use the resulting tables rather than the publisher's file protocol. Data freshness still depends on source extraction, publication, Fabric processing, and the consuming experience; there is no fixed end-to-end latency guarantee.
+
+### Security and Support Boundaries
+
+Open Mirroring does not manage a connection to the source. The publisher owns source credentials, change capture, delete capture, and recovery. Fabric owns processing valid landing-zone files into managed Delta tables.
+
+Grant publishers only the required workspace or mirrored-item permissions. The item's **Read and write** permission allows landing-zone writes and configuration changes; **ReadData** grants SQL data access, while **ReadAll** grants direct OneLake data access. These are different access paths, so do not assume a SQL-only restriction also protects direct file access. See [Share and manage permissions](https://learn.microsoft.com/en-us/fabric/mirroring/share-and-manage-permissions).
+
+Publish to `Files/LandingZone`, not directly to the managed `Tables` area. A partner connector can impose additional source versions, licensing, hosting, or permission requirements. The [partner ecosystem](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-partners-ecosystem) identifies integrations, not a guarantee that every partner supports every source feature.
+
+---
+
+## Cost Considerations
+
+Open mirroring introduces specific cost considerations:
+
+| Cost Component | Detail |
 |---|---|
-| `azure-identity` | Microsoft Entra ID authentication (service principal, managed identity) |
-| `azure-storage-file-datalake` | ADLS Gen2 / OneLake file system operations |
-| `pyarrow` | In-memory columnar data and Parquet file I/O |
-| `pandas` | Data manipulation and CSV/Excel reading |
-| `sqlalchemy` | Source database connections (SQL Server, PostgreSQL, MySQL) |
-| `requests` | HTTP calls to Fabric control-plane APIs and the OneLake rename endpoint |
-| `openpyxl` | Excel workbook reading through pandas |
-| `psycopg2` | PostgreSQL extraction in the Chapter 31 example |
+| **Fabric replication compute** | Fabric compute used to process landing-zone files into OneLake is free. |
+| **OneLake storage** | Mirrored replicas receive a capacity-based free storage allowance. Storage above the allowance, or while capacity is paused, is chargeable. Check the current pricing rules rather than treating all Open Mirroring storage as billable. |
+| **Compute for extraction** | The publisher's hosting, extraction, and transformation compute is separate from free Fabric replication compute, whether it runs outside Fabric or in a billable Fabric workload. |
+| **Egress costs** | If the source data is in a different cloud or region from the Fabric capacity, data egress costs may apply. |
+| **Queries and OneLake requests** | SQL, Power BI, and Spark queries are charged at regular rates. Direct requests to OneLake consume capacity as normal OneLake operations. |
 
-Publishers write Parquet or delimited text, not Delta transaction logs. A Delta-writing library is not required for Open Mirroring, and must not be used to modify Fabric-managed mirrored tables.
+The [cost of mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/overview#cost-of-mirroring) describes one free terabyte of replica storage per purchased capacity unit. A running capacity is still required even though background replication compute does not consume capacity units.
 
-Install the core open mirroring dependencies:
-
-```bash
-pip install azure-identity azure-storage-file-datalake pyarrow pandas requests
-```
+**Cost optimisation tips:**
+- Write micro-batches rather than individual rows. Fewer, larger files are more efficient for Delta processing.
+- Use Parquet format rather than CSV for landing zone files when possible.
+- Schedule extraction around source workload constraints where the freshness requirement allows it.
+- Implement efficient watermarking to avoid re-sending unchanged data.
 
 ---
 
 ## Summary
 
-Start with Microsoft Learn and the Microsoft-published samples, harden publication and recovery for your workload, and use the REST APIs for lifecycle automation and monitoring.
+Open Mirroring gives custom and partner integrations a defined way to deliver source changes to Fabric. The developer owns extraction and file delivery, while Fabric processes those files into queryable Delta tables.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 29: Setting Up Open Mirroring: Step-by-Step Configuration](chapter-29.md) | **Next:** [Chapter 31: Use Cases and Examples](chapter-31.md)
+**References:** [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring), [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-faq), and [publication and recovery best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
+
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 29: SAP Business Data Cloud Connect for Microsoft Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) | **Next:** [Chapter 31: Setting Up Open Mirroring: Step-by-Step Configuration](chapter-31.md)

@@ -37,6 +37,8 @@ See the [Microsoft Learn architecture description](https://learn.microsoft.com/e
 
 ## Network and Connectivity
 
+**FabCon announcement:** the [September 2026 summary announces VNet data gateway support for Cosmos DB mirroring](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_117). It does not attach a separate GA/Preview label to this networking announcement. The source account can retain private-endpoint protection and disabled public access, but the gateway establishes/tests the connection rather than carrying the replication stream. Follow the detailed restricted-network setup below, including OAuth, trusted-workspace ACL bypass, and REST creation.
+
 | Question | Answer |
 |---|---|
 | **Data gateway required?** | Not for the public cloud-connection walkthrough. For a restricted account, a VNet data gateway tests and creates the connection; trusted-workspace Network ACL Bypass authorizes Fabric. Ongoing replication does not traverse the gateway. |

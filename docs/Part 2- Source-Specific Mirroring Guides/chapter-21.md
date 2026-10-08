@@ -12,7 +12,7 @@
 
 **SharePoint Lists** are structured data containers in Microsoft SharePoint and Microsoft 365. Teams use them to track project tasks, asset registers, approval queues, customer contacts, and other business data without a separate database. SharePoint lists are often paired with a **Document Library** that stores related files.
 
-Fabric Mirroring for SharePoint List is a **native, first-party connector**. The [Fabric release notes](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new#generally-available-features) announce general availability in **September 2026**, although the general Mirroring source table still carries a preview label when checked on **8 October 2026**. You select it directly from the Fabric portal; it does not require a custom Graph API integration, Azure Functions, or Power Automate flows to operate.
+Fabric Mirroring for SharePoint List is a **native, first-party connector**. The [September 2026 FabCon feature summary explicitly announces general availability](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_129), although the general Mirroring source table still carries a preview label when checked on **8 October 2026**. You select it directly from the Fabric portal; it does not require a custom Graph API integration, Azure Functions, or Power Automate flows to operate. GA does not imply that all SharePoint fields, document contents, or source permissions are automatically replicated; the row and shortcut paths below remain distinct.
 
 ---
 

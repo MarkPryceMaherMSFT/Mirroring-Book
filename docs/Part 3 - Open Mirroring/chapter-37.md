@@ -1,56 +1,65 @@
-# Chapter 37: MariaDB Through MaxScale and Kafka
+# Chapter 37: GenericMirroring - A Multi-Source C# Publisher
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Understand a binlog-to-Kafka implementation and distinguish the open-source publisher from its separately licensed runtime.
+> **Purpose:** Understand the multi-source Toolbox proof of concept and identify what must change before operating it as a reliable connector.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
 ---
 
-## Project, Architecture and Licensing
+## Project and Scope
 
-[MariaDBMirroring](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring) provides a container-based sample:
+[GenericMirroring](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/GenericMirroring) is a .NET 8 application with adapters for SQL Server Change Tracking, local Excel workbooks, CSV files, Access databases and SharePoint Lists. It is useful when the reader wants to inspect a small source-adapter framework rather than start with a blank project.
+
+The [collection explicitly calls these proof-of-concept samples](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/README.md), not production connectors. This chapter uses revision `b0183fb`. The publisher code is covered by the [Toolbox MIT licence](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/LICENSE).
+
+**Excel dependency caveat:** the [project references EPPlus 7.5.3](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/GenericMirroring.csproj). That version has [Polyform Noncommercial/commercial licensing](https://github.com/EPPlusSoftware/EPPlus/blob/213a22d8c0f0fe98086b0240a1f8a12d56109483/license.md). The sample's noncommercial setting does not grant commercial-use rights. Do not describe the complete Excel branch as unrestricted free software for businesses.
+
+## Architecture and Setup
 
 ```text
-MariaDB binlog -> MaxScale KafkaCDC -> Kafka
-    -> Python consumer -> Parquet -> OneLake landing zone
+mirrorconfig.json
+    -> source polling or file watcher
+    -> DataTable and Parquet conversion
+    -> local staging
+    -> enabled OneLake destinations
 ```
 
-The publisher source is [MIT-licensed](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/LICENSE), but the complete supplied stack is **not unrestricted open source**. Its [Compose file](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/docker-compose.yml) uses `mariadb/maxscale:latest`, not a pinned version or digest.
+Read [Program.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Program.cs), the [configuration](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/mirrorconfig.json), and [Upload.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs) together. Configuration alone does not describe the complete execution path.
 
-The inspected MaxScale 24.02 [licence](https://github.com/mariadb-corporation/MaxScale/blob/844ab7ab5033a54c934757cefea05173ce50934e/licenses/LICENSE2402.TXT) is BSL 1.1 before its version-specific conversion. It permits additional production use with fewer than three server instances, and specifies 10 April 2027 as its change date to GPL-2.0-or-later, subject to the licence's conversion terms. Do not apply that date or grant to every MaxScale version. Pin and review the actual runtime selected for deployment.
+Start on a Windows test host with .NET 8, the required source drivers, and source/OneLake connectivity. Access uses the ACE OLE DB provider; the AzCopy path also expects its executable and PowerShell. Configure one source table and one destination first. Set enable flags explicitly: parts of the program gate execution on settings missing from the checked-in example.
 
-This chapter includes the sample because its publisher implementation is public and instructive, with that limitation explicit. The sample collection's proof-of-concept disclaimer still applies.
+Prepare the Fabric item and identity using [Chapter 31](chapter-31.md), protect real credentials, and keep the configuration out of source control. Review SQL statements before enabling Change Tracking on a source. File watchers are not a substitute for an initial directory scan: prove that pre-existing files are handled as well as newly changed ones.
 
-## Preparing the Lab
+## What Each Adapter Actually Does
 
-Review the Compose services, [MaxScale configuration](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/config/maxscale/maxscale.cnf), and [consumer configuration](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/config.example.yaml). Configure source permissions, Kafka topic/partition, table keys, durable state storage and destination credentials.
+| Adapter | Change detection | Important boundary |
+|---|---|---|
+| SQL Server | Initial extraction and `CHANGETABLE(CHANGES...)` polling | Change Tracking is not transaction-log CDC; source retention and a consistent version boundary matter |
+| Excel | Re-read worksheets and compare cached contents | Positional `_id_`; current rows are sent with update/upsert-like semantics, but removed rows are not explicit deletes |
+| CSV | Read the full file and compare cached contents | Splits on commas rather than using a quoted-field-aware parser |
+| Access | Read tables/views through OLE DB | Positional identity and whole-result extraction, not a source change stream |
+| SharePoint Lists | Graph request and returned field extraction | Inspected extraction does not traverse continuation pages or a delta cursor |
 
-The supplied consumer configuration uses local-only output, a 120-second poll interval and a 1,000-row per-table upload cap. Those are sample settings, not Fabric service limits. First prove the locally produced Parquet, then deliberately enable OneLake delivery using the permissions in [Chapter 29](chapter-29.md). Ensure publisher state survives container replacement.
+The adapter implementations are under [sources](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources). Test nulls, dates, decimals and large integers through [Parquet.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Parquet.cs), not just string-only demonstration data.
 
-Do not put demonstration passwords on a shared network. Pin container images and dependencies, replace example credentials and restrict exposed ports before expanding the lab.
+## Checkpoints, Publication and Restarts
 
-## Source Capture and State
+In the inspected SQL loop, a database-level high watermark is advanced around individual table extracts; extraction and current-version lookup are separate operations. That is not a durable acknowledgement that every table through that version has reached OneLake. A safe adaptation needs consistent source bounds and progress scoped to the work actually delivered.
 
-The [consumer](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py) contains more state machinery than a simple notebook. `snapshot_source_tables` starts a consistent-snapshot transaction and records GTID-related progress. `load_state` and `save_state` manage offsets, file counters, schemas and bootstrap state, using a temporary state file and replacement.
+The [upload implementation](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs) also needs hardening: the direct-storage path writes final filenames with overwrite enabled, while the AzCopy path starts a process without awaiting a verified exit result. Incremental callers can advance state without awaiting successful remote publication.
 
-`normalize_row` maps change events, including deletes; `flush_table_rows` writes sequential Parquet files. Snapshot output omits the row marker, while incremental output places it last. The local helper adds operations such as `upload_bytes`; those are extensions, not methods available in the standalone SDK from [Chapter 34](chapter-34.md).
+These are findings from source inspection, not claims of observed customer incidents. They explain why the project's proof-of-concept label matters. Adapt the immutable, atomic publication and durable assignment design from Chapters [31](chapter-31.md) and [34](chapter-34.md) before attaching a reliable source checkpoint.
 
-A consistent source transaction plus a subsequently read global GTID does not by itself prove an exact scan/change-stream handoff under concurrent commits. Test the boundary against the actual server topology and binlog fields. The [GTID utilities](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/gtid_utils.py) also deserve attention for multidomain values.
+For file-based adapters, replace row-position keys with business keys. Compare the new accepted snapshot with the previous accepted snapshot and emit explicit deletes for missing keys. An in-memory cache cannot preserve that comparison across process loss. Also ensure the row marker is last: some sample layouts precede later-added identity columns and differ from the current contract.
 
-## Recovery Work to Understand
+## A Useful Evaluation Exercise
 
-In the inspected loop, offsets advance while rows are buffered. A flush can publish only the configured prefix while remaining rows stay in memory, after which state is saved. A saved offset must never acknowledge rows that exist only in memory. Crash recovery needs a durable pending batch or a checkpoint restricted to the contiguous published prefix.
+Use two SQL tables, not one: change both during extraction and confirm neither loses changes when progress advances. Then restart during upload and inspect both the source version and published file assignment. For files, reorder rows, remove a row, empty the workbook, and introduce a quoted CSV field containing a comma.
 
-File collision handling and counters are also not a complete source-batch journal. An existing destination filename must be reconciled with its assigned payload, not simply bypassed by choosing a new number. See the [publication design](chapter-29.md) for the distinction.
+Keep source checks, local export success and Fabric ingestion status separate. Broadcast to several destinations requires a separate acknowledgement for each destination; a single global watermark is not sufficient evidence that all copies are current.
 
-The consumer manually assigns one partition. Do not infer distributed ownership or failover from Kafka's presence. The destination-validation path can select local-only operation, so monitoring must distinguish local exports from actual Fabric delivery.
+**Not implemented here:** the README's Synapse Gen2, BigQuery, Redshift and ODBC TODO entries do not constitute working adapters. Read the separate [FabricBQSync](chapter-40.md) and [Synapse](chapter-44.md) chapters. The archived SQL Server and Excel projects are predecessors, not additional current connectors.
 
-## What to Measure and Test
-
-Track binlog/GTID progress, Kafka lag, durable pending batches, destination publication and Fabric table freshness separately. Test a crash with more than one flush worth of buffered rows, destination unavailability, retained Kafka history expiry, and several events for one key.
-
-The architecture demonstrates useful separation between capture, transport and publishing. It does not establish exactly-once delivery, full topology support or an unrestricted free runtime. Budget source resources, Kafka/MaxScale hosting, state storage, network transfer and Fabric analytics separately.
-
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 36: Toolbox Notebook Solutions](chapter-36.md) | **Next:** [Chapter 38: BigQuery with FabricBQSync](chapter-38.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 36: The Microsoft Open Mirroring Python SDK](chapter-36.md) | **Next:** [Chapter 38: Toolbox Notebook Solutions](chapter-38.md)

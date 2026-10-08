@@ -12,6 +12,8 @@
 
 Fabric supports Git integration, deployment pipelines, REST API scripting, and the Fabric Terraform provider for mirrored databases. These deploy configuration, not a copy of the mirrored data. See [CI/CD for mirrored databases](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-cicd).
 
+This chapter's `MirroredDatabase` deployment contract does not create a [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) or establish [SAP BDC sharing](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md). Treat source-side link/product authorization as a separate deployment dependency; moving a consumer item definition is not proof that its source link, permissions, or synchronized data are ready.
+
 [![Figure 7.1 - CI/CD pipeline flow for mirrored databases](../assets/diagrams/chapter-07/diagram-01.png)](../assets/diagrams/chapter-07/diagram-01.excalidraw.png)
 *Figure 7.1 - CI/CD pipeline flow for mirrored databases*
 
@@ -48,6 +50,21 @@ Fabric **Deployment Pipelines** support promotion across environments, usually D
 - A controlled path for validation before production release
 
 Deployment does **not** start mirroring. Start it explicitly after validating the target configuration and permissions. Child items such as SQL views are not deployed across stages with the mirror.
+
+### September 2026 CI/CD Announcements
+
+The [FabCon summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825) adds the following workflows. Their platform-wide availability does not remove the mirrored-database restrictions above.
+
+| Feature | Announced status | Apply it to a mirroring solution |
+|---|---|---|
+| Compare and commit changes | GA | Review supported item definitions and conflicts before updating. This does not bring SQL endpoint child objects into the mirror's Git representation. |
+| File-level commit | Preview | **MirroredDatabase is not in the current supported-item list.** Do not prescribe partial commits of `mirroring.json` and `.platform` for mirrors. See [supported items](https://learn.microsoft.com/en-us/fabric/cicd/git-integration/granular-compare#items-that-support-file-level-commit). |
+| Branch workspace and selective branching | GA | Create a smaller development workspace with selected items, but retain required dependencies. Switching branches can delete items absent from the selected branch. |
+| Branch workspace admin profile | Preview | Administrators preconfigure the identity/settings used to create branch workspaces; developers can then branch without separate workspace-creation or capacity-assignment privileges. The workspace must already be Git-connected. See [branch workspaces](https://learn.microsoft.com/en-us/fabric/cicd/git-integration/branched-workspace). |
+| Deployment Plan | Preview | Order deployment groups and pre/post actions when dependencies are not captured by lineage. Provision connections, gateway bindings, identities, and workspace settings separately; still start the mirror explicitly and wait for usable data. |
+| Bulk export/import APIs | GA | Export/import multiple item definitions through `bulkExportDefinitions` and `bulkImportDefinitions`; this is configuration transport, not a data copy. Verify item/identity support and the 128 MB request limit. See [export](https://learn.microsoft.com/en-us/rest/api/fabric/core/items/bulk-export-item-definitions) and [import](https://learn.microsoft.com/en-us/rest/api/fabric/core/items/bulk-import-item-definitions). |
+
+A [deployment plan](https://learn.microsoft.com/en-us/fabric/cicd/deployment-plan/deployment-plan-overview) stops later work after failure; it does **not** roll back completed work or automatically prove downstream queryability. Plan a readiness check between starting replication and deploying consumers. The current guide excludes deployment-plan support from `fabric-cicd`. Separately, the summary describes production-ready bulk deployment while the [library's optional-feature guidance](https://microsoft.github.io/fabric-cicd/latest/how_to/optional_feature/) still uses Experimental/beta wording. Pin the library and inspect its supported feature set rather than assuming parity with a GA REST endpoint.
 
 ---
 

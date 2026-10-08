@@ -31,6 +31,8 @@ Unlike database mirroring, Fabric Mirroring for Azure Databricks does **not** co
 
 > **Key difference:** Unlike database mirroring, no data is physically moved to OneLake. Queries traverse shortcuts back to the original Databricks storage.
 
+**Compare Dataverse, not conflate it:** [Dataverse Link to Fabric](chapter-28.md) also exposes source-managed Delta data through shortcuts, but Dataverse creates the optimized analytical replica and manages the link. It does not require a Unity Catalog metastore or these Databricks grants. Both patterns require separate checks of producer freshness, shortcut authorization, and Fabric consumer security.
+
 Changes in the underlying data are not necessarily visible immediately through the SQL analytics endpoint. The [overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks) describes propagation ranging from seconds to several minutes.
 
 ---

@@ -4,6 +4,56 @@ This page records documentation reviews, product-status changes, and material co
 
 Microsoft Learn remains the authoritative source for current product availability, limits, and licensing.
 
+## 8 October 2026 (Sequential chapter numbering)
+
+Made Dataverse Link to Microsoft Fabric **Chapter 28** and SAP Business Data Cloud Connect for Microsoft Fabric **Chapter 29**, as full chapters in Part 2 rather than lettered additions. Part 3 now runs from **Chapter 30 to Chapter 46**. The book has 46 consecutively numbered chapters: Part 1 covers 1-10, Part 2 covers 11-29, and Part 3 covers 30-46.
+
+Renamed the chapter files and associated figure folders, updated chapter titles, figure captions, chapter references, full and part indexes, and previous/next navigation. Dataverse and SAP BDC appear in the main Part 2 chapter list. Diagram artwork and documentation screenshots are unchanged. Historical publication counts below describe the edition published at that time; links point to the current chapter files.
+
+## 8 October 2026 (Dataverse Link and SAP BDC Connect)
+
+Added two dedicated Part 2 chapters for related source-managed integrations, now numbered **28** and **29**. Updated the section README, full contents, source-to-method guidance, appendix, and previous/next chain through Chapters 27, 28, 29 and 30.
+
+| Chapter | Added coverage and evidence |
+|---|---|
+| [28: Dataverse Link to Microsoft Fabric](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) | Explains Dataverse's source-managed Delta analytical replica and Fabric Lakehouse shortcuts, not a native Mirrored Database. Covers source change tracking, workspace identity/application-user permissions, table selection, delegated security, network requirements, validation, Dataverse Database storage, schema/lifecycle operations, and low-latency rollout/CDF limits. Sources: [requested overview](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric), [current setup](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform), and [FAQ](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-faq). |
+| [29: SAP Business Data Cloud Connect for Microsoft Fabric](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) | Distinguishes announced bidirectional data-product sharing from Chapter 20's Datasphere/ADLS replication and from transactional write-back. Documents provider/consumer ownership, commercial/security questions, readiness gates, and future acceptance/revocation checks without inventing a released Fabric wizard, API, or transport. |
+
+**Dataverse documentation changes:** the July overview's all-tables description is qualified by the newer setup/FAQ's Select Tables step. Source-managed replication consumes Dataverse database capacity; zero-copy shortcut access does not mean no physical analytical replica. Dataverse shortcut credentials do not automatically reproduce each Fabric viewer's Dataverse row/business-unit security. Added two unchanged Microsoft setup screenshots, with direct article/image attribution and the **Power Apps documentation repository's own CC BY 4.0 licence**; updated the book's third-party image notice accordingly.
+
+**SAP availability caution:** the [18 November 2025 announcement](https://news.sap.com/2025/11/sap-bdc-connect-for-microsoft-fabric-business-insights-ai-innovation/) planned GA for Q3 2026. A [31 August 2026 SAP Community answer](https://community.sap.com/t5/data-and-ai-professionals-q-a/sap-bdc-connect-for-microsoft-fabric-ga/qaq-p/14469254) gives an end-Q1 2027 target, expressly subject to change. The reviewed [SAP provisioning documentation](https://help.sap.com/docs/business-data-cloud/administering-sap-business-data-cloud/provisioning-sap-bdc-connect) lists other partners, not Fabric. No Fabric-specific GA or public setup confirmation was verified; the chapter is explicitly an announcement/readiness guide, not a production deployment recipe. No unlicensed SAP News image or unrelated wizard is presented as a setup screenshot.
+
+Clarified the scope of the three official Mirroring types and the shared API, monitoring, deployment, CDF and cost guidance. Neither a Lakehouse shortcut nor an announced zero-copy sharing path automatically inherits native Mirrored Database operations, permissions, free-storage allowances or source-security semantics. The SAP and Databricks chapters now cross-reference the relevant alternative integration.
+
+## 8 October 2026 (FabCon announcement coverage)
+
+Reviewed the complete [Fabric September 2026 Feature Summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825), including its Coming Soon section, and the linked implementation guidance. Added the relevant announcements to the source chapters and shared security, API, CI/CD, consumption, monitoring, and billing chapters. This entry records a documentation update; it does not change the September announcement dates or imply a later deployment to every tenant.
+
+### Direct Mirroring announcements
+
+| Announcement in the summary | Announced status | Coverage and practical boundary |
+|---|---|---|
+| [Cosmos DB virtual-network data gateways](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_117) | Support announced; no separate GA/Preview suffix | [Chapter 13](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-13.md#network-and-connectivity). Retained the full restricted-account runbook: OAuth, same-region workspace, trusted-workspace ACL bypass, and REST creation. The gateway handles connection setup/testing, not ongoing replication. |
+| [Google BigQuery mirroring](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_128) | GA | [Chapter 16](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-16.md). Added the announcement citation; existing change-history, key, staging, network, and source-cost guidance remains applicable. |
+| [SharePoint List mirroring](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_129) | GA | [Chapter 21](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-21.md). Explicit announcement reference; replicated list rows remain distinct from shortcut-backed document content. |
+| [Extended Mirroring capabilities](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_130) | GA for CDF/views | [Chapter 9](Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md). Retained conflicting Preview labels in implementation pages, Snowflake-only view support, 12-hour refresh, and paid usage rules. |
+| [Snowflake security-role replication](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_131) | Preview; summary says shortly after FabCon EU | [Chapter 9](Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md#95-snowflake-security-roles-replication-preview) and [Chapter 22](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-22.md#snowflake-security-roles-replication-preview). Added role hierarchy/assignment/grant scope and the timing conflict with the OneLake companion. No invented setup, identity mapping, policy parity, or billing promise. |
+
+### Related announcements for mirroring solutions
+
+| Area | Included coverage |
+|---|---|
+| Security and connections | [Chapter 4](Part%201%20-%20Concepts%20and%20Architecture/chapter-04.md): OneLake Members/Data tabs, shortcut outbound protection, Fabric Policies, DLP Restrict Access, connection authentication/tenant allowlists, and connection-admin APIs. Preserved scope and GA/Preview documentation conflicts. |
+| Discovery and application reads | [Chapter 6](Part%201%20-%20Concepts%20and%20Architecture/chapter-06.md#september-2026-discovery-and-automation-interfaces) and [Chapter 8](Part%201%20-%20Concepts%20and%20Architecture/chapter-08.md): catalog/table search and browsing, Core MCP Server GA, Fabric Actions Preview, and OneLake Table Read API Preview. Discovery permission is distinct from row access; Arrow stream downloads are not replication parallelism. |
+| Git and deployment | [Chapter 7](Part%201%20-%20Concepts%20and%20Architecture/chapter-07.md#september-2026-cicd-announcements): compare/commit, selective branching, branch workspaces/admin profiles, deployment plans, and bulk APIs. File-level commit's supported list does not include MirroredDatabase; deployment still needs explicit start and readiness checks. |
+| CDF consumers | [Chapter 9](Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md#consuming-cdf-in-fabric-workloads): Eventstream mirrored-CDF GA announcement, Copy Job CDC/SCD2 GA announcements, Eventstream/Copy Job Preview integration, and the separate Eventstream Private Link boundary. Retained All tables/no DeltaFlow restrictions and the Lakehouse-shortcut path to Copy Job. |
+| Consumer and capacity monitoring | [Chapter 5](Part%201%20-%20Concepts%20and%20Architecture/chapter-05.md#september-2026-monitor-the-consumer-as-well-as-the-mirror): Copy Job monitoring, Eventstream diagnostics, capacity events/templates, and file/folder rules. These are not new replication-lag metrics or row-level change notifications. |
+| SQL query and capacity features | [Chapter 8](Part%201%20-%20Concepts%20and%20Architecture/chapter-08.md#september-2026-query-language-previews) and [Chapter 10](Part%201%20-%20Concepts%20and%20Architecture/chapter-10.md#106-september-2026-query-capacity-announcements): analytical SQL previews, custom SQL pools/classifier GA announcements with remaining documentation conflicts, and on-demand billing clearly kept **Coming Soon**. |
+| Fabric SQL Change Event Streaming | [Chapter 25](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-25.md#change-event-streaming-september-2026-preview): Preview source-log CloudEvents distinguished from automatic OneLake mirroring and mirrored Delta CDF; the linked setup tutorial does not yet establish the Fabric SQL procedure. |
+| Linked OneLake companion | [Appendix](appendix.md#september-2026-fabcon-announcement-boundaries): existing AWS Glue/Google catalog walkthroughs and announcement-only Business Central/AVEVA references, without inventing lifecycle status or setup steps. |
+
+Kept unrelated product announcements out of the mirroring setup instructions. In particular, Oracle initial-load improvements and read-only Snowflake CDC in **Copy Job** are not native Mirroring enhancements. The summary does not announce a new Open Mirroring SDK or dedicated mirroring-replication parallelism feature.
+
 ## 8 October 2026 (All three parts published)
 
 Published all 44 chapters to the [public edition](https://github.com/MarkPryceMaherMSFT/Mirroring-Book), extending the previously published Part 1 with Part 2: Source-Specific Mirroring Guides and Part 3: Open Mirroring. Included the practical setup walkthroughs, attributed Microsoft documentation images, public troubleshooting references, dedicated SDK and open-source solution chapters, and source-to-project comparisons.
@@ -24,13 +74,13 @@ Added a separate `readme.md` chapter index in each of the three part folders, li
 
 ## 8 October 2026 (Open-source Open Mirroring solutions)
 
-Expanded Part 3 with Chapters 34-44: a dedicated Microsoft Python SDK walkthrough; public GitHub implementations covering SQL Server Change Tracking, files, SharePoint, MySQL, Snowflake, MariaDB, BigQuery, MongoDB, PostgreSQL and Synapse dedicated SQL pool; practical test tools; and a source-to-project comparison.
+Expanded Part 3 with Chapters 36-46: a dedicated Microsoft Python SDK walkthrough; public GitHub implementations covering SQL Server Change Tracking, files, SharePoint, MySQL, Snowflake, MariaDB, BigQuery, MongoDB, PostgreSQL and Synapse dedicated SQL pool; practical test tools; and a source-to-project comparison.
 
-Preserved Chapters 28-33 as the shared configuration, protocol and recovery guidance. Added cross-links and continuous chapter navigation rather than duplicating that material in every project chapter.
+Preserved Chapters 30-35 as the shared configuration, protocol and recovery guidance. Added cross-links and continuous chapter navigation rather than duplicating that material in every project chapter.
 
 The new chapters distinguish publisher licensing from dependency/runtime licensing and operating costs, educational samples from production support, and source capture from landing-zone delivery. The Synapse project is included with the author's confirmation of open-source/customer use; no specific licence name is invented. Implementation observations come from public source review, not a claim that deployments or failure scenarios were executed.
 
-Added a separate source-to-blog table for articles where matching public producer code was not found in the research. Source-backed articles remain with their relevant projects. See [Chapter 44](Part%203%20-%20Open%20Mirroring/chapter-44.md).
+Added a separate source-to-blog table for articles where matching public producer code was not found in the research. Source-backed articles remain with their relevant projects. See [Chapter 46](Part%203%20-%20Open%20Mirroring/chapter-46.md).
 
 ## 6 October 2026 (Whole-book public documentation review)
 

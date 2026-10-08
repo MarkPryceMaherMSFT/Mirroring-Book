@@ -12,6 +12,8 @@
 
 **Google BigQuery** is Google Cloud's fully managed, serverless data warehouse. Its Fabric Mirroring connector is generally available and replicates selected BigQuery tables into OneLake so they can be analysed with other Fabric data.
 
+The [September 2026 FabCon feature summary reiterates general availability](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_128). This does not remove source change-history, key, staging, network, or Google Cloud cost requirements. Its separate **Copy Job** announcements are not new native-mirroring configuration options.
+
 ---
 
 ## Mirroring Type and Architecture

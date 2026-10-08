@@ -1,8 +1,8 @@
-# Chapter 33: Common Issues and Troubleshooting
+# Chapter 33: Use Cases and Examples
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Use this chapter to diagnose mirroring failures by symptom and work from monitoring evidence to source, connectivity, schema, and ordering checks.
+> **Purpose:** Use this chapter to choose an Open Mirroring pattern for legacy databases, SaaS applications, IoT data, files, or an ISV connector.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
@@ -10,197 +10,238 @@
 
 ## Overview
 
-This chapter provides diagnostic steps for common built-in and Open Mirroring failures.
+This chapter compares five common Open Mirroring use cases and the implementation choices each one requires.
 
-Start with [Monitor replication](https://learn.microsoft.com/en-us/fabric/mirroring/monitor) and the affected table's error. Distinguish source extraction, landing-zone publication, OneLake processing, and SQL endpoint metadata synchronisation. A healthy database-level status does not prove every table is current.
-
-[![Figure 33.1: Troubleshooting decision tree for mirroring issues](../assets/diagrams/chapter-33/diagram-01.png)](../assets/diagrams/chapter-33/diagram-01.excalidraw.png)
-*Figure 33.1: Troubleshooting decision tree for mirroring issues*
+[![Figure 33.1: Open Mirroring use cases](../assets/diagrams/chapter-33/diagram-01.png)](../assets/diagrams/chapter-33/diagram-01.excalidraw.png)
+*Figure 33.1: Open Mirroring use cases*
 
 ---
 
-## File Format and Schema Errors
+## Use Case 1: Legacy Database Integration
 
-### Issue: "Invalid Parquet file" or "Schema mismatch"
+### Scenario
 
-**Symptoms**: Fabric rejects landing zone files; table does not appear in the SQL analytics endpoint.
+An organisation runs a critical business application on a legacy database platform (e.g., IBM Db2, Teradata, Sybase, or a mainframe VSAM file system) that is not natively supported by Fabric Mirroring. They need near-real-time access to this data in Fabric for reporting and analytics.
 
-**Causes and resolutions:**
+### Solution
 
-| Cause | Resolution |
-|---|---|
-| Parquet file is corrupted or incomplete | Validate the complete file before atomically renaming it into place. Use the failed-file repair procedure below for an already rejected file. |
-| Key metadata is missing or incorrect | Create `_metadata.json` before publishing data and declare `keyColumns` for updates, deletes, and upserts. Missing metadata alone does not necessarily prevent insert-only ingestion. |
-| `__rowMarker__` is misplaced or invalid | Make it the last column and encode supported numeric values `0`, `1`, `2`, or `4`; the examples use Arrow `int32`. |
-| Parquet logical and physical types are incompatible | Cast source values to supported Parquet types before writing. |
-| Delimited-text schema does not match `_metadata.json` | Correct `SchemaDefinition`, file extension, delimiters, encoding, and null handling. |
-| Sequential file name is invalid or a number is missing | Reconcile the durable batch assignment and restore the exact required 20-digit sequence. Do not blindly rename it to a new number. |
-| A column type changed, or a nonnullable column was omitted | Stop publishing incompatible batches and follow the table rebuild procedure if the change is breaking. |
+Implement an open mirroring pipeline using the database's native CDC or polling mechanism:
 
-Do not apply the 20-digit filename rule to a table explicitly configured with `LastUpdateTimeFileDetection`. That mode still requires unique immutable paths, and it does not guarantee source event order.
+**Implementation pattern:**
 
-### Issue: Delta table appears empty after upload
+1. **Change extraction**: Select a documented CDC facility or partner connector for the exact source version. A custom audit table is another option when it captures every required insert, update, and delete.
+2. **Staging**: Write extracted rows to a local staging area (Parquet files or an in-memory PyArrow table).
+3. **Upload**: Persist a batch-to-sequence assignment, upload under a temporary name, then atomically rename to the final landing-zone path.
+4. **Watermark management**: Advance the durable source position only after verifying publication. Recover an interrupted batch using the same assignment.
 
-**Possible causes**: Replication is not started, capacity is paused, the initial file is missing or invalid, the sequence has a gap, or the SQL endpoint has not synchronised its metadata.
-
-**Resolution**: Check database and table status first. Verify the configured folder, metadata, and first sequential file, `00000000000000000001.parquet`. If the data is already visible through a OneLake shortcut but absent from SQL, use the SQL endpoint **Refresh** action and investigate [metadata synchronisation](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting#data-doesnt-appear-to-be-replicating), rather than republishing the source.
-
-### Repairing a Failed File or Rebuilding One Table
-
-The [Open Mirroring recovery guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery) distinguishes two actions:
-
-- **Failed invalid file**: Delete the zero-byte, corrupt, or otherwise invalid file and atomically publish a complete valid replacement under exactly the same name. In sequential mode, later files wait for that index. This is not permission to overwrite or replay an already processed file. A valid zero-row Parquet file is not a zero-byte file.
-- **Table rebuild**: Suspend the table's publisher, delete its entire landing-zone folder, and wait until the mirrored table disappears. Recreate the folder, metadata, and a complete initial load. Resume changes only after the table reappears. Reconcile source capture and sequence state for the new table.
-
-Deleting a table folder drops the mirrored table. Do not use this procedure without a reload plan. Do not stop and restart the entire mirrored database to repair just one table.
+**Technology choices:**
+- Azure Function (timer-triggered) for the extraction and upload pipeline.
+- Azure Blob Storage for watermark persistence.
+- `pyarrow` and `azure-storage-file-datalake` for data writing.
 
 ---
 
-## Source Watermark and File Ordering Issues
+## Use Case 2: Multi-Cloud Data Consolidation
 
-### Issue: Duplicate rows in the Delta table
+### Scenario
 
-**Symptoms**: Row counts in Fabric exceed expected counts; duplicate primary keys visible.
+An organisation uses multiple cloud data platforms: AWS RDS PostgreSQL for one business unit, GCP BigQuery for another, and Azure SQL Database for a third. They want to consolidate all three in Fabric for a unified analytics layer.
 
-**Causes and resolutions:**
+### Solution
 
-| Cause | Resolution |
-|---|---|
-| Same source changes published in more than one file | Persist the batch-to-sequence assignment before upload. On recovery, verify the existing immutable file, then advance the watermark without republishing the batch. |
-| Source extraction position not persisted | Store the watermark or change token durably outside the landing-zone path. |
-| Multiple publishers allocate the same or overlapping sequence | Use one coordinated publisher per table and allocate each 20-digit sequence once. |
-| Insert marker `0` used for replayable records | Inserts do not check for duplicate keys. Use a unique key and appropriate upserts, while still preventing out-of-order replay. |
+- **Azure SQL Database**: Use its native change feed (Chapter 11).
+- **GCP BigQuery**: Use Fabric's native BigQuery connector (Chapter 16).
+- **AWS RDS PostgreSQL**: Implement Open Mirroring with source-appropriate change extraction. The example below demonstrates bounded timestamp polling and a soft-delete flag, not a native Fabric RDS connector or a lossless CDC guarantee.
 
-### Issue: Missing rows / rows not appearing in Fabric
+**AWS RDS PostgreSQL open mirroring pattern:**
 
-**Symptoms**: Expected rows are absent from the Delta table.
+This concrete example expects `id`, `name`, `updated_at` (`timestamptz`), and a non-null Boolean `is_deleted`. Declare `id` in `_metadata.json`; extend the query and Arrow schema together for additional source columns. Supply connection options from protected configuration.
 
-**Causes and resolutions:**
+```python
+from contextlib import closing
+from datetime import datetime
 
-| Cause | Resolution |
-|---|---|
-| Watermark advancing past unpublished or late-committing rows | Advance only after verified publication. Timestamp polling also needs tested late-commit handling or reconciliation; a fixed safety lag is not a correctness guarantee. |
-| Source query not returning all rows | Verify source query logic; check for implicit filters (e.g., soft-deleted rows excluded). |
-| File not fully uploaded before Fabric processing | Write with an underscore prefix, flush it, then atomically rename it to the final sequence. |
-| Wrong row operation | Check `keyColumns` and the final `__rowMarker__` value. |
-| File sequence has a gap | Restore the missing assigned batch at its original index; later sequential files cannot bypass it. |
-| Nonsequential detection applies a late batch over newer state | Review storage `LastModified` order and the producer's ordering design; use sequential detection for order-sensitive changes. |
+import psycopg2
+from psycopg2 import sql
+import pyarrow as pa
 
----
+CHANGE_SCHEMA = pa.schema([
+    pa.field("id", pa.int64(), nullable=False),
+    pa.field("name", pa.string()),
+    pa.field("updated_at", pa.timestamp("us", tz="UTC"), nullable=False),
+    pa.field("is_deleted", pa.bool_(), nullable=False),
+    pa.field("__rowMarker__", pa.int32(), nullable=False),
+])
 
-## Diagnosing Backoff and Retry Behaviour
+def extract_from_rds_postgres(
+    connection_options: dict,
+    source_schema: str,
+    source_table: str,
+    watermark: tuple[datetime, int],
+    upper_bound: datetime,
+) -> tuple[pa.Table, tuple[datetime, int]]:
+    """Read one bounded page without advancing the durable source position."""
+    query = sql.SQL("""
+        SELECT id, name, updated_at, is_deleted
+        FROM {}.{}
+        WHERE (updated_at, id) > (%s, %s)
+          AND updated_at <= %s
+        ORDER BY updated_at, id
+        LIMIT 100000
+    """).format(sql.Identifier(source_schema), sql.Identifier(source_table))
 
-### Issue: Mirroring repeatedly shows Running with warning due to backoff and retries
+    with closing(psycopg2.connect(**connection_options)) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query, (*watermark, upper_bound))
+            rows = cursor.fetchall()
 
-**Symptoms**: The item's monitoring view shows persistent **Running with warning** status with growing replication lag; table details or logs show repeated retries.
+    records = []
+    for row_id, name, changed_at, deleted in rows:
+        if row_id is None or changed_at is None or deleted is None:
+            raise ValueError("The polling key, timestamp, and delete flag are required")
+        records.append({
+            "id": row_id,
+            "name": name,
+            "updated_at": changed_at,
+            "is_deleted": deleted,
+            "__rowMarker__": 2 if deleted else 4,
+        })
+    next_watermark = (rows[-1][2], rows[-1][0]) if rows else watermark
+    return pa.Table.from_pylist(records, schema=CHANGE_SCHEMA), next_watermark
+```
 
-**Diagnostic steps:**
+Keep the same upper bound while paging and do not publish an empty extraction as a new batch. Serialise each nonempty page, persist its payload and sequence assignment, publish it using Chapter 31, and only then persist its returned watermark.
 
-1. Check the error for the specific table in **Monitor replication** and, when enabled, the `MirroredDatabaseTableExecution` workspace monitoring logs.
-2. Check source system availability and the publisher's network, authentication, and upload logs. Open Mirroring has no Fabric-managed source connection to repair.
-3. Confirm that Fabric capacity is running and check the relevant Fabric/Azure service health information.
-4. For API failures, record the HTTP status and request ID. Honour `Retry-After` for throttling instead of immediately resending the request.
-
-**Common causes and resolutions:**
-
-| Cause | Resolution |
-|---|---|
-| Source database temporarily unavailable | Restore source access and follow that connector's recovery guidance. A custom publisher must implement its own bounded retry policy. |
-| Network path blocked | Check the documented gateway, private endpoint, or firewall path for that source. Do not indiscriminately open the source to Fabric IP ranges. |
-| Source or publisher credentials expired | Update the native connector's connection or the custom publisher's credential, as appropriate. |
-| OneLake upload returns 401/403 | Verify the Storage token audience, identity, and mirrored-item write permission. A Fabric REST token is not a OneLake token. |
-| CDC position lost or a replication slot was dropped | Follow source-specific recovery instructions and arrange a consistent reload if required. Recreating a slot alone does not recover missing changes. |
-| Rate limiting in a custom extraction API | Honour the source API's retry rules and keep the pending batch assignment durable. |
-
-### Before Stopping and Starting
-
-Do not use stop and start as a routine retry. For Open Mirroring, the published best practices say stopping and restarting the mirrored database restarts it from the beginning. Prepare a complete replay/reload plan; Fabric's processed-file retention is not a source backup. Native database connectors have source-specific reseed behaviour.
-
-Resuming replication after a capacity pause is a separate action from deliberately resetting replication. Check the current state and [capacity troubleshooting guidance](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting#changes-to-fabric-capacity) before choosing an action.
-
----
-
-## Data Consistency
-
-### Issue: Row counts between source and Fabric don't match
-
-**Diagnostic approach:**
-
-1. Compare source and destination at the same stable checkpoint, allowing for replication lag. The portal's **Rows replicated** counts inserts, updates, and deletes processed, not the current row count.
-2. Check whether the snapshot has completed. Row counts during the initial snapshot phase are expected to be partial.
-3. Verify that all tables show **Running** (not **Running with warning** or **Failed**) status.
-4. For Open Mirroring, verify the expected files and durable assignments. For REST monitoring, use table-level states such as `Snapshotting` and `Replicating`, not the portal's labels as API enum values.
-
-**Common causes:**
-
-- Initial snapshot not yet complete.
-- Tables showing Running with warning due to retries, with growing lag.
-- Unsupported types, schema errors, or connector-specific column exclusions. Do not assume malformed Open Mirroring rows are silently skipped.
-- DELETE operations not captured by the source, or Open Mirroring rows do not use `__rowMarker__ = 2`.
-
-### Issue: Data appears stale (old values persisting)
-
-**Cause**: UPDATE operations not being captured correctly.
-
-**Resolution:**
-- For Open Mirroring, ensure updated rows contain the complete row and `__rowMarker__ = 1` or `4`.
-- For database mirroring, follow the source-specific change-capture configuration checks.
-- Verify that `_metadata.json` defines the correct `keyColumns`.
-- Check whether an older batch was republished after a newer one. Upsert semantics alone do not prevent stale values from overwriting current values.
+The `(updated_at, id)` index and cursor make pagination deterministic for a stable data set, not for every concurrent transaction pattern. Late commits with older timestamps, repeated changes sharing a timestamp, hard deletes, and changes during paging can be missed. A safety lag alone does not fix this. Use a tested overlap-and-reconciliation design for state polling, or source-supported logical decoding when lossless ordered changes are required. Retain soft-delete records until they have been published.
 
 ---
 
-## Performance Tuning
+## Use Case 3: IoT and Streaming Data
 
-### Reducing Replication Lag
+### Scenario
 
-1. **Measure each stage**: Separate source extraction, upload, and Fabric processing latency.
-2. **Avoid tiny files**: Group related changes into practical batches without relying on an undocumented fixed size.
-3. **Use atomic delivery**: Partial or repeatedly retried files create avoidable failures.
-4. **Parallelise by table**: Extract and upload independent tables concurrently while keeping one ordered publisher per table.
+An industrial organisation collects telemetry data from thousands of IoT sensors via Azure IoT Hub. They need to make this time-series data available in Fabric for analytics and anomaly detection.
 
-### Reducing Source System Impact
+### Solution
 
-1. **Off-peak extraction**: Schedule extraction windows during source system off-peak hours.
-2. **Incremental filtering**: Use efficient watermark queries that leverage indexed columns (avoid full table scans).
-3. **Partition pruning**: Where the source supports partitioned tables, ensure watermark queries use the partition column.
+Implement a micro-batch open mirroring pipeline:
 
-### Optimising Query Performance
+1. **Azure Stream Analytics** (or Azure Functions with IoT Hub trigger) aggregates sensor readings into micro-batches (e.g., 5-minute windows).
+2. Each micro-batch is written as a Parquet file to the Fabric open mirroring landing zone.
+3. Fabric processes each batch into the Delta table. Measure actual ingestion and query visibility latency; the batch window is only one part of end-to-end delay.
 
-1. Query only the required columns and filter early.
-2. Create SQL views or semantic models for stable consumer logic.
-3. If a workload requires physical optimisation or write operations, copy the data into a separate Lakehouse or Warehouse table rather than modifying the mirrored table.
+**Key design considerations:**
+
+- Define an actually unique event key in `_metadata.json`, such as `device_id` plus an event ID. Use upserts for replayable events; insert marker `0` does not deduplicate even when keys are declared.
+- Choose a micro-batch window that balances latency and file count (fewer, larger files are more efficient).
+- Let Fabric manage mirrored-table storage. If custom retention or physical optimisation is required, materialise a separate Lakehouse or Warehouse table.
+
+**Landing zone file naming for IoT:**
+
+```text
+Files/LandingZone/sensor_readings/00000000000000000001.parquet
+Files/LandingZone/sensor_readings/00000000000000000002.parquet
+Files/LandingZone/sensor_readings/00000000000000000003.parquet
+```
+
+---
+
+## Use Case 4: Excel/CSV Mirroring
+
+### Scenario
+
+A finance team maintains a master data Excel workbook that is updated weekly. Business users need this data to be available in Fabric for joining with transaction data in Power BI reports.
+
+### Solution
+
+Implement a triggered open mirroring pipeline:
+
+1. The Excel file is stored in SharePoint Online or Azure Blob Storage.
+2. When the file is updated, a **Power Automate flow** or **Azure Logic App** triggers.
+3. The trigger reads the Excel file using the Graph API or Azure Blob trigger.
+4. The data is converted to Parquet using a Python Azure Function.
+5. The publisher compares keys with the last successfully published workbook, then publishes upserts and explicit deletes under its next durably assigned sequence.
+
+**Python example: Excel to Parquet**
+
+This helper validates a declared schema and writes the current workbook rows. It does not detect removed rows. Install `openpyxl` for pandas' Excel reader, and use the same cleaned column names in the schema and `_metadata.json`.
+
+```python
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+from io import BytesIO
+
+def excel_to_parquet(
+    excel_bytes: bytes,
+    schema: pa.Schema,
+    key_columns: list[str],
+    incremental: bool = True,
+) -> bytes:
+    """Encode a full workbook or its current rows with an explicit schema."""
+    df = pd.read_excel(BytesIO(excel_bytes), engine="openpyxl")
+    df.columns = [str(col).strip().replace(" ", "_").lower() for col in df.columns]
+    if df.columns.duplicated().any() or "__rowMarker__" in schema.names:
+        raise ValueError("Require unique names and a schema without the row marker")
+    if set(df.columns) != set(schema.names):
+        raise ValueError("Workbook columns must match the declared schema")
+    if not key_columns or not set(key_columns).issubset(schema.names):
+        raise ValueError("Declare valid key columns")
+    if df[key_columns].isna().any().any() or df.duplicated(key_columns).any():
+        raise ValueError("Workbook keys must be non-null and unique")
+    table = pa.Table.from_pandas(df, schema=schema, preserve_index=False, safe=True)
+    if incremental:
+        table = table.append_column(
+            "__rowMarker__", pa.array([4] * table.num_rows, type=pa.int32())
+        )
+    buf = BytesIO()
+    pq.write_table(table, buf)
+    return buf.getvalue()
+```
+
+For the initial file, call with `incremental=False` and omit `__rowMarker__`. For later files, use upserts plus delete rows for keys present in the last published workbook but absent from the new one. An empty workbook still requires those deletes. Publish deletes with marker `2` and the old keys, preserving compatible Parquet types as described in Chapter 34.
+
+Persist the accepted workbook version or key set with the batch checkpoint only after publication succeeds. A repeated or out-of-order trigger must not reapply an older workbook over a newer one. This comparison and checkpoint logic is part of the publisher, not something the conversion helper or Fabric performs automatically.
 
 ---
 
-## Frequently Asked Questions
+## Use Case 5: Partner Integrations
 
-**Q: Can I mirror the same source table into multiple Fabric workspaces?**
-A: Support depends on the source. Some database connectors allow only one active mirror for a source database. Check the source-specific limitations before creating another mirror.
+### Scenario
 
-**Q: Can I write to the same open mirroring landing zone from multiple applications?**
-A: Use one coordinated writer per table. Multiple writers can allocate conflicting file sequences or publish source changes out of order.
+An Independent Software Vendor (ISV) builds a vertical SaaS application on top of a proprietary database. Their customers want to analyse ISV data alongside other Fabric data. The ISV wants to offer a "Connect to Microsoft Fabric" feature in their product.
 
-**Q: What happens to the Delta table if I stop mirroring and then restart it?**
-A: Behaviour depends on the mirroring type. Open Mirroring best practices describe a database-wide restart from the beginning; recover one table with the targeted folder rebuild procedure instead. For native connectors, check the source's reseed and recovery documentation.
+### Solution
 
-**Q: How long does the initial snapshot take?**
-A: Snapshot duration depends on data volume, source throughput, network transfer, and service processing. Monitor progress in the Fabric portal.
+The ISV implements open mirroring as a built-in product feature:
 
-**Q: Can I use the SQL analytics endpoint to modify mirrored table data?**
-A: No. The SQL analytics endpoint is read-only for mirrored tables. All data modifications must occur through the source system (for database mirroring) or through the landing zone (for open mirroring).
+1. The ISV application includes a **Fabric Integration** module that customers can enable.
+2. When enabled, customers authorise a dedicated Microsoft Entra application with the required mirrored-item permissions. Do not collect a user's interactive Fabric password.
+3. The ISV module extracts relevant application data and writes it to the customer's Fabric open mirroring landing zone.
+4. The ISV publishes the landing zone schema in their documentation so customers know what tables to expect.
 
-**Q: Does Fabric Mirroring support schema changes (DDL)?**
-A: Support varies by source and file format. Open Mirroring can add Parquet columns and retain omitted nullable columns with nulls for new rows. Type changes and key changes require a table rebuild; delimited-text schema evolution is unsupported. See Chapter 32 and the source-specific chapters.
+**ISV considerations:**
+- Consider a dedicated identity per customer and scope its permissions to the intended destination. Identity separation alone does not enforce isolation if permissions are overly broad.
+- Document table folders, keys, column types, and row-marker behaviour.
+- Version schema changes and test them against the current landing-zone contract.
+- Implement resets by deleting the table folder, waiting for the table to disappear, and recreating it with metadata and a complete initial load. Wait for it to reappear before resuming changes.
+- Keep one ordered publisher per customer table.
+- Add optional `_partnerEvents.json` at the landing-zone root to identify the publisher and source.
+
+The [Microsoft Learn partner list](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-partners-ecosystem) includes integrations such as MongoDB Atlas, Oracle GoldenGate 23ai, Qlik, CData, and SAP-focused providers. These are partner-managed Open Mirroring paths, not interchangeable native Fabric connectors. Confirm versions, prerequisites, and support with the provider.
 
 ---
+
+## From a Pattern to an Existing Implementation
+
+These use cases are design patterns, not claims that the illustrative code forms a complete connector. The later chapters show how public projects implement them: [SQL Server CT and files](chapter-37.md), [notebooks](chapter-38.md), [BigQuery](chapter-40.md), [MongoDB](chapter-41.md), [PostgreSQL CDC](chapter-42.md), [PostgreSQL polling](chapter-43.md), and [Synapse dedicated SQL pool](chapter-44.md).
+
+Compare source behaviour before choosing code. Polling an increasing key does not capture updates to old rows. Re-reading a workbook does not detect removed rows without comparison. Snapshot/diff detects differences between observations, not every transaction in between. A publishing SDK cannot repair any of those source-capture gaps.
 
 ## Summary
 
-Start with monitoring evidence, then investigate source health, connectivity, schema, source checkpoints, and file ordering. For Open Mirroring, validate metadata, the configured detection strategy, immutable atomic publication, and row operations before attempting recovery.
+Each Open Mirroring pattern follows the same contract: extract source changes, write correctly described Parquet files to the landing zone, and let Fabric process them. The source determines how you handle change capture, ordering, schema, and recovery.
 
-**References:** [General troubleshooting](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting), [monitoring](https://learn.microsoft.com/en-us/fabric/mirroring/monitor), [landing-zone requirements](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format), and [Open Mirroring recovery and schema guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
+**References:** [Landing-zone contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format), [publisher best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices), and [Fabric Toolbox proof-of-concept samples](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring).
 
-The project chapters that follow apply this shared guidance to actual source code. Use the [cross-project acceptance exercises](chapter-44.md#acceptance-exercises) to distinguish a successful demonstration from a recoverable replication service.
-
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 32: Metadata and Change Files](chapter-32.md) | **Next:** [Chapter 34: The Microsoft Open Mirroring Python SDK](chapter-34.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 32: Code Samples and the Fabric Toolbox](chapter-32.md) | **Next:** [Chapter 34: Metadata and Change Files](chapter-34.md)

@@ -14,6 +14,8 @@ SAP Datasphere can extract initial and incremental data from supported systems i
 
 Fabric Mirroring for SAP uses SAP Datasphere to write Parquet files to Azure Data Lake Storage Gen2. Fabric then processes those files into Delta tables in OneLake.
 
+**Choose the SAP route first.** This chapter covers **SAP Datasphere Replication Flow → ADLS Gen2 → Mirrored SAP**. [Chapter 29: SAP Business Data Cloud Connect for Microsoft Fabric](chapter-29.md) covers the separate governed data-product sharing integration. Do not configure a Datasphere outbound replication flow merely because a BDC data product is described as available to Fabric, or apply a zero-copy claim to the physical replication path here.
+
 ---
 
 ## Mirroring Type and Architecture
@@ -153,7 +155,7 @@ See the [ADLS access-control model](https://learn.microsoft.com/en-us/azure/stor
 
 | Topic | Detail |
 |---|---|
-| **Required intermediary** | SAP Datasphere is required for the supported SAP mirroring path. Fabric does not connect directly to SAP SLT or SAP HANA CDC. |
+| **Required intermediary** | SAP Datasphere is required for this replication-flow/ADLS path. It is not a statement that every SAP-to-Fabric integration uses this route; see the separate SAP BDC Connect chapter. This connector does not directly consume SAP SLT or SAP HANA CDC. |
 | **SAP licensing** | SAP Datasphere Premium Outbound Integration pricing applies. |
 | **Supported sources** | Source support follows the SAP source types available to SAP Datasphere Replication Flow. |
 | **Load types** | Use Initial and Delta or Initial Only. Other load types are not supported. |

@@ -1,61 +1,65 @@
-# Chapter 41: PostgreSQL Polling with impulse_sync
+# Chapter 41: MongoDB Through Change Streams
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Evaluate a lightweight query-based publisher and understand which changes its extraction modes can and cannot observe.
+> **Purpose:** Understand a document-database publisher, including initial scan handoff, resume tokens and BSON-to-table conversion.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
 ---
 
-## Project and Scope
+## Project and Architecture
 
-[srutz/impulse_sync](https://github.com/srutz/impulse_sync) is a Node/TypeScript application with an `impulse-sync` CLI and an [MIT licence](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/LICENSE). The inspected revision is `b59213`, with package version 1.0.0.
+[MongoDB_Fabric_Mirroring](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring) is a public MongoDB partner implementation with an [Apache-2.0 licence](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/LICENSE.txt). This chapter uses revision `033d9d1`; its release notes list 1.4.4 dated 29 July 2026.
 
 ```text
-PostgreSQL query
-    -> streamed rows
-    -> local Parquet
-    -> OneLake upload
-    -> local progress marker
+MongoDB collection
+    -> initial scan and schema bootstrap
+    -> change-stream listener
+    -> typed rows and Parquet
+    -> OneLake publication
 ```
 
-This is query-based extraction, not PostgreSQL WAL decoding. It can be simpler to host than the Kafka pipeline, but that simplicity changes the completeness guarantees. It is suitable for studying append-only or state-polling patterns, not for assuming every source transaction is captured.
+This is an application you host and operate. The publisher licence does not replace the source database's own usage terms, nor does it make Atlas, hosting or Fabric analytics free.
 
-## Choose the Extraction Mode First
+The useful starting points are [initial synchronization](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/init_sync.py), the [listener](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/listening.py), and the [publication helper](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/push_file_to_lz.py).
 
-| Mode | What it reads | What it does not solve |
-|---|---|---|
-| Full | Current query results on each run | Removed source rows do not automatically disappear from Fabric |
-| Timestamp | Rows beyond a saved timestamp | Timestamp ties, backdated values, late commits and hard deletes need additional design |
-| Increasing primary key | Rows beyond the saved key | Updates/deletes to older keys and allocation-versus-commit ordering |
+## Setup and First Collection
 
-The [run implementation](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/src/sync/run.ts) emits upserts. Full mode is therefore a full reread, not destination snapshot replacement. A destination can retain a row that no longer exists at the source.
+Follow the repository's configuration and deployment instructions for the selected revision. Supply MongoDB connectivity, database and collection selection, the Fabric landing-zone URL, Entra application credentials, and the batch/time thresholds. Use a source topology that supports the required change streams, with appropriate permissions and retained history.
 
-## Setup
+Begin with one small collection containing stable `_id` values and representative BSON types. Create the Fabric item and identity using [Chapter 31](chapter-31.md). Size the host for the initial scan as well as steady-state change traffic; those are different workloads.
 
-Follow the repository's installation/build instructions and inspect [package.json](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/package.json) for the supported commands. Configure the source query, tables, key/watermark fields and Fabric credentials. Use a new test destination and the shared setup from [Chapter 29](chapter-29.md).
+The application persists initial-load status, scan position, an upper `_id`, cluster-time information, file counter and schema-related state. Treat those files as recovery assets. Do not delete underscore-prefixed state because Fabric ignores it as data.
 
-Choose stable non-null business keys and a query with deterministic types. The implementation infers schema from the first row, so an unrepresentative null, decimal or timestamp in that row deserves testing. Do not infer arbitrary composite-key support from the fact that Fabric supports it.
+## Initial Scan and Incremental Handoff
 
-Keep local output and marker storage durable across process/container replacement. These are part of the implementation's progress model, not disposable temporary files.
+The inspected [startup sequence](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/mongodb_generic_mirroring.py#L100-L117) finishes initial synchronization before starting the listener. The scan uses ordinary-session `_id` pagination, not a snapshot pinned to the earlier captured time.
 
-## Progress and File Handling
+That makes concurrent-write testing essential. A record inserted after the captured boundary can potentially be seen by both the scan and the later stream. Ordinary stream inserts use marker `0`, which does not deduplicate merely because `_id` is declared as a key. Do not assume a special initialization mapping protects an overlap that occurs outside that code path.
 
-The project saves the maximum extracted source marker after upload. That is a better boundary than acknowledging before attempting delivery, but does not by itself solve ambiguous publication.
+This is a source-review question to test, not a claimed reproduced incident. Exercise inserts, updates and deletes during the scan and compare against a defined source boundary plus subsequent changes.
 
-The [OneLake upload code](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/src/azure/fabric.ts) creates, appends and flushes the final path. Retrying that operation is not the immutable atomic-publication pattern described in [Chapter 32](chapter-32.md).
+## Deletes, Replacement Documents and Schema
 
-File numbering is derived from local Parquet output. Local [sync marker handling](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/src/sync/syncmarkers.ts) can default missing or unreadable state to empty. An operational adaptation should surface lost/corrupt progress rather than silently treating it as a fresh extraction.
+Delete events use `documentKey`; supported non-delete operations obtain full document values through the listener's configuration. The inspected operation map handles insert, update and delete, but not every change-stream event, including replacement documents. Check the actual event kinds generated by your application.
 
-Avoid using `singleFileMode` as a repeated-update mechanism for an already processed landing-zone path: it reuses a filename, while Fabric does not interpret overwriting a processed file as a new logical batch.
+The [schema utilities](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/schema_utils.py) restore schema state and coerce BSON values for Parquet. Some failed conversions can fall back to typed nulls. Treat that as a data-quality policy requiring visibility and acceptance, not merely a formatting detail.
 
-## Exercises That Reveal the Difference from CDC
+The inspected listener inserts the marker first; the current public contract says it must be last. Reconcile the deployed output with [Chapter 34](chapter-34.md), including mixed numeric types, dates, arrays/documents and added fields.
 
-Load three rows, update the oldest key, delete another row, then insert two rows sharing a timestamp. Compare each mode against the source. Next, allow a transaction with an earlier allocated key or timestamp to commit after the watermark has advanced.
+## Publication and Resume Tokens
 
-These exercises explain why adding retries does not make incomplete extraction lossless. For state polling, add an explicit overlap/reconciliation strategy and deletion detection. If every committed change is required, evaluate a source-supported change stream instead.
+The publication helper makes create, append/flush and rename requests but does not enforce successful HTTP status for each response. The listener subsequently persists its resume token and file counter. A non-success response that does not raise a transport exception can therefore cross the checkpoint boundary unnoticed.
 
-For publication, adopt durable batch assignments, temporary files, atomic rename and explicit error handling. Monitor extraction progress and Fabric table freshness separately. The project is useful precisely because its compact implementation makes those boundaries visible.
+Harden error propagation and ambiguous-outcome recovery before treating upload completion as permission to advance the token. Keep a durable association between source events and their final publication path. A token records where to resume the source, not proof that Fabric applied those events.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 40: PostgreSQL Through Debezium and Kafka](chapter-40.md) | **Next:** [Chapter 42: Synapse Dedicated SQL Pool Open Mirroring](chapter-42.md)
+On history loss, clearing a token does not recover missing events. Define an explicit resnapshot or reconciliation procedure before source retention expires, and alert rather than silently claiming continuity.
+
+## Evaluation Checklist
+
+Test scan/stream overlap, replacement events, source history expiry, HTTP 403/429/500 responses and a crash after rename but before checkpointing. Validate both row identity and values; matching counts can hide duplicates and missing documents that cancel each other numerically.
+
+The project is valuable because its real scan, stream, state and schema code can be studied and adapted. Evaluate the exact revision and source workload rather than inferring production reliability from the existence of a partner integration.
+
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 40: BigQuery with FabricBQSync](chapter-40.md) | **Next:** [Chapter 42: PostgreSQL Through Debezium and Kafka](chapter-42.md)

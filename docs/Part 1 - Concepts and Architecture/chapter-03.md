@@ -175,7 +175,7 @@ Fabric controls the polling schedule, but Snowflake writes the change batch dire
 
 ### SAP: Two-Step Architecture
 
-For SAP sources, the mirroring path is also important to understand. Fabric does not poll the operational SAP tables directly in the same way it polls a database transaction log. Instead, **SAP Datasphere replication flow** first moves the relevant data towards **ADLS Gen2**, and Fabric then mirrors through that supported path. This is why SAP is best planned as a two-step architecture.
+For the **SAP Datasphere replication path in Chapter 20**, Fabric does not poll the operational SAP tables directly in the same way it polls a database transaction log. Instead, **SAP Datasphere replication flow** first moves the relevant data towards **ADLS Gen2**, and Fabric then mirrors through that supported path. Plan this route as a two-step architecture; it is not the [SAP BDC Connect sharing route in Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md).
 
 Check SAP Datasphere licensing and replication-flow requirements as well as Fabric prerequisites. Do not assume that the Fabric storage allowance covers the SAP side.
 
@@ -232,6 +232,14 @@ Azure Monitor is a connection-based exception: it exposes Log Analytics storage 
 
 Azure Monitor, Dremio, AWS Glue, and Google Lakehouse Runtime Catalog mirroring are in **Public Preview**. Snowflake's replicated tables and shortcut-backed Iceberg tables use different paths; check Chapter 22 before choosing one.
 
+### Related Source-Managed Links and Sharing
+
+The same consumer-side reasoning applies to [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md): Dataverse maintains the Delta replica and manages table shortcuts in a Fabric Lakehouse. There is no additional native Mirroring row-copy backlog on that consumer leg, but the **Dataverse analytical replica can still lag the operational tables**. A visible shortcut proves neither a completed initial synchronization nor a fresh SQL endpoint.
+
+[SAP BDC Connect](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) is a separately announced data-product sharing integration whose Fabric-specific implementation was not verified in the reviewed public guidance. The relevant questions are who prepares and updates the shared product, how the consumer is authorized, and which supported query path reads it. Do not substitute Chapter 20's Parquet landing-file pipeline or describe bidirectional sharing as transaction-level write-back.
+
+These are related access patterns, not additions to the native mirroring connector list. Source-side analytical materialization, product preparation, consumer queries, and optional caching can still incur storage and compute costs even where sharing is described as zero-copy.
+
 ### Fabric SQL Database Note
 
 **Fabric SQL Database** is a special case inside Fabric. Its analytical replica is configured automatically, but source rows are still copied into Delta tables in OneLake. It is database mirroring, not metadata-only access.
@@ -281,6 +289,8 @@ The table below brings the source list together using the replication model in t
 | **Google Lakehouse Runtime Catalog** | Shortcuts | No | Iceberg REST catalog + Google Cloud Storage shortcuts | [Microsoft Learn](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime) |
 | **Snowflake Iceberg tables** | Shortcuts | No | Shortcut access rather than Snowflake Streams replication | 22 |
 
+For the related application/data-product integrations outside this native-connector table, see [Dataverse Link, Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) and [SAP BDC Connect, Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md). Their chapters identify which platform owns synchronization and how the consumer reaches the data.
+
 [![Figure 3.6: Source groupings](../assets/diagrams/chapter-03/diagram-07.png)](../assets/diagrams/chapter-03/diagram-07.excalidraw.png)
 *Figure 3.6: Source groupings*
 
@@ -299,6 +309,6 @@ You do not choose the method directly, but you do need to plan around it.
 
 ## Summary
 
-This chapter uses a simple replication model with three methods: push-based, pull or polling-based, and shortcuts. These are book terms, not an official Microsoft taxonomy. The model helps you predict how each source behaves, what connectivity it needs, whether data is copied into OneLake, and what sort of lag you should expect. The detailed source chapters begin with Azure SQL Database in Chapter 11 and continue through AWS Glue Catalog Mirroring in Chapter 27.
+This chapter uses a simple replication model with three methods: push-based, pull or polling-based, and shortcuts. These are book terms, not an official Microsoft taxonomy. The model helps you predict how each source behaves, what connectivity it needs, whether data is copied into OneLake, and what sort of lag you should expect. The detailed source chapters begin with Azure SQL Database in Chapter 11 and continue through AWS Glue Catalog Mirroring in Chapter 27, followed by the related Dataverse and SAP BDC integrations in Chapters 28 and 29.
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 2: Types of Mirroring in Fabric](chapter-02.md) | **Next:** [Chapter 4: The Anatomy of a Mirrored Database](chapter-04.md)

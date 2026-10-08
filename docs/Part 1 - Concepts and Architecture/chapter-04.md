@@ -12,6 +12,8 @@
 
 A mirrored database in Fabric combines storage, replication state, and query surfaces inside OneLake. This chapter describes the replicated-data architecture used by database mirroring and open mirroring. Metadata mirroring uses source-specific catalog or connection items rather than this complete landing-zone pipeline.
 
+**Scope boundary:** [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) creates a Lakehouse with shortcuts to a Dataverse-managed analytical replica. A SQL endpoint over those tables does not turn the Lakehouse into the mirrored-database item described here. The separate [SAP BDC Connect chapter](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) likewise identifies its own provider/consumer objects and sharing responsibilities.
+
 When you create a mirrored database, Fabric creates **two** items:
 
 1. The **mirrored database item** itself, which owns the landing zone, Delta tables, replicator engine, replication settings, and monitoring state.
@@ -36,7 +38,7 @@ The **landing zone** is a transient staging area inside the mirrored database it
 * The file pattern depends on the source and mirroring method.
 * Retention and cleanup behaviour depend on the mirroring type and source.
 
-For open mirroring, the [landing-zone specification](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) describes moving processed files into internal cleanup folders and removing them after seven days, while retaining the latest sequential file as a publisher reference. This is **landing-file cleanup**, not Delta-table VACUUM or a durable publisher checkpoint. [Chapter 32](../Part%203%20-%20Open%20Mirroring/chapter-32.md#file-names-and-delivery) explains the publication and recovery implications.
+For open mirroring, the [landing-zone specification](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) describes moving processed files into internal cleanup folders and removing them after seven days, while retaining the latest sequential file as a publisher reference. This is **landing-file cleanup**, not Delta-table VACUUM or a durable publisher checkpoint. [Chapter 34](../Part%203%20-%20Open%20Mirroring/chapter-34.md#file-names-and-delivery) explains the publication and recovery implications.
 
 ### Delta Tables
 
@@ -169,6 +171,8 @@ Workspace roles and item permissions control access to the item. **OneLake secur
 * You enable and manage these roles from the mirrored database item's own experience in the Fabric portal, the same pattern already used for lakehouses.
 * Workspace **Admins** and **Members** can create and manage OneLake security roles.
 
+**September 2026 announcement:** the [Members and Data tabs are generally available](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_19). Use **Members** to inspect a person's roles and accessible data, and **Data** to inspect which roles and people can access a table. Bulk role assignment/removal simplifies administration; it does not change the access model. Removing one role does not revoke grants through another role or DefaultReader. See [Create and manage OneLake security roles](https://learn.microsoft.com/en-us/fabric/onelake/security/create-manage-roles).
+
 **Who is affected:**
 
 * OneLake security roles apply to users who have the **Viewer** workspace role, or **Read** item permission on the mirrored database. Those users only see the tables or folders their assigned role grants.
@@ -196,6 +200,12 @@ See [OneLake security roles and supported items](https://learn.microsoft.com/en-
 * Authentication paths may use **Microsoft Entra ID**, service principals, or other connector-specific methods.
 * End users of the mirrored database do not need direct access to the stored source credentials.
 
+#### Connection policies and administration
+
+The September feature summary announces **authentication allowlists** and **tenant allowlists** for data connections as **GA**. These govern new and existing **cloud connections**; do not generalize their scope to every gateway connection. A policy change can take up to an hour to propagate and can put a previously working, noncompliant connection **Offline** with **Policy Evaluation Failure**. Check these policies when a mirror loses its connection without a source-side change. The [setup guide](https://learn.microsoft.com/en-us/fabric/data-factory/data-connection-policies) still labels them Preview and limits the tenant allowlist to 100 tenant GUIDs. Source: [authentication announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_168) and [tenant announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_169).
+
+**Admin APIs for cloud connections** are also [announced GA](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_170), for inventory and ownership/lifecycle administration. The [current administration guide](https://learn.microsoft.com/en-us/fabric/data-factory/data-source-management#manage-connections-tenant-wide-with-the-admin-apis) retains Preview and some Coming Soon labels. Confirm the specific API before automating it; a tenant-administration setting does not itself make every connection visible in the normal connection UI. Inventory ownership and authentication before rotating or deleting a connection used by a mirror.
+
 ### Network Boundaries
 
 Treat these as separate controls rather than using "private connectivity" as a single yes/no setting:
@@ -205,6 +215,14 @@ Treat these as separate controls rather than using "private connectivity" as a s
 * **Workspace outbound access protection:** For supported mirrored-database connectors, configure **data connection rules** that permit the required connections. This is separate from granting source permissions or opening its firewall.
 
 See [Outbound access protection for mirrored databases](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases) and the relevant source chapter. Metadata catalogs and their shortcuts have their own support boundaries; do not apply the database-connector matrix to them without explicit documentation.
+
+The [September GA announcement for OneLake outbound access protection with external shortcuts](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_17) covers approved external and cross-workspace shortcut targets, including the OneLake File Connector. Same-workspace shortcuts are unaffected. Follow [OneLake outbound access management](https://learn.microsoft.com/en-us/fabric/onelake/onelake-manage-outbound-access) as well as the source-connection rules above. Enforcement follows request direction, not simply the direction data moves; this control alone is not comprehensive exfiltration prevention.
+
+### Fabric Policies and Data Loss Prevention
+
+**Policies in Fabric** were [announced in Preview](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_2). Policy Set items can govern item creation, sensitive workspace settings, and external sharing. Existing workspace/item permissions still apply. Git synchronization is not policy activation: the appropriate tenant or capacity administrator must activate the policy separately. Evaluate the policy's default and matching rules rather than assuming that every unmatched request is denied. The summary lists external-sharing policies, while its OneLake companion describes them as coming soon; confirm that policy type's availability before depending on it. See [Fabric policies](https://learn.microsoft.com/en-us/fabric/governance/fabric-policies-overview).
+
+**DLP Restrict Access** was [announced GA](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_4), although the [Purview setup guide](https://learn.microsoft.com/en-us/purview/dlp-powerbi-get-started) still labels this action Preview. Mirrored databases are supported DLP items: a policy can restrict guests or all users when supported sensitive data is detected, while workspace administrators retain remediation access. Review supported Delta data, classifiers, and exclusions; this is not universal inspection of every source payload. Diagnose a DLP restriction before granting broader SQL or OneLake roles to bypass an access error.
 
 ### Encryption Notes
 

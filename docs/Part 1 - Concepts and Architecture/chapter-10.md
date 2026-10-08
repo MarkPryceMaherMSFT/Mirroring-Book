@@ -53,6 +53,8 @@ For database mirroring and open mirroring, core replication compute is free and 
 
 See [Cost of mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/overview#cost-of-mirroring) for the current official description of what is included.
 
+**Do not transfer this allowance to every linked source.** [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) consumes additional Dataverse database storage for its optimized replica and Fabric resources for consumers. [SAP BDC Connect](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) has separate SAP/Fabric sharing and commercial requirements. Zero-copy consumption is not a promise of free source storage, data-product preparation, network traffic, or analytical compute.
+
 ***
 
 ## 10.3 What Is Billed Separately
@@ -87,6 +89,14 @@ Source-platform and self-hosted infrastructure costs sit outside the free Fabric
 * **Revisit extended capabilities deliberately**. Because Delta change data feed and Mirroring Views bill separately, enable them only where the downstream use case needs them, rather than by default on every mirror.
 
 ***
+
+## 10.6 September 2026 Query-Capacity Announcements
+
+The [FabCon feature summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_38) announces **custom SQL pools as GA** and explicitly includes **SQL analytics endpoints**. Use them to isolate and allocate query resources within a workspace; they are not a way to reserve extra mirroring replication capacity or change the free core-replication model.
+
+The next announcement makes the **Statement Type classifier GA**, with configurable SELECT/NONSELECT allocation. The [current custom-pool guide](https://learn.microsoft.com/en-us/fabric/data-warehouse/custom-sql-pools) still says Preview, documents a maximum of eight pools, and describes statement-type classification as autonomous-only. Treat that as an announcement/implementation-documentation conflict: confirm the available classifier in your environment before proposing a custom allocation. Workspace administrators manage these settings.
+
+**On-demand billing for Fabric Data Warehouse**, including SQL analytics endpoints, appears in the summary's **Coming Soon** section, not its available-feature list. Do not budget as if that billing model were already enabled, or infer a new price for mirroring replication. Continue using the published capacity and mirroring billing rules until a supported launch and pricing specification applies.
 
 ## Summary
 

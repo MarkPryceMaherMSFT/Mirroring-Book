@@ -1,62 +1,69 @@
-# Chapter 38: BigQuery with FabricBQSync
+# Chapter 38: Toolbox Notebook Solutions - Excel, SharePoint, MySQL, and Snowflake
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Evaluate a configurable BigQuery accelerator that can publish through Open Mirroring, separately from Fabric's native BigQuery connector.
+> **Purpose:** Learn from executable source-specific notebooks without confusing a scheduled demonstration with a complete replication service.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
 ---
 
-## Project and Fit
+## Why Group These Examples?
 
-[microsoft/FabricBQSync](https://github.com/microsoft/FabricBQSync) is a Microsoft-published accelerator with [MIT-licensed source](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/LICENSE). It supports multiple destination modes. For this chapter, explicitly choose **`MIRRORED_DATABASE`**; a successful Lakehouse synchronization is not evidence that Open Mirroring was used.
+The [Toolbox sample collection](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring) contains several separate Python notebooks. They share the extraction-to-Parquet-to-OneLake pattern, but their source mechanisms differ considerably. Read them alongside the [SDK chapter](chapter-36.md), not as evidence that the SDK itself knows how to capture changes.
 
-The inspected revision is `a8bf1f1`, with release log version 2.2.0 and mirrored-database support recorded in 2.1.0. Review the [release log](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Docs/ReleaseLog.md) and pin the version used in your lab. Repository ownership is not a product-support commitment; the inspected support file does not establish one.
+The inspected revision is `b0183fb`, and the [MIT licence](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/LICENSE) covers the repository source. The collection labels the examples proof-of-concept code, not production-ready software. Source-service licences and Fabric notebook compute remain separate costs.
 
-Choose this project when you want its configurable extraction and scheduling machinery and are prepared to own its Fabric Spark execution. Compare that ownership and cost with the [native BigQuery guide](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-16.md).
+## Source Map
 
-## Architecture
+| Notebook | Real source code | Capture pattern |
+|---|---|---|
+| Excel Mirroring | [excelmirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Excel%20Mirroring/excelmirroring.ipynb) | Scan a OneLake folder and publish workbook sheets |
+| SharePoint Excel | [sharepoint-excel-mirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/SharepointExcelMirroring/sharepoint-excel-mirroring.ipynb) | Graph download followed by workbook conversion |
+| SharePoint Lists | [sharepoint-list-mirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/SharepointListMirroring/sharepoint-list-mirroring.ipynb) | Graph list response converted to a table |
+| MySQL | [mysqlmirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/mysql%20Mirroring/mysqlmirroring.ipynb) | Initial snapshot plus source triggers and a change table |
+| Snowflake | [snowflakeMirroring.ipynb](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Snowflake%20Mirroring/snowflakeMirroring.ipynb) | Snapshot plus Snowflake stream extraction |
 
-```text
-BigQuery extraction strategy
-    -> Fabric Spark DataFrame
-    -> row-operation and type conversion
-    -> per-table scratch Parquet
-    -> numbered landing-zone files
-    -> Fabric ingestion
-```
+These are custom publishers. They are not the native SharePoint, MySQL or Snowflake connectors described in Part 2.
 
-Trace [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py), [Mirror.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py), and [FileSystem.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py) together. The source query, Spark output partitioning and publication sequence are separate parts of the implementation.
+## Getting Started
 
-## Setup Walkthrough
+Import the selected notebook into a test Fabric environment, install its stated dependencies, and identify every configuration and credential cell before execution. Grant source access separately from OneLake write access. Confirm that the network path exists from the notebook runtime; a working desktop connection does not prove that.
 
-Follow the project's [installation guide](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Docs/Installation.md). Import the installer notebook, attach the required Lakehouse for supporting metadata, configure GCP service-account access and select the project/dataset. Select the mirrored-database target and enable the schema configuration required by that path.
+Create an empty mirrored database and select one small keyed source object. Read every reset/setup cell before running the notebook: some delete destination tables or recreate source capture objects. Run initialization once, then schedule only the intended incremental cells after making their recovery safe.
 
-Keep credentials in protected configuration. Record the installed package version because automatic upgrades can change the code beneath a scheduled run. Begin with a small keyed table and an explicit extraction strategy. Prepare the destination and permissions using [Chapter 29](chapter-29.md).
+Use [Chapter 34](chapter-34.md) to inspect metadata, row-marker placement and file names. Embedded helper classes can differ from the standalone SDK. Do not assume that a method added to one notebook exists in `OpenMirroringPythonSDK`.
 
-Inspect the initial file, table key and destination row values before enabling broad table discovery or scheduling. Initialization/overwrite paths can drop a mirrored table folder and reseed it; they are not harmless incremental operations.
+## Excel and SharePoint: Current State Is Not a Change Stream
 
-## Changes, Keys and Schema
+The workbook notebooks convert current sheet contents to Parquet, generate positional row identities and publish update/upsert-like rows. Reordering the workbook changes that identity, while removing rows does not automatically generate deletes. The `clean` argument in the Excel helper is compared with the string `"true"`; it controls a destructive remove/recreate path rather than an ordinary incremental refresh.
 
-The query builder includes BigQuery `CHANGES`/`APPENDS` strategies and ordinary watermark predicates. These have different source prerequisites and completeness guarantees. A strict timestamp predicate does not acquire CDC semantics just because its output is sent to an Open Mirrored Database.
+The SharePoint Excel notebook adds a Graph download step. The inspected function processes a returned `children` page; pagination, deleted-file reconciliation and a durable download cursor are additional work. Similarly, the list notebook converts a returned list response rather than implementing a complete paginated delta protocol.
 
-The mirror conversion maps keyed change operations to Fabric markers, handles initial/no-key insert semantics and converts complex values to JSON strings. Internal source CDC columns are removed. The inspected row selection puts the marker before data columns, which differs from the current documented final-column requirement; resolve that discrepancy against [Chapter 32](chapter-32.md) when preparing the version you deploy.
+For a real synchronization service, keep stable source keys, fetch all pages, retain the last successfully published snapshot and publish missing-key deletes. The [file pattern in Chapter 33](chapter-33.md#use-case-4-excelcsv-mirroring) explains the division of responsibilities.
 
-Also test multiple changes to one key within a window. Spark partitioning and numbered output files do not independently establish source-event order after source ordering fields have been removed.
+## MySQL: Trigger Capture and Delivery Acknowledgement
 
-## Progress and Partial Publication
+`setup_cdc_for_table` creates the source change table and insert/update/delete triggers. It can drop and recreate those objects, so it is not a harmless restart function. Inspect the generated SQL with the source owner before using it.
 
-The filesystem code discovers file progress, checks the expected next index and checks rename results before incrementing. This is useful implementation discipline, but it is not a complete crash-safe transaction spanning the source query and every published file.
+`export_cdc_to_parquet` selects unmoved changes, writes a local file, then marks currently unmoved rows as moved before a later upload cell runs. This separates acknowledgement from delivery. New changes arriving between selection and the broad update can also be acknowledged without belonging to that export.
 
-[Schedule telemetry](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756) records both `max_watermark` and `mirror_file_index`. Keep them distinct from Fabric's ingestion completion.
+A hardened design captures a bounded, ordered set of change identifiers, journals its payload, publishes it, and acknowledges exactly that set. It also establishes a snapshot/trigger boundary and handles primary-key changes as removal of the old identity plus publication of the new identity. A retry loop alone cannot fix an incorrectly advanced source checkpoint.
 
-An especially useful exercise is to fail the second file of a multi-file publication. On retry, require reconciliation of the already-published first file and its source batch. Detecting a sequence mismatch is valuable; choosing another sequence or resetting the table automatically is not a general recovery solution.
+## Snowflake: Stream Progress Is a Source Checkpoint
 
-## Operational Lessons
+The Snowflake notebook identifies object types, creates streams, extracts snapshots and queries stream changes. In the inspected incremental cell, `create_stream_if_supported` uses `CREATE OR REPLACE STREAM` after reading changes and before uploading them.
 
-Monitor BigQuery query volume, Spark execution, source progress, staged files, published sequence and destination freshness. Include keyed updates/deletes and change-history expiry in the evaluation, not just a large initial load.
+Replacing a stream and publishing a OneLake file are not one transaction. Preserve the extracted changes and protect the source boundary before acknowledging or resetting the stream. Sorting by row ID and action is not a general guarantee of transaction order.
 
-Free Fabric replication compute does not make the extractor free. Budget BigQuery query charges, Fabric Spark, supporting storage and possible network egress. The project's value is inspectable orchestration and source-specific logic; the reader still owns its configuration, reliability and upgrades.
+The notebook also defines its helper class after earlier cells that use it, so a clean top-to-bottom execution needs attention. This is precisely why source inspection is more useful than simply listing a notebook link.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 37: MariaDB Through MaxScale and Kafka](chapter-37.md) | **Next:** [Chapter 39: MongoDB Through Change Streams](chapter-39.md)
+## Lessons and Acceptance Exercises
+
+Interrupt each notebook between export and upload, and again between upload and progress persistence. Test source changes during the initial scan, pagination, deletions, key changes and a schema change. Reconcile the resulting rows, not just the presence of a file.
+
+These examples make source integration approachable. Their strongest lesson is that source capture, publication and acknowledgement are three separate steps. Use the [shared recovery guidance](chapter-35.md) and [acceptance exercises](chapter-46.md#acceptance-exercises) before scheduling them unattended.
+
+**Related article:** [Mirroring Excel into Fabric with Open Mirroring (2nd try)](https://medium.com/@sqltidy/mirroring-excel-into-fabric-with-open-mirroring-2nd-try-83690d950cf6) has matching Toolbox source and belongs here, not in the blog-only table.
+
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 37: GenericMirroring](chapter-37.md) | **Next:** [Chapter 39: MariaDB Through MaxScale and Kafka](chapter-39.md)

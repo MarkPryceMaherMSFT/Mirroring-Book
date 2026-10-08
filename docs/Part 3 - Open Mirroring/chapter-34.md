@@ -1,124 +1,206 @@
-# Chapter 34: The Microsoft Open Mirroring Python SDK
+# Chapter 34: Metadata and Change Files
 
 > **Part 3: Open Mirroring**
 >
-> **Purpose:** Use Microsoft's Python helper to understand table creation and file publication, while keeping source capture and reliable recovery in your application.
+> **Purpose:** Use this chapter to define each table's `_metadata.json`, encode row operations, and deliver files in the order Fabric expects.
 
 **Part index:** [Chapters in Part 3](readme.md)
 
 ---
 
-## What the SDK Provides
+## Overview
 
-The [Open Mirroring Python SDK](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK) was developed inside Microsoft and published in Fabric Toolbox. Its implementation is the `OpenMirroringClient` class in one Python module, `openmirroring_operations.py`. It is not a complete database connector or a replacement for the [shared build guidance](chapter-29.md).
+Each Open Mirroring table has its own landing-zone folder and `_metadata.json` file. Parquet files carry their own column schema. The metadata file identifies key columns and optional file-detection behaviour.
 
-| Responsibility | SDK or application? |
+The public contract does not require `settings.json`, commit marker files, or a source-watermark directory. Keep durable publisher state separate from data files. Producers can use ignored underscore-prefixed state files, but those are their own convention, not a Fabric checkpoint protocol.
+
+[![Figure 34.1: Open Mirroring landing-zone structure](../assets/diagrams/chapter-34/diagram-01.png)](../assets/diagrams/chapter-34/diagram-01.excalidraw.png)
+*Figure 34.1: Open Mirroring landing-zone structure*
+
+---
+
+## Table Folder Layout
+
+Tables in the default schema sit directly under `Files/LandingZone`. To use an explicit schema, add a folder whose name ends in `.schema`.
+
+```text
+Files/LandingZone/
+    orders/
+        _metadata.json
+        00000000000000000001.parquet
+        00000000000000000002.parquet
+    dbo.schema/
+        customers/
+            _metadata.json
+            00000000000000000001.parquet
+```
+
+Fabric creates one Delta table for each table folder.
+
+---
+
+## `_metadata.json`
+
+Place `_metadata.json` inside the table folder:
+
+```text
+Files/LandingZone/orders/_metadata.json
+```
+
+For a Parquet table with a composite key, the minimum file is:
+
+```json
+{
+  "keyColumns": ["order_id", "line_id"]
+}
+```
+
+### Main Fields
+
+| Field | Use |
 |---|---|
-| Authenticate with a client secret and address OneLake | SDK |
-| Create table folders and key metadata | SDK |
-| Discover a next filename and upload through a temporary name | SDK |
-| Read monitoring files | SDK; the inspected methods print their results |
-| Extract source rows, capture deletes and establish a snapshot boundary | Application |
-| Generate and validate Parquet, maintain durable checkpoints, coordinate writers | Application |
-| Create/start the Fabric mirrored database and operate a scheduler | Separate Fabric APIs and application |
+| `keyColumns` | Names of the columns used to match updates, deletes, and upserts. Match the file's column names exactly. Keys can be declared later for an insert-only table, but cannot be changed once declared. |
+| `fileDetectionStrategy` | Defaults to `SequentialFileName`. Set to `LastUpdateTimeFileDetection` only when strict source order is unnecessary or enforced elsewhere. |
+| `isUpsertDefaultRowMarker` | When `true`, rows without `__rowMarker__` are treated as upserts rather than inserts. |
+| `SchemaDefinition` | Required for delimited text. Parquet supplies its schema in the file metadata. |
+| `FileFormat` and `FileExtension` | Configure CSV or another supported delimited-text format. |
+| `FileFormatTypeProperties` | Controls delimiters, quoting, escaping, null values, encoding, and header handling for delimited text. |
 
-**Source baseline:** [implementation at `b4636ef`](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py), reviewed for this chapter on 8 October 2026. Its [MIT licence](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/LICENSE.txt) permits reuse subject to its terms. Microsoft authorship does not create a production support guarantee; see the [Toolbox support statement](https://github.com/microsoft/fabric-toolbox#support).
+For delimited text, define the columns and file format in `_metadata.json`. The [landing-zone format reference](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) lists the supported fields and data types.
 
-## Prepare a Small Lab
+Always create metadata before the first data file in these examples. The reference also describes marker-free, keyless insert behaviour when metadata is absent; that is not a reason to omit the file from a keyed replication design.
 
-Create a new Open Mirrored Database and grant the publishing identity the permissions described in [Chapter 29](chapter-29.md). Use its complete landing-zone URL, not a Lakehouse URL or the SQL endpoint.
+### Delimited Text and Type Boundaries
 
-Obtain the module from the pinned source and place it on your Python import path. The inspected folder is a source-module distribution; do not invent a `pip install OpenMirroringPythonSDK` package. Install its dependencies and a Parquet library for the example:
+- The landing-zone reference supports Parquet and delimited text, uncompressed or compressed with Snappy, GZIP, or ZSTD. Excel workbooks must be converted first.
+- Delimited text requires a header row and an explicit `SchemaDefinition`. Configure `FileExtension`, encoding, delimiters, quoting, and null representation consistently with the actual file.
+- Parquet carries its own schema. Use compatible logical and physical types, such as Parquet `DATE` backed by `INT32`.
+- Use simple Parquet types; serialise complex structures as JSON strings, or use binary for appropriate binary values.
+- Delimited-text schema evolution is explicitly unsupported. Do not assume that the reference's general add-column wording makes changing a declared CSV schema safe.
 
-```powershell
-python -m pip install azure-identity azure-storage-file-datalake requests pyarrow
+### Nonsequential Detection
+
+The following is valid JSON for a table using unique, immutable, nonsequential file paths:
+
+```json
+{
+  "keyColumns": ["id"],
+  "fileDetectionStrategy": "LastUpdateTimeFileDetection",
+  "isUpsertDefaultRowMarker": true
+}
 ```
 
-For reproducible deployments, record the tested dependency versions rather than continually installing the latest versions. Store credentials in protected configuration; the example reads environment variables so no credential is embedded in source.
+File detection and the default row operation are independent settings. Either can be configured without the other. Timestamp detection orders each visible, unprocessed set by storage `LastModified`, not source event time. Equal timestamps have no defined producer-order tie-break, and a late file can apply after a newer logical batch. Rewriting a processed path does not make it eligible for ingestion again.
 
-```python
-import os
-import pyarrow as pa
-import pyarrow.parquet as pq
-from openmirroring_operations import OpenMirroringClient
+Use sequential detection for order-sensitive CDC unless another mechanism preserves the required order.
 
-client = OpenMirroringClient(
-    client_id=os.environ["AZURE_CLIENT_ID"],
-    client_secret=os.environ["AZURE_CLIENT_SECRET"],
-    client_tenant=os.environ["AZURE_TENANT_ID"],
-    host=os.environ["FABRIC_LANDING_ZONE_URL"],
-)
+### Producer Identification
 
-client.create_table(
-    schema_name="demo", table_name="customers", key_cols=["id"]
-)
+The optional `_partnerEvents.json` belongs at the mirrored database's landing-zone root, not inside each table folder. It records `partnerName` and `sourceInfo`, including `sourceType`; it is not table schema or a commit marker.
 
-schema = pa.schema([
-    pa.field("id", pa.int64(), nullable=False),
-    pa.field("name", pa.string()),
-])
-snapshot = pa.Table.from_pylist([
-    {"id": 1, "name": "Ada"},
-    {"id": 2, "name": "Grace"},
-], schema=schema)
-pq.write_table(snapshot, "customers-initial.parquet")
-client.upload_data_file(
-    schema_name="demo",
-    table_name="customers",
-    local_file_path="customers-initial.parquet",
-)
+---
+
+## Row Operations
+
+Incremental files normally use a column named `__rowMarker__`. Use an integer type such as Arrow `int32` for the numeric operation values in this book's Parquet examples.
+
+The column must:
+
+- be the final column in the file
+- contain one of the supported operation values
+
+| Value | Operation | Result |
+|---:|---|---|
+| `0` | Insert | Inserts even if the key already exists; it does not deduplicate. |
+| `1` | Update | Updates a matching key or inserts when no match exists. |
+| `2` | Delete | Deletes a matching key and does nothing when no match exists. |
+| `4` | Upsert | Updates a matching key or inserts a new row. |
+
+Rows are applied from top to bottom within a file. If a key value changes, send a delete for the old key followed by an insert for the new key.
+
+### Initial Load
+
+For the default Parquet contract, omit `__rowMarker__` from initial snapshot files. Without a default-upsert override, a marker-free file is treated as inserts. As soon as a marker-bearing file is encountered, Fabric treats the changes as incremental. Do not describe later marker-free files as a new snapshot or a table reset.
+
+Marker omission is not a universal optimisation: `isUpsertDefaultRowMarker: true` changes the meaning to upsert. The [best-practices guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#optimize-insert-only-files) also says not to remove the marker from CSV files.
+
+### Incremental Loads
+
+Include `__rowMarker__` for explicit update, delete, and upsert operations. A configured default-upsert mode is the exception for marker-free upserts, not a way to encode deletes. Updated and upserted rows must include the complete row, not only changed columns.
+
+Delete rows need the key values and marker `2`; non-key values need not be supplied. When writing a mixed-operation Parquet file, retain the full typed schema and use typed nulls for unused nullable fields rather than inferring a new schema from the delete rows.
+
+For a table keyed by `id`, the following illustrates file contents, not a literal Parquet file:
+
+```text
+id,name,__rowMarker__
+1,Ada,4
+1,Ada Lovelace,1
+2,Grace,4
+2,NULL,2
 ```
 
-Run table creation and this initial-load cell once against a fresh lab table. Do not rerun the whole cell as your incremental scheduler: allocating another marker-free snapshot file can insert duplicates. The SDK does not remember that the source batch has already been delivered.
+The result has key `1` with the name `Ada Lovelace`; key `2` is absent. Replaying these operations after a newer batch could overwrite newer state, so upsert support does not replace ordered, crash-safe publication.
 
-After inspecting the actual file and Fabric table status, prepare a full-row upsert and a key-based delete:
+---
 
-```python
-change_schema = schema.append(
-    pa.field("__rowMarker__", pa.int32(), nullable=False)
-)
-changes = pa.Table.from_pylist([
-    {"id": 1, "name": "Ada Lovelace", "__rowMarker__": 4},
-    {"id": 2, "name": None, "__rowMarker__": 2},
-], schema=change_schema)
-pq.write_table(changes, "customers-changes.parquet")
-client.upload_data_file(
-    schema_name="demo",
-    table_name="customers",
-    local_file_path="customers-changes.parquet",
-)
-client.get_table_status(schema_name="demo", table_name="customers")
+## File Names and Delivery
+
+In sequential mode, data files use a 20-digit, zero-padded integer:
+
+```text
+00000000000000000001.parquet
+00000000000000000002.parquet
+00000000000000000003.parquet
 ```
 
-The marker is the final column. The delete retains the original typed schema, with a nullable non-key field. Expected final state is key `1` with the updated name and no key `2`. This is a method walkthrough, not a crash-safe publisher: it deliberately does not advance a source checkpoint after an upload call.
+Start at 1 and increase by exactly one. A missing sequence blocks later files in that stream. Do not skip, reuse, or regress an index, including across publisher restarts.
 
-## Read the Actual API
+To prevent Fabric from reading a partial upload:
 
-| Method | Behaviour in the inspected module |
-|---|---|
-| `create_table(schema_name=None, table_name="", key_cols=[])` | Creates the folder and `_metadata.json` containing `keyColumns`; it does not validate the payload schema |
-| `get_next_file_name(schema_name=None, table_name="")` | Finds final `.parquet` names and returns a 20-digit next name |
-| `upload_data_file(schema_name=None, table_name="", local_file_path="")` | Reads the local file into memory, uploads under an underscore-prefixed name, flushes, and invokes REST rename |
-| `get_mirrored_database_status()` | Reads and prints `Monitoring/replicator.json` |
-| `get_table_status(schema_name=None, table_name=None)` | Reads and prints `Monitoring/tables.json`; filtering expects both schema and table |
-| `remove_table(schema_name=None, table_name="", remove_schema_folder=False)` | Deletes a table folder; the optional schema-folder deletion can affect other tables |
+1. Write the file with an underscore prefix, such as `_00000000000000000003.parquet`.
+2. Flush the complete file.
+3. Rename it atomically to `00000000000000000003.parquet`.
 
-Use keyword arguments: a positional table name could accidentally be interpreted as `schema_name`. Status methods do not return dictionaries. Do not build code around an invented success result from upload, either.
+Fabric ignores files whose names start with an underscore.
 
-## Limitations That Matter
+The reserved `_scratchPad` folder is an alternative staging area for multistep publishers. Complete and validate the file there, then atomically rename or move it into the table folder. A copy-and-delete operation is not an atomic publication.
 
-The [rename implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py#L201-L226) prints non-success HTTP responses instead of raising an exception. The upload caller can subsequently print a success message. Treat this as an implementation issue to correct before using method completion as permission to acknowledge source changes.
+Final paths are immutable. Persist each batch's source range, payload identity, and assigned sequence before upload. On retry, verify an existing final file against that assignment; do not overwrite it or republish the batch under a new name. Publish sequential files in order even if extraction or temporary uploads run concurrently.
 
-Filename discovery is not reservation. Two writers can choose the same next filename; a crash between publication and checkpointing can replay a batch under a different filename. Preserve a durable batch-to-path assignment, enforce immutable final paths, propagate errors and reconcile ambiguous outcomes as described in [Chapter 29](chapter-29.md). Ordinary cleanup retains the latest sequential file, but that does not replace your journal.
+The landing-zone reference describes processed-file cleanup through `_ProcessedFiles` or `_FilesReadyToDelete`, with removal after seven days. It also says the latest sequential file is retained as a publisher reference. Neither mechanism replaces durable publisher state. This cleanup is separate from destination Delta-table retention.
 
-The module does not generate Parquet, validate markers, configure CSV metadata or expose the alternative file-detection strategy. An arbitrary local file can receive a `.parquet` destination name. Its raw rename request also lacks an explicit timeout. Large-file memory use, retry policy, structured monitoring results and credential flexibility are application-hardening work.
+---
 
-Prefer the documented [Fabric monitoring APIs](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/mirroring) for operational automation. A successful upload and a replicated table are different states.
+## Schema and Table Changes
 
-## What to Learn
+- **Parquet schema**: Fabric reads the column schema from each Parquet file.
+- **Add a Parquet column**: Fabric adds it to the destination table.
+- **Omit a nullable column**: The destination column remains; new rows have `NULL` there. Omitting a nonnullable column fails schema merge.
+- **Change a type**: Replication for that table stops with an error; rebuild and republish the table.
+- **Rename a column**: This is effectively drop-and-add, not an in-place rename. Rebuild to retire the old name.
+- **Delimited-text schema**: Define it in `_metadata.json`. Schema evolution is not supported for this format.
+- **Key columns**: Choose them before publishing changes; once declared, they cannot be changed in place.
+- **Table reset or rename**: Delete the old table folder and wait for the mirrored table to disappear. Recreate the folder, metadata, and complete initial load, using a new folder name for a rename. Resume incremental publication only after the table reappears.
+- **Ordering**: Keep file and row order deterministic when several changes affect the same key.
 
-This is a compact, useful reference for the OneLake side of a publisher. Reuse its understandable structure, not assumptions about end-to-end reliability. Before deployment, exercise failed rename, response loss, restart after publication, delete processing and two competing writers. Deleting a folder is a table-drop operation, not routine cleanup.
+---
 
-**References:** [SDK source and README](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK), [landing-zone contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format), and [publication/recovery guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
+## Best Practices
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 33: Common Issues and Troubleshooting](chapter-33.md) | **Next:** [Chapter 35: GenericMirroring - A Multi-Source C# Publisher](chapter-35.md)
+1. Create the table folder and `_metadata.json` before writing the first data file.
+2. Use Parquet unless the source requires a supported delimited-text format.
+3. Use the temporary-name and atomic-rename pattern for every upload.
+4. Persist the source extraction position separately from the Fabric file sequence.
+5. Use one coordinated publisher per table to avoid sequence collisions. Narrow merge keys improve performance; the documented suggestion of fewer than five key columns is not a hard limit.
+6. Test key, schema, update, delete, restart, and retry behaviour before production.
+
+---
+
+## Summary
+
+Open Mirroring uses per-table metadata, a declared file-detection strategy, and row operations. Keep source checkpoints distinct from file sequences, preserve schema and source order, and publish each completed file atomically.
+
+**References:** [Landing-zone requirements and formats](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) and [Open Mirroring best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
+
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 33: Use Cases and Examples](chapter-33.md) | **Next:** [Chapter 35: Common Issues and Troubleshooting](chapter-35.md)
