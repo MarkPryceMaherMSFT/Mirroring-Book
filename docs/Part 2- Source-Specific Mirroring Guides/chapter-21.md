@@ -152,6 +152,8 @@ If a schema change is needed, try it on the test list first and inspect the resu
 
 Reviewed **8 October 2026**. Research started with Reddit, where relevant titles were indexed but full thread reads returned HTTP 403. The readable Fabric Community reports below were verified directly, including their posting dates. They are historical/anecdotal reproduction leads, not a supported-column matrix or proof that a defect remains in the current service.
 
+The [document-library naming discussion](https://www.reddit.com/r/MicrosoftFabric/comments/1tcckhl/sharepoint_document_library_mirroring_issue/) and [library 404 discussion](https://www.reddit.com/r/MicrosoftFabric/comments/1s8tt32/mirrored_sharepoint_list_preview_failed_to_get/) remain **unverified Reddit leads**. Their inaccessible bodies do not establish naming restrictions, a current defect, or a confirmed fix. Reproduce discovery issues on a disposable library rather than renaming a production library.
+
 | Evidence | Report or pitfall | Safe diagnostic action |
 |---|---|---|
 | **Historical community report:** [Failed to get document libraries, Error 404](https://community.fabric.microsoft.com/discussions/df_mirroring/mirrored-sharepoint-list-preview---%E2%80%9Cfailed-to-get-document-libraries%E2%80%9D-error-404/5140182), 27 March 2026 | The poster reported a small list replicating correctly while document-library discovery returned 404. Their accepted reply on 7 April describes a pipeline/Notebook alternative | Check site-root URL, library permissions and list-versus-library scope independently. Retain the activity ID. The accepted alternative is not a repair to native mirroring, and does not establish that the native defect is fixed |

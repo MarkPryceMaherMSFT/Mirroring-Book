@@ -18,6 +18,8 @@ There are several ways to check the status of Fabric Mirroring:
 
 These are **native Mirroring** monitoring surfaces, not a universal interface for every shortcut-backed integration. For Dataverse Link, inspect the Power Apps link/table synchronization state and the Fabric consumer separately; follow [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md). For SAP BDC Connect, use the product-sharing and consumer checks in [Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md), rather than assuming its activity appears in `MirroredDatabaseTableExecution`.
 
+**Application integrations add a source-side monitoring layer.** Business Central's run/detail views track publication before Fabric processes its open mirror; see [Chapter 31](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md). Dataverse uses Link to Fabric/**Manage tables** and a lakehouse/shortcut experience; see [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md). Do not send mirrored-database lifecycle/status requests to a lakehouse or assume source success proves SQL endpoint freshness.
+
 <br />
 
 [![chapter-05 diagram 1](../assets/diagrams/chapter-05/diagram-01.png)](../assets/diagrams/chapter-05/diagram-01.excalidraw.png)

@@ -14,6 +14,8 @@ A mirrored database in Fabric combines storage, replication state, and query sur
 
 **Scope boundary:** [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) creates a Lakehouse with shortcuts to a Dataverse-managed analytical replica. A SQL endpoint over those tables does not turn the Lakehouse into the mirrored-database item described here. The separate [SAP BDC Connect chapter](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) likewise identifies its own provider/consumer objects and sharing responsibilities.
 
+[Business Central](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md) uses an open mirrored database as its destination, but company/table selection, synchronization runs, and connection approval remain source-side application controls.
+
 When you create a mirrored database, Fabric creates **two** items:
 
 1. The **mirrored database item** itself, which owns the landing zone, Delta tables, replicator engine, replication settings, and monitoring state.
@@ -38,7 +40,7 @@ The **landing zone** is a transient staging area inside the mirrored database it
 * The file pattern depends on the source and mirroring method.
 * Retention and cleanup behaviour depend on the mirroring type and source.
 
-For open mirroring, the [landing-zone specification](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) describes moving processed files into internal cleanup folders and removing them after seven days, while retaining the latest sequential file as a publisher reference. This is **landing-file cleanup**, not Delta-table VACUUM or a durable publisher checkpoint. [Chapter 34](../Part%203%20-%20Open%20Mirroring/chapter-34.md#file-names-and-delivery) explains the publication and recovery implications.
+For open mirroring, the [landing-zone specification](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) describes moving processed files into internal cleanup folders and removing them after seven days, while retaining the latest sequential file as a publisher reference. This is **landing-file cleanup**, not Delta-table VACUUM or a durable publisher checkpoint. [Chapter 36](../Part%203%20-%20Open%20Mirroring/chapter-36.md#file-names-and-delivery) explains the publication and recovery implications.
 
 ### Delta Tables
 

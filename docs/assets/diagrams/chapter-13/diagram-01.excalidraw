@@ -8,7 +8,7 @@
       "type": "text",
       "x": 30,
       "y": 20,
-      "width": 593.58984375,
+      "width": 614.953125,
       "height": 27.599999999999998,
       "angle": 0,
       "strokeColor": "#000000",
@@ -26,17 +26,17 @@
       "version": 2,
       "versionNonce": 1721763336,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
-      "text": "Azure Cosmos DB: Continuous Backup-based mirroring",
+      "text": "Azure Cosmos DB: backup initial load and live increments",
       "fontSize": 24,
       "fontFamily": 2,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Azure Cosmos DB: Continuous Backup-based mirroring",
+      "originalText": "Azure Cosmos DB: backup initial load and live increments",
       "autoResize": true,
       "lineHeight": 1.15
     },
@@ -220,9 +220,9 @@
       "id": "source-review-13-source-landing",
       "type": "arrow",
       "x": 400,
-      "y": 227,
+      "y": 227.5,
       "width": 0,
-      "height": 96,
+      "height": 95,
       "angle": 0,
       "strokeColor": "#495057",
       "backgroundColor": "transparent",
@@ -239,18 +239,18 @@
       "version": 2,
       "versionNonce": 50200696,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
       "points": [
         [
           0,
-          0.5
+          0
         ],
         [
           0,
-          95.5
+          95
         ]
       ],
       "lastCommittedPoint": null,
@@ -272,9 +272,9 @@
       "id": "source-review-13-landing-replicator",
       "type": "arrow",
       "x": 400,
-      "y": 427,
+      "y": 427.5,
       "width": 0,
-      "height": 76,
+      "height": 75,
       "angle": 0,
       "strokeColor": "#495057",
       "backgroundColor": "transparent",
@@ -291,18 +291,18 @@
       "version": 2,
       "versionNonce": 876241672,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
       "points": [
         [
           0,
-          0.5
+          0
         ],
         [
           0,
-          75.5
+          75
         ]
       ],
       "lastCommittedPoint": null,
@@ -324,9 +324,9 @@
       "id": "source-review-13-replicator-delta",
       "type": "arrow",
       "x": 400,
-      "y": 617,
+      "y": 617.5,
       "width": 0,
-      "height": 76,
+      "height": 75,
       "angle": 0,
       "strokeColor": "#495057",
       "backgroundColor": "transparent",
@@ -343,18 +343,18 @@
       "version": 2,
       "versionNonce": 223818104,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
       "points": [
         [
           0,
-          0.5
+          0
         ],
         [
           0,
-          75.5
+          75
         ]
       ],
       "lastCommittedPoint": null,
@@ -377,7 +377,7 @@
       "type": "text",
       "x": 425,
       "y": 250,
-      "width": 199.40966796875,
+      "width": 188.96728515625,
       "height": 39.099999999999994,
       "angle": 0,
       "strokeColor": "#000000",
@@ -395,17 +395,17 @@
       "version": 2,
       "versionNonce": 2080948744,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
-      "text": "Continuous Backup-based\nmanaged replication",
+      "text": "Initial backup +\nlive-container increments",
       "fontSize": 17,
       "fontFamily": 2,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Continuous Backup-based\nmanaged replication",
+      "originalText": "Initial backup +\nlive-container increments",
       "autoResize": true,
       "lineHeight": 1.15
     },
@@ -432,7 +432,7 @@
       "version": 2,
       "versionNonce": 929186424,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
@@ -566,10 +566,10 @@
     {
       "id": "source-review-13-delta-sql",
       "type": "arrow",
-      "x": 400,
-      "y": 797,
-      "width": 265,
-      "height": 96,
+      "x": 399.5,
+      "y": 797.5,
+      "width": 264,
+      "height": 95,
       "angle": 0,
       "strokeColor": "#495057",
       "backgroundColor": "transparent",
@@ -586,18 +586,18 @@
       "version": 2,
       "versionNonce": 756941944,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
       "points": [
         [
-          -0.5,
-          0.5
+          0,
+          0
         ],
         [
-          -264.5,
-          95.5
+          -264,
+          95
         ]
       ],
       "lastCommittedPoint": null,
@@ -618,10 +618,10 @@
     {
       "id": "source-review-13-delta-spark",
       "type": "arrow",
-      "x": 400,
-      "y": 797,
-      "width": 5,
-      "height": 96,
+      "x": 399.5,
+      "y": 797.5,
+      "width": 4,
+      "height": 95,
       "angle": 0,
       "strokeColor": "#495057",
       "backgroundColor": "transparent",
@@ -638,18 +638,18 @@
       "version": 2,
       "versionNonce": 1057791752,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
       "points": [
         [
-          -0.5,
-          0.5
+          0,
+          0
         ],
         [
-          -4.5,
-          95.5
+          -4,
+          95
         ]
       ],
       "lastCommittedPoint": null,
@@ -670,10 +670,10 @@
     {
       "id": "source-review-13-delta-powerbi",
       "type": "arrow",
-      "x": 400,
-      "y": 797,
-      "width": 255,
-      "height": 96,
+      "x": 400.5,
+      "y": 797.5,
+      "width": 254,
+      "height": 95,
       "angle": 0,
       "strokeColor": "#495057",
       "backgroundColor": "transparent",
@@ -690,18 +690,18 @@
       "version": 2,
       "versionNonce": 2094445944,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
       "points": [
         [
-          0.5,
-          0.5
+          0,
+          0
         ],
         [
-          254.5,
-          95.5
+          254,
+          95
         ]
       ],
       "lastCommittedPoint": null,
@@ -742,7 +742,7 @@
       "version": 2,
       "versionNonce": 1764982280,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
@@ -759,9 +759,9 @@
     {
       "id": "Y6VRzgEI09h3HZEJFBmKn",
       "type": "text",
-      "x": 266.92919921875,
+      "x": 264.42431640625,
       "y": 134.3,
-      "width": 266.1416015625,
+      "width": 271.1513671875,
       "height": 41.4,
       "angle": 0,
       "strokeColor": "#000000",
@@ -779,17 +779,17 @@
       "version": 3,
       "versionNonce": 1395637624,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
-      "text": "Azure Cosmos DB for NoSQL\nContinuous Backup infrastructure",
+      "text": "Azure Cosmos DB for NoSQL\nBackup / live-container integration",
       "fontSize": 18,
       "fontFamily": 2,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "source-review-13-source",
-      "originalText": "Azure Cosmos DB for NoSQL\nContinuous Backup infrastructure",
+      "originalText": "Azure Cosmos DB for NoSQL\nBackup / live-container integration",
       "autoResize": true,
       "lineHeight": 1.15
     },
@@ -816,7 +816,7 @@
       "version": 3,
       "versionNonce": 114226696,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
@@ -853,7 +853,7 @@
       "version": 3,
       "versionNonce": 1246318200,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
@@ -890,7 +890,7 @@
       "version": 3,
       "versionNonce": 1418917128,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
@@ -927,7 +927,7 @@
       "version": 3,
       "versionNonce": 705216376,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
@@ -964,7 +964,7 @@
       "version": 3,
       "versionNonce": 1736381448,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
@@ -1001,7 +1001,7 @@
       "version": 3,
       "versionNonce": 582094968,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1791302496273,
       "link": null,
       "locked": false,
@@ -1017,6 +1017,9 @@
     }
   ],
   "appState": {
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
     "viewBackgroundColor": "#ffffff"
   },
   "files": {}

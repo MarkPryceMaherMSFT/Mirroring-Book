@@ -29,6 +29,8 @@ These three methods answer practical questions:
 
 > A connector can combine methods. For example, Snowflake mirroring polls for changes before exporting a batch to OneLake. A gateway requirement cannot be inferred from these labels alone.
 
+Some managed integrations do not publish enough transport detail to assign a push/pull contract. This chapter keeps those cases explicit rather than forcing every source or application into one of the three buckets.
+
 [![Figure 3.1: The three methods overview](../assets/diagrams/chapter-03/diagram-01.png)](../assets/diagrams/chapter-03/diagram-01.excalidraw.png)
 *Figure 3.1: The three methods overview*
 
@@ -47,7 +49,6 @@ For Fabric database mirroring, the underlying mechanism depends on the source:
 * **Azure SQL Database** uses the **change feed**.
 * **Azure SQL Managed Instance** on the **Always-up-to-date** or **SQL Server 2025** update policy uses the **change feed**.
 * **SQL Server 2025** uses the **change feed** and requires **[Azure Arc](https://learn.microsoft.com/en-us/azure/azure-arc/overview)** plus a data gateway.
-* **Azure Cosmos DB** uses **Continuous Backup**, which continuously captures inserts, updates, and deletes without Fabric needing to poll for changes.
 * **Fabric SQL Database** uses the **change feed**, auto-configured inside Fabric.
 * **Azure Database for PostgreSQL** uses logical replication to capture changes, then a source-side component publishes Parquet batches to OneLake. See the [PostgreSQL mirroring architecture](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring#architecture).
 * **Azure Database for MySQL** captures binlog changes and publishes them from the source to OneLake using its managed identity. See the [MySQL mirroring architecture](https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql#architecture).
@@ -83,7 +84,6 @@ For Fabric database mirroring, the underlying mechanism depends on the source:
 | **Azure SQL Database**                                                                         | Change feed             |      11 |
 | **Azure SQL Managed Instance** with **Always-up-to-date** or **SQL Server 2025** update policy | Change feed             |      12 |
 | **SQL Server 2025**                                                                            | Change feed + Azure Arc |      24 |
-| Azure Cosmos DB                                                                                | Continuous Backup       |      13 |
 | Fabric SQL Database                                                                            | Change feed             |      25 |
 | Azure Database for PostgreSQL | Source-side logical replication capture and publishing | 18 |
 | Azure Database for MySQL | Source-side binlog capture and publishing | 19 |
@@ -183,6 +183,12 @@ Check SAP Datasphere licensing and replication-flow requirements as well as Fabr
 
 SharePoint List mirroring does not fit neatly into a single method. Fabric manages replication of list row data into Delta tables, but the public source guide does not specify a polling algorithm or refresh cadence. Document Library content is surfaced through **OneLake shortcuts** rather than copied. Plan for both behaviours: replicated list rows and document content read through shortcuts. [Chapter 21](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-21.md) covers setup and the current documentation gaps.
 
+### Cosmos DB: Initial Backup and Live Incremental Changes
+
+The October-updated [Cosmos DB FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq) distinguishes an initial backfill from the latest available **continuous backup**, followed by incremental inserts, updates, and deletes read from the **live container**. Continuous Backup remains required, but its 7-day/30-day retention is a PITR setting, not a refresh interval.
+
+The documentation does not name a general internal push/pull transport contract for those live changes. Cosmos DB is therefore a **managed continuous-replication case** in this book, not proof that Continuous Backup alone publishes all ongoing changes or that Cosmos DB Change Feed is used. [Chapter 13](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-13.md) covers backup freshness, write-region selection, and recovery.
+
 ***
 
 ## Shortcuts/Metadata Mirroring
@@ -227,7 +233,7 @@ Azure Monitor is a connection-based exception: it exposes Log Analytics storage 
 | **Azure Monitor**    | Log Analytics Delta Parquet storage + OneLake shortcuts and Eventhouse | 15      |
 | **Dremio**           | Dremio metadata + OneLake shortcuts                                    | 26      |
 | **AWS Glue**         | AWS Glue Iceberg catalog metadata + OneLake shortcuts                  | 27      |
-| **Google Lakehouse Runtime Catalog** | Iceberg REST catalog + shortcuts to Google Cloud Storage | [Setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial) |
+| **Google Lakehouse Runtime Catalog** | Iceberg REST catalog + shortcuts to Google Cloud Storage | [30](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-30.md) |
 | **Snowflake Iceberg tables** | Supported shortcut access to Iceberg data | 22 |
 
 Azure Monitor, Dremio, AWS Glue, and Google Lakehouse Runtime Catalog mirroring are in **Public Preview**. Snowflake's replicated tables and shortcut-backed Iceberg tables use different paths; check Chapter 22 before choosing one.
@@ -264,14 +270,14 @@ These are related access patterns, not additions to the native mirroring connect
 
 ## Complete Source-to-Method Reference
 
-The table below brings the source list together using the replication model in this chapter.
+The table below brings the source list together using the replication model in this chapter. Application routes are included explicitly rather than presented as additional native Mirroring connectors.
 
 | Source                                                                                         | Method in this book                                  | Data moved to OneLake? | Main mechanism                                                           | Chapter |
 | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------: | ------------------------------------------------------------------------ | ------- |
 | **Azure SQL Database**                                                                         | Push-based                                           |                    Yes | Change feed                                                              | 11      |
 | **Azure SQL Managed Instance** with **Always-up-to-date** or **SQL Server 2025** update policy | Push-based                                           |                    Yes | Change feed                                                              | 12      |
 | **Azure SQL Managed Instance** with **SQL Server 2022** update policy                          | Pull or polling-based                                |                    Yes | SQL Server CDC via data gateway                                          | 12      |
-| **Azure Cosmos DB**                                                                            | Push-based                                           |                    Yes | Continuous Backup                                                        | 13      |
+| **Azure Cosmos DB** | Managed continuous replication; transport not specified | Yes | Continuous-backup initial load, then live-container incremental changes | 13 |
 | **Azure Databricks**                                                                           | Shortcuts                                            |                     No | Unity Catalog metadata + OneLake shortcuts                               | 14      |
 | **Azure Monitor**                                                                              | Shortcuts                                            |                     No | Log Analytics Delta Parquet storage + OneLake shortcuts and Eventhouse   | 15      |
 | **Google BigQuery**                                                                            | Pull or polling-based                                |                    Yes | Google Cloud Storage initial export + BigQuery `CHANGES` TVF             | 16      |
@@ -286,10 +292,12 @@ The table below brings the source list together using the replication model in t
 | **Fabric SQL Database**                                                                        | Push-based                                           |         Yes, automatic | Auto-configured inside Fabric                                            | 25      |
 | **Dremio**                                                                                     | Shortcuts                                            |                     No | Dremio metadata + OneLake shortcuts                                      | 26      |
 | **AWS Glue**                                                                                   | Shortcuts                                            |                     No | AWS Glue Iceberg catalog metadata + OneLake shortcuts                    | 27      |
-| **Google Lakehouse Runtime Catalog** | Shortcuts | No | Iceberg REST catalog + Google Cloud Storage shortcuts | [Microsoft Learn](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime) |
+| **Google Lakehouse Runtime Catalog** | Shortcuts | No | Iceberg REST catalog + Google Cloud Storage shortcuts | [30](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-30.md) |
 | **Snowflake Iceberg tables** | Shortcuts | No | Shortcut access rather than Snowflake Streams replication | 22 |
+| **Business Central online v29+ (prerelease)** | Application-managed Open Mirroring publisher | Yes | Source initial/incremental runs publish to an open mirrored database | [31](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md) |
+| **Dataverse Link to Fabric** | Managed analytics replication plus shortcuts | Dataverse-managed replica; no second full Fabric copy | Low-latency database-to-Delta sync, consumed through lakehouse shortcuts | [28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) |
 
-For the related application/data-product integrations outside this native-connector table, see [Dataverse Link, Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) and [SAP BDC Connect, Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md). Their chapters identify which platform owns synchronization and how the consumer reaches the data.
+The Dataverse and Business Central rows are application-managed routes, not extra native connectors. Their chapters identify which platform owns synchronization and how the consumer reaches the data. [SAP BDC Connect, Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) covers a separately announced data-product sharing integration and readiness checks, not a verified released setup or the Chapter 20 Datasphere pipeline.
 
 [![Figure 3.6: Source groupings](../assets/diagrams/chapter-03/diagram-07.png)](../assets/diagrams/chapter-03/diagram-07.excalidraw.png)
 *Figure 3.6: Source groupings*
@@ -309,6 +317,6 @@ You do not choose the method directly, but you do need to plan around it.
 
 ## Summary
 
-This chapter uses a simple replication model with three methods: push-based, pull or polling-based, and shortcuts. These are book terms, not an official Microsoft taxonomy. The model helps you predict how each source behaves, what connectivity it needs, whether data is copied into OneLake, and what sort of lag you should expect. The detailed source chapters begin with Azure SQL Database in Chapter 11 and continue through AWS Glue Catalog Mirroring in Chapter 27, followed by the related Dataverse and SAP BDC integrations in Chapters 28 and 29.
+This chapter uses a simple replication model with three methods: push-based, pull or polling-based, and shortcuts, while keeping managed/hybrid exceptions explicit. These are book terms, not an official Microsoft taxonomy. The model helps you predict connectivity, data placement, and sources of lag without inventing transport guarantees. The detailed source chapters run from Azure SQL Database in Chapter 11 through AWS Glue in Chapter 27, followed by Dataverse Link in Chapter 28, the SAP BDC Connect announcement/readiness guide in Chapter 29, Google Lakehouse Runtime Catalog in Chapter 30, and prerelease Business Central Mirroring in Chapter 31.
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 2: Types of Mirroring in Fabric](chapter-02.md) | **Next:** [Chapter 4: The Anatomy of a Mirrored Database](chapter-04.md)

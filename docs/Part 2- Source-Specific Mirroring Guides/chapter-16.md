@@ -14,6 +14,8 @@
 
 The [September 2026 FabCon feature summary reiterates general availability](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_128). This does not remove source change-history, key, staging, network, or Google Cloud cost requirements. Its separate **Copy Job** announcements are not new native-mirroring configuration options.
 
+**Different Google integration:** [Chapter 30](chapter-30.md) covers Google Lakehouse runtime catalog metadata mirroring. Its Iceberg/GCS shortcuts and Workload Identity Federation are not this chapter's BigQuery change-history, service-account, and export/staging path.
+
 ---
 
 ## Mirroring Type and Architecture

@@ -12,6 +12,8 @@ Fabric Mirroring makes supported operational and analytical data available to Fa
 
 For database mirroring, you configure a supported source and Fabric manages replication. You can then use the replicated data from SQL, Spark, Power BI, and other Fabric workloads.
 
+This book also covers application-managed integrations whose documentation sits elsewhere: [Business Central's Open Mirroring publisher](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md) and [Dataverse Link to Fabric with low-latency sync](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md). The latter is included as related managed replication, not relabelled as a native Mirroring connector.
+
 > I avoid treating "near real-time" as a latency promise. The useful question is how fresh the data needs to be for your workload, and whether your chosen source and query path can meet that requirement.
 
 ## 1.1 What Is Microsoft Fabric?

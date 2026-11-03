@@ -4,6 +4,16 @@ This page records documentation reviews, product-status changes, and material co
 
 Microsoft Learn remains the authoritative source for current product availability, limits, and licensing.
 
+## 3 November 2026 (Business Central and Merged Source Chapters)
+
+Added a dedicated [Chapter 31: Dynamics 365 Business Central Mirroring](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md), separate from [Chapter 29: SAP Business Data Cloud Connect](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md). The practical walkthrough follows the requested [Microsoft setup guide](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring): Business Central online/version and extension prerequisites, encryption and permission sets, dedicated Entra registration with SPA redirect URI and API consent, service-principal identifiers, the Open Mirroring destination, assisted setup, company/table selection, first-data checks, source monitoring, and safe stop/reset boundaries.
+
+Reviewed the Business Central overview, setup, management, monitoring, and FAQ on **3 November 2026**. The setup still describes prerelease documentation and a production-ready preview planned for October; the FAQ still says private preview. The chapter records that discrepancy rather than inferring GA or universal availability. The linked developer API reference returned 404, so no unverified API paths are supplied. Business Central's internal replication service does not consume business-data API limits; Fabric analytical security is administered separately.
+
+Merged the November source updates into the expanded GitHub edition without dropping its practical source runbooks, September FabCon coverage, Dataverse/SAP BDC chapters, part indexes, or source-backed Open Mirroring implementation chapters. Promoted Google Lakehouse Runtime Catalog from the AWS Glue supplement to a dedicated [Chapter 30](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-30.md), preserving its own federation, storage authorization, limitations, and source-cost guidance. Refreshed [Chapter 28: Dataverse](Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) with the previously reviewed low-latency announcement, cross-region/geography guidance, explicit migration and compatibility checks, and customer-managed Parquet export deprecation.
+
+The book now contains **48 consecutive chapters**: Part 1 covers **1-10**, Part 2 covers **11-31**, and Part 3 covers **32-48**. Dataverse remains Chapter 28 and SAP BDC remains Chapter 29. Updated full and part indexes, previous/next navigation, chapter and figure references, source comparisons, billing boundaries, and diagram asset paths. Earlier history entries retain the publication counts and chapter ranges that applied at the time; their links lead to the current files.
+
 ## 8 October 2026 (Sequential chapter numbering)
 
 Made Dataverse Link to Microsoft Fabric **Chapter 28** and SAP Business Data Cloud Connect for Microsoft Fabric **Chapter 29**, as full chapters in Part 2 rather than lettered additions. Part 3 now runs from **Chapter 30 to Chapter 46**. The book has 46 consecutively numbered chapters: Part 1 covers 1-10, Part 2 covers 11-29, and Part 3 covers 30-46.
@@ -80,7 +90,7 @@ Preserved Chapters 30-35 as the shared configuration, protocol and recovery guid
 
 The new chapters distinguish publisher licensing from dependency/runtime licensing and operating costs, educational samples from production support, and source capture from landing-zone delivery. The Synapse project is included with the author's confirmation of open-source/customer use; no specific licence name is invented. Implementation observations come from public source review, not a claim that deployments or failure scenarios were executed.
 
-Added a separate source-to-blog table for articles where matching public producer code was not found in the research. Source-backed articles remain with their relevant projects. See [Chapter 46](Part%203%20-%20Open%20Mirroring/chapter-46.md).
+Added a separate source-to-blog table for articles where matching public producer code was not found in the research. Source-backed articles remain with their relevant projects. See [Chapter 48](Part%203%20-%20Open%20Mirroring/chapter-48.md).
 
 ## 6 October 2026 (Whole-book public documentation review)
 

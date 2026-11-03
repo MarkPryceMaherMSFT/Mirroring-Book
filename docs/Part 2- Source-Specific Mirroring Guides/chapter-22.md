@@ -22,7 +22,7 @@
 
 **Snowflake Streams** tracks changes to managed tables, including inserts, updates, and deletes. Do not apply this architecture to every supported Snowflake object. Views and materialized views use scheduled syncs. [Mirroring views](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-views) is an optional, paid capability. Iceberg tables keep their data in source storage, with Fabric mirroring metadata and creating shortcuts.
 
-The [Fabric release notes](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new#generally-available-features) announce general availability for extended mirroring capabilities, including change feeds and source-view mirroring. The dedicated extended-capability and views pages still label them preview. This is a documentation conflict, not a reason to silently label every Snowflake feature GA or preview.
+The September [Fabric release notes](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new#generally-available-features) announce GA for Delta change data feed and source-view mirroring. October's implementation-documentation update now corroborates GA in the dedicated Views guide and overview banner. One residual overview sentence still calls Snowflake views preview; [Chapter 9](../Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md) records the remaining conflict without treating all Snowflake features as preview.
 
 Iceberg tables require a separate connection to their underlying storage. All Iceberg tables in one mirrored database must be reachable through that same storage connection. OneLake generates virtual Delta metadata over the existing Parquet files; it does not copy the Iceberg table data.
 
@@ -52,7 +52,7 @@ See the current [Snowflake mirroring limitations](https://learn.microsoft.com/en
 
 ## Setup Walkthrough
 
-**Documentation reviewed: 8 October 2026.** Follow the [Microsoft Learn Snowflake tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial) and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations). Start with managed tables; the Iceberg procedure below is a separate storage/metadata path, not a variation of the same Streams setup.
+**Documentation reviewed: 2 November 2026.** Follow the [Microsoft Learn Snowflake tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial) and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations), including the storage-integration workflow documented on 23 October. Start with managed tables; the Iceberg procedure below is a separate storage/metadata path, not a variation of the same Streams setup.
 
 ### 1. Assign owners and choose the object path
 
@@ -174,7 +174,7 @@ Use an approved nonsensitive pilot for the read test. This proves discovery/read
 SHOW PARAMETERS LIKE 'PREVENT_UNLOAD_TO_INLINE_URL' IN ACCOUNT;
 ```
 
-6. When this parameter is `true`, public/direct mirroring falls back to slower reads, but **both gateway paths are blocked**. Escalate the security-versus-staging decision; do not silently weaken the account policy. The documented alternative storage-integration path is still described as in development.
+6. When this parameter is `true`, plan the now-documented **Snowflake storage integration** for authorized staging. Without an integration, direct/public mirroring can fall back to slower reads, but **both gateway paths remain blocked**. Keep the source policy intact; do not weaken it merely to make mirroring work.
 7. Native Private Link between a Fabric workspace and Snowflake is not currently available. Separate Iceberg storage endpoints have additional requirements and must be tested independently.
 8. If workspace outbound access protection is enabled, have its administrator explicitly allow the Snowflake connection through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). This does not remove Iceberg virtualization's separate Private Link limitation.
 
@@ -187,10 +187,25 @@ SHOW PARAMETERS LIKE 'PREVENT_UNLOAD_TO_INLINE_URL' IN ACCOUNT;
 5. If using Entra ID instead, have the Snowflake identity administrator configure the corresponding SSO mapping/integration and role access before selecting it. Workspace identity is **not supported for Snowflake mirroring**.
 6. Select the intended database. Disable **Mirror all data** for the pilot and choose only the prepared managed table(s). The all-data option can include managed plus Iceberg tables, or managed tables only.
 7. Leave views and Iceberg out of the first managed-table test. Views require explicit billing review; Iceberg requires the storage procedure below.
-8. Select **Connect**, confirm/name the mirrored database as prompted, and select **Create mirrored database**. Open **Monitor replication** after a few minutes.
+8. In **Additional settings > Storage integration**, configure the integration when required by the source's unload policy. Use the wizard-displayed **OneLake URL** for the source integration's allowlist, not the example URL in Figure 22.3. Arrange the integration service principal's authorized Fabric access, then **Refresh** and select the integration in the **Storage integration** field.
+9. Complete the destination/creation steps, using **Connect** or **Create mirrored database** as shown by the current wizard. Open **Monitor replication** after a few minutes and validate staging before treating the managed-table pilot as complete.
+
+![Microsoft Snowflake wizard Additional settings with Storage integration field](../assets/setup/chapter-22/snowflake-storage-integration.png)
+*Figure 22.3: New optional storage-integration setup; leaving it empty uses the default SAS-based staging path where permitted. Source: Microsoft Learn, [Snowflake tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial#start-mirroring-process); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/snowflake/snowflake-storage-integration.png). Credit: Microsoft; [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); reproduced unchanged.*
+
+**Creation/permission recipe gap:** the updated tutorial tells administrators to create/validate a cloud storage integration and grant its service principal access, but does not supply complete `CREATE STORAGE INTEGRATION` SQL, identity discovery, or consent steps. The screenshot's "workspace owner or contributor" terminology is not a complete Fabric role mapping. Have the Snowflake and Fabric identity owners verify the actual integration principal, staging read/write access, and approved scope before selecting it. Do not copy the screenshot's sample URL/IDs or invent an undocumented grant recipe.
+
+| Inline unload restricted | Current documented behavior |
+|---|---|
+| Valid storage integration configured | Uses the integration for staging; invalid configuration produces an actionable error |
+| No integration, direct/public connection | Can use slower direct-read fallback, with greater timeout/latency risk |
+| No integration, VNet data gateway | Blocked; configure storage integration |
+| No integration, on-premises data gateway | Blocked; configure storage integration |
+
+Storage integration changes staging authentication/authorization; it **does not remove staging** or establish native Fabric-workspace-to-Snowflake Private Link. See the [updated source overview](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake#storage-integration-for-restricted-snowflake-environments).
 
 ![Mirrored Snowflake is running screen with Monitor replication button](../assets/setup/chapter-22/mirrored-snowflake-is-running.png)
-*Figure 22.3: Start monitoring after creating the mirror; this banner is not proof that every table has completed its snapshot. Source: Microsoft Learn, [Snowflake mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial); [direct image](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/mirroring/media/snowflake-tutorial/mirrored-snowflake-is-running.png). Credit: Microsoft; [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); reproduced unchanged.*
+*Figure 22.4: Start monitoring after creating the mirror; this banner is not proof that every table has completed its snapshot. Source: Microsoft Learn, [Snowflake mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial); [direct image](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/mirroring/media/snowflake-tutorial/mirrored-snowflake-is-running.png). Credit: Microsoft; [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); reproduced unchanged.*
 
 ### 6. Validate managed-table snapshot and DML
 
@@ -249,7 +264,7 @@ SELECT SYSTEM$GET_ICEBERG_TABLE_INFORMATION(
 6. Alternatively, to consume an existing Iceberg table **without creating a Snowflake mirrored database**, open a lakehouse and create **New shortcut** under **Tables** (under the schema for a schema-enabled lakehouse). Choose the storage provider/connection and target the **table folder containing `metadata` and `data`**, not either child folder. Review and create the shortcut.
 
 ![Shortcut target selected at the Iceberg table folder rather than the data or metadata child](../assets/setup/chapter-22/shortcut-target.png)
-*Figure 22.4: Correct target-folder level for the independent lakehouse shortcut path; this is not the Snowflake connection wizard. Source: Microsoft Learn, [Use Iceberg tables with OneLake](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#create-a-table-shortcut-to-an-iceberg-table); [direct image](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/onelake/media/onelake-iceberg-table-shortcut/shortcut-target.png). Credit: Microsoft; [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); reproduced unchanged.*
+*Figure 22.5: Correct target-folder level for the independent lakehouse shortcut path; this is not the Snowflake connection wizard. Source: Microsoft Learn, [Use Iceberg tables with OneLake](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#create-a-table-shortcut-to-an-iceberg-table); [direct image](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/onelake/media/onelake-iceberg-table-shortcut/shortcut-target.png). Credit: Microsoft; [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); reproduced unchanged.*
 
 7. Validate the virtual Delta table and inspect `_delta_log/latest_conversion_log.txt`. In a lakehouse use **View files**; for mirrored items use a supported OneLake file client. A successful Snowflake connection does not prove successful format conversion.
 8. Test source inserts/updates/deletes only on a disposable Iceberg table through its supported writer, waiting between commits and validating the conversion log each time. Metadata generation can take **5 seconds to 2 minutes**; the current guide asks for source updates less frequent than once per two minutes.
@@ -271,12 +286,12 @@ SELECT SYSTEM$GET_ICEBERG_TABLE_INFORMATION(
 | Topic | Detail |
 |---|---|
 | **Object support** | Managed tables, Iceberg tables, views, and materialized views are supported. External, transient, temporary, and dynamic tables are not supported by this connector, regardless of their native Snowflake capabilities. |
-| **View refreshes** | Views and materialized views sync every 12 hours. View mirroring is a paid extension whose GA/preview documentation conflicts as noted above; it materializes query results rather than creating a source SQL view definition in Fabric. Complex views with unsupported functions or nested subqueries may fail. |
+| **View refreshes** | Views and materialized views sync every 12 hours. View mirroring is a paid GA extension, with a residual preview sentence in the overview; it materializes query results rather than deploying source SQL view definitions. Complex views with unsupported functions or nested subqueries may fail. |
 | **Table limit** | Up to 1,000 tables. With **Mirror all data**, Fabric takes the first 1,000 sorted by schema and table name; manual selection prevents exceeding the limit. |
 | **Stream retention** | Check `STALE_AFTER` with `SHOW STREAMS` or `DESCRIBE STREAM`. Retention depends on `DATA_RETENTION_TIME_IN_DAYS` and `MAX_DATA_EXTENSION_TIME_IN_DAYS`; 14 days is a default extension limit, not a universal table-retention setting. See [Snowflake stream retention](https://docs.snowflake.com/en/user-guide/streams-intro#data-retention-period-and-staleness). |
 | **Reseeding** | DDL timestamp changes, recurring schema tools such as dbt, and stop/start operations can trigger a full reload. An extended capacity pause can also require reseeding. |
 | **Polling** | Quiet tables or transient errors can cause backoff up to one hour. Mirroring does not expose a replication schedule or time window to configure. |
-| **Unload restrictions** | With `PREVENT_UNLOAD_TO_INLINE_URL = true`, direct connections fall back to slower reads, but both VNet and on-premises gateway mirroring are blocked. Do not assume a gateway bypasses this Snowflake control. |
+| **Unload restrictions** | With `PREVENT_UNLOAD_TO_INLINE_URL = true`, configure storage integration for staging. Without one, direct connections can use slower reads and both gateway paths are blocked. Invalid integration configuration fails rather than bypassing the source control. |
 | **Iceberg conversion** | Requires supported Parquet-backed Iceberg tables and one storage connection per mirrored database. Check the [format-virtualization limits](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#limitations-and-considerations), including equality deletes and schema evolution. |
 | **Data-type validation** | Validate representative semi-structured values through each intended Fabric query engine. The current connector pages do not provide a complete mapping matrix that justifies treating all `VARIANT`, `OBJECT`, and `ARRAY` values as JSON strings. |
 | **Security policies** | Snowflake row-level and column-level policies are not replicated. Reconfigure equivalent Fabric controls, and validate what the connection identity can read rather than assuming it bypasses source masking. |
@@ -313,7 +328,8 @@ The linked extended-capabilities page still has no role-replication setup or com
 | Authentication failure | Wrong credentials, key pair mismatch, or authentication policy | Verify the username, assigned/default role, public-key fingerprint and current policy; rotate credentials through the approved process only if required |
 | Permission denied on STREAM | User lacks CREATE STREAM privilege | Grant CREATE STREAM on the schema to the Fabric role |
 | High credit consumption | Repeated reseeds, broad table selection, or warehouse wake-ups | Check DDL and dbt activity, narrow the selected objects, and review warehouse usage; there is no user-configurable polling interval |
-| Gateway replication blocked | `PREVENT_UNLOAD_TO_INLINE_URL` is true | Review the account policy with the Snowflake administrator; gateway replication requires the documented staging path |
+| Gateway replication blocked | Inline unload is restricted and no valid storage integration is configured | Keep the source policy; create/authorize/select the documented storage integration and validate staging |
+| Integration-backed staging fails | Integration selection, service-principal grants, or OneLake allowlist is invalid | Check the wizard's actual URL, integration identity, read/write access, and selected integration; preserve the actionable error |
 | Missing objects or connection failure | Identifier casing or object permissions do not match | Copy the source identifiers exactly and verify the active role's access |
 | Iceberg table is stale or unavailable | Format virtualization failed | Inspect `_delta_log/latest_conversion_log.txt` through the shortcut and check unsupported deletes, types, or schema changes |
 | Change tracking not enabled | Table does not have `CHANGE_TRACKING = TRUE` | Run `ALTER TABLE ... SET CHANGE_TRACKING = TRUE` |
@@ -327,17 +343,17 @@ The linked extended-capabilities page still has no role-replication setup or com
 - **“Free” does not mean no Snowflake credits (historical anecdote):** The [Fabric Community Snowflake mirror cost thread](https://community.fabric.microsoft.com/discussions/power-bi-web-app/snowflake-mirror-cost/3968956), posted **3 June 2024** and verified **8 October 2026**, asks about polling/extraction costs. This is discussion, not a benchmark. Its accepted reply also links to a **copy activity**, not a mirroring setup guide, and its scheduling suggestion conflicts with the current mirroring FAQ: native replication windows are not available, and stop/start forces reloads.
 - **Missing/grey objects:** Check current object-type support, exact identifier casing, effective role, schema usage, table selection, and the 1,000-table cap first. Do not infer that all current view support is absent from a preview-era discussion.
 - **Repeated reloads/high credits:** Current Microsoft limitations explicitly describe DDL/dbt timestamp changes and stop/start as reseed triggers. Correlate query history, upstream DDL, and monitor timestamps before increasing warehouse size or rebuilding the mirror.
-- **Works direct, fails through a gateway:** Inspect `PREVENT_UNLOAD_TO_INLINE_URL` and the actual network path. The documented direct-read fallback does not exist for either gateway path.
+- **Works direct, fails through a gateway:** Inspect `PREVENT_UNLOAD_TO_INLINE_URL`, the network path, and the newly documented storage-integration selection. The direct-read fallback does not exist for either gateway when integration is absent; a valid integration is now the supported staging route.
 - **Iceberg reads stale data despite successful connection:** Read the conversion log and source snapshot metadata. A failed conversion can leave the last successful version visible. Fix the documented source incompatibility, then use an approved source commit to retry; do not delete the mirror, stream, or source metadata as the first response.
 
 ### References and Image Provenance
 
-Reviewed **8 October 2026**:
+Documentation rechecked **2 November 2026**; dated community evidence above remains from the earlier **8 October 2026** review:
 
 - Microsoft Learn: [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations), [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-mirroring-faq), [connection credential fields](https://learn.microsoft.com/en-us/fabric/data-factory/connector-snowflake), and [Iceberg walkthrough/limits](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables).
 - Source-operation checks: [public Microsoft tutorial source](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/mirroring/snowflake-tutorial.md), [Snowflake Streams/retention](https://docs.snowflake.com/en/user-guide/streams-intro), [key pairs](https://docs.snowflake.com/en/user-guide/key-pair-auth), and [`SYSTEM$GET_ICEBERG_TABLE_INFORMATION` ownership requirement](https://docs.snowflake.com/en/sql-reference/functions/system_get_iceberg_table_information).
 - Network-policy scope: [workspace outbound protection for mirrored databases](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases); independent storage/format limits remain governed by the Iceberg walkthrough.
-- Figures 22.3–22.4 are Microsoft documentation assets in `MicrosoftDocs/fabric-docs`. Its [LICENSE](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/LICENSE) and [ThirdPartyNotices](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/ThirdPartyNotices.md) license documentation and other content under CC BY 4.0; no separate media-license exception was found for these assets. Trademark rights are not granted. The authored architecture figures have separate provenance.
+- Figures 22.3–22.5 are Microsoft documentation assets in `MicrosoftDocs/fabric-docs`. Its [LICENSE](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/LICENSE) and [ThirdPartyNotices](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/ThirdPartyNotices.md) license documentation and other content under CC BY 4.0; no separate media-license exception was found for these assets. Trademark rights are not granted. The authored architecture figures have separate provenance.
 
 ---
 

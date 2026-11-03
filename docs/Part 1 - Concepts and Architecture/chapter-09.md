@@ -18,9 +18,9 @@ The extended capabilities covered here are:
 
 Core mirroring copies tables into OneLake. Delta change data feed and Mirroring Views are optional paid extensions that consume extra compute and follow different operational rules. The newly announced security-role capability has a separate scope; its billing is not established by the CDF/views pricing below.
 
-The [September 2026 FabCon feature summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_130) explicitly announces **extended mirroring capabilities as generally available**, including Delta change feeds and source-view mirroring. It separately labels Snowflake security-role replication **Preview**. The [extended-capabilities overview](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities) and dedicated Views guide still carry preview labels when checked on **8 October 2026**. Use the announcement for its stated release status, but retain the source, refresh, consumption, and billing limits in the implementation guides.
+The [September 2026 FabCon feature summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_130) explicitly announces **extended mirroring capabilities as generally available**, including Delta change feeds and source-view mirroring. Current implementation documentation corroborates **GA** with an explicit banner and a GA statement in the [Views guide](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-views). The [overview](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities) still contains a leftover sentence calling Snowflake views preview; record that inconsistency without treating every implementation page as preview. Retain the source, refresh, consumption, and billing limits in those guides.
 
-**Snowflake security-role mirroring** is not included in the GA claim. Section 9.5 describes the announced role hierarchies, assignments, and grants, and the unresolved setup/availability boundary.
+**Snowflake security-role mirroring** is separately announced in **Preview**, not included in the GA claim. Section 9.5 describes the announced role hierarchies, assignments, and grants, and the unresolved setup/availability boundary. Do not read it as automatic replication of all source security policies: the [Snowflake security guide](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-how-to-data-security) still instructs users to reconfigure granular security in Fabric and does not describe the preview's policy coverage.
 
 ## 9.1 Core Mirroring vs. Extended Capabilities
 
@@ -36,15 +36,17 @@ Core mirroring compute remains free. Extended capabilities are billed only for t
 
 ## 9.2 Delta Change Data Feed
 
-Delta change data feed, usually shortened to CDF, records inserts, updates, and deletes at row level in the mirrored Delta tables. It is available across mirroring sources, including open mirroring partners. This is a feed of changes to the replicated Delta tables, not a replacement for source-side change capture. See [Delta change data feed in mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-delta-change-data-feed).
+Delta change data feed, usually shortened to CDF, records inserts, updates, and deletes at row level in replicated Delta tables. The general documentation describes support across mirroring sources, including open mirroring partners. This is a feed of changes to the target tables, not a replacement for source-side capture or a feature automatically added to external files behind metadata shortcuts. See [Delta change data feed in mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-delta-change-data-feed).
 
-**Related integration, separate controls:** Dataverse Link's low-latency synchronization also documents an optional Delta CDF, but that source-managed link is not the native mirrored database configured or billed in this chapter. Follow [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md#low-latency-sync-and-current-limits) for its own enablement, retention, and rollout boundaries.
+**Check source-specific availability:** the [Cosmos DB FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq) still says CDF is unsupported on its mirrored data, contrary to the general "all sources" wording. Confirm the applicable support rather than promising it from the general page.
+
+**Related integration, separate controls:** Dataverse Link's low-latency synchronization also documents an optional Delta CDF, with its own application switch and approximately 24-hour history. That source-managed link is not the native mirrored database configured or billed in this chapter. Follow [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) for its own enablement, retention, and rollout boundaries.
 
 ### What It Does
 
 - Records incremental row-level changes
 - Supports downstream processing that reads only changed rows
-- Works across all mirroring sources, including open mirroring sources
+- Supports eligible replicated tables, including Open Mirroring; retain source-specific support qualifications
 
 ### How It Works
 
@@ -126,7 +128,7 @@ Mirroring Views replicates selected source views into OneLake as materialised De
 - Stores the resulting data physically in OneLake
 - Makes the view output available to downstream Fabric workloads
 
-> **Note:** Mirroring Views supports **Snowflake only**. Its guide retains a preview label despite the general-availability release announcement described above.
+> **Note:** Mirroring Views supports **Snowflake only** and is GA in the current dedicated guide. The overview's residual preview sentence does not expand source coverage or change the paid scope.
 
 > **Note:** Mirroring Views is a **paid extended capability** and follows the billing rules in Section 9.4.
 

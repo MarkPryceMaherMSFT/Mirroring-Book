@@ -14,6 +14,8 @@ Fabric supports Git integration, deployment pipelines, REST API scripting, and t
 
 This chapter's `MirroredDatabase` deployment contract does not create a [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) or establish [SAP BDC sharing](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md). Treat source-side link/product authorization as a separate deployment dependency; moving a consumer item definition is not proof that its source link, permissions, or synchronized data are ready.
 
+Similarly, deploying the open mirrored destination for [Business Central](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md) does not install its extension, configure its source-side publisher, or approve its Fabric privacy notice.
+
 [![Figure 7.1 - CI/CD pipeline flow for mirrored databases](../assets/diagrams/chapter-07/diagram-01.png)](../assets/diagrams/chapter-07/diagram-01.excalidraw.png)
 *Figure 7.1 - CI/CD pipeline flow for mirrored databases*
 

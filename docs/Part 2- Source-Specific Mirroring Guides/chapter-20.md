@@ -189,6 +189,8 @@ See the [ADLS access-control model](https://learn.microsoft.com/en-us/azure/stor
 
 Reviewed **8 October 2026**. Research started with Reddit searches for SAP Datasphere and Fabric. Architecture/licensing discussions appeared in search, but their full threads returned HTTP 403; no readable source-specific Reddit incident was independently verified in this review. The checks below are grounded in the source documentation, not community certification claims.
 
+The [SAP Datasphere and MS Fabric hybrid-solution discussion](https://www.reddit.com/r/MicrosoftFabric/comments/1jwr7x2/sap_datasphere_and_ms_fabric_hybrid_solution/) is retained as an **unverified research lead**, not evidence of current extraction rights, certification, pricing, or a connector defect.
+
 | Evidence | Problem to plan for | Practical response |
 |---|---|---|
 | **Documented:** [Microsoft SAP limitations](https://learn.microsoft.com/en-us/fabric/mirroring/sap-limitations) | Incorrect Group Delta/file format or monitoring only the Fabric half of the route | Inspect the flow target settings, then determine whether the missing change has reached ADLS before changing Fabric |

@@ -19,7 +19,9 @@
 - [Chapter 25: Fabric SQL Database](chapter-25.md)
 - [Chapter 26: Dremio Catalog Mirroring](chapter-26.md)
 - [Chapter 27: AWS Glue Catalog Mirroring](chapter-27.md)
-- [Chapter 28: Dataverse Link to Microsoft Fabric](chapter-28.md)
+- [Chapter 28: Dataverse Link to Microsoft Fabric and Low-Latency Sync](chapter-28.md)
 - [Chapter 29: SAP Business Data Cloud Connect for Microsoft Fabric](chapter-29.md)
+- [Chapter 30: Google Lakehouse Runtime Catalog Mirroring](chapter-30.md)
+- [Chapter 31: Dynamics 365 Business Central Mirroring](chapter-31.md)
 
 **Full book:** [Table of Contents](../index.md)

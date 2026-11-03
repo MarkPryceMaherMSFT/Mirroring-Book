@@ -189,6 +189,8 @@ See the current [AWS Glue catalog mirroring limitations](https://learn.microsoft
 
 **Reviewed 8 October 2026.** Research started with the public query [`site:reddit.com "AWS Glue" "Fabric" "mirroring"`](https://www.google.com/search?q=site%3Areddit.com+%22AWS+Glue%22+%22Fabric%22+%22mirroring%22). A source-specific Reddit discussion was indexed, but its full thread returned HTTP 403 and could not be independently verified. No readable source-specific Reddit incident is used as evidence below.
 
+The [AWS Glue Catalog mirroring discussion](https://www.reddit.com/r/MicrosoftFabric/comments/1vgy1k5/aws_glue_catalog_mirroring_in_onelake/) remains an **unverified research lead**. Its inaccessible body does not establish a prohibition on mixed Glue databases, a supported semantic-model workflow, or a connector fix; the documented requirement is to select supported Iceberg tables.
+
 | Evidence | Practical interpretation |
 |---|---|
 | **Documented:** the [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-limitations) reject non-Iceberg tables and do not carry Lake Formation fine-grained filters into Fabric. | Select Iceberg tables only and perform a separate Fabric access review. A successful Glue enumeration is not permission to read S3 or proof of equivalent row-level security. |
@@ -201,106 +203,7 @@ If a table is discoverable but unreadable, collect the failing table and metadat
 
 ## Supplementary setup: Google Lakehouse runtime catalog
 
-**Separate source and authentication model.** This supplementary runbook covers the **Mirrored Google Lakehouse runtime catalog (preview)** item, not AWS Glue and not BigQuery database mirroring. It follows the [Microsoft Google Lakehouse runtime tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial), [overview](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations), reviewed **8 October 2026**.
-
-Only catalog metadata is mirrored. Iceberg data remains in **Google Cloud Storage** and is read through OneLake shortcuts with virtual Delta metadata. This is neither a replicated CDC stream nor a backfill into Fabric-managed storage.
-
-### GCP 1. Administrator-owned preflight
-
-1. **Google Cloud project/catalog owner:** select a project with billing enabled and enable the **BigLake API**. Provision or identify a Google Lakehouse runtime catalog containing **Iceberg V2** tables with **Parquet** data files. Confirm a small pilot table and its storage buckets; Iceberg V1 and catalog/database/metastore views are not supported.
-2. Record the catalog's warehouse path, billing **project ID**, and all table-data buckets. For the federation configuration, separately record the owning project's numeric **project number**. The text project ID and numeric project number are not interchangeable and can refer to different project responsibilities.
-3. **Google IAM administrator:** ensure the administrator can create/manage a **Workload Identity Pool and OIDC provider**, and grant Google Cloud IAM roles. Obtain the **Microsoft Entra tenant ID** and the **object ID** of each identity to authorize. Do not substitute the application's client ID for an Entra object ID.
-4. **Network owner:** verify public-internet reachability for both the Iceberg REST endpoint and GCS locations, with authenticated access retained. The connector does not document firewall/private-source networking support. Also check OneLake format-virtualization limitations, including unsupported Private Link tenants/workspaces.
-5. **Fabric administrator:** provide an F SKU/trial workspace and item-creation access, and enable **Enable new mirrored catalog items (Preview)**.
-
-If the source catalog does not yet exist, the Google administrator follows [Google's catalog creation procedure](https://docs.cloud.google.com/lakehouse/docs/set-up-lakehouse-iceberg-rest-catalog#create_a_catalog) before federation or Fabric setup:
-
-1. Arrange **BigLake Admin** on the project and the required **Storage Admin** authority on the associated buckets for the provisioning administrator. Enabling the API requires `serviceusage.services.enable` (for example through **Service Usage Admin**). These are provisioning privileges, **not** roles to give the Fabric reader.
-2. In Google Cloud console, open **Lakehouse** → **Create catalog** → **Iceberg Rest Catalog**. For a new multiple-bucket catalog, select **Multiple bucket catalog**, choose the default Cloud Storage path, enter **Catalog ID** and a compatible **Primary location**, then **Continue**.
-3. Add only approved additional **Data paths**, then choose **End-user credentials** or **Credential vending mode** and **Create**. Record the mode; do not overlap source paths belonging to unrelated catalogs.
-4. Complete the separate bucket authorization in GCP 3. Use the source owner's supported Iceberg writer to create/register a namespace and a small **V2/Parquet** pilot table in this catalog, then verify its committed metadata and a known row. A bucket of unregistered Parquet files is not a prepared catalog.
-
-**Current documentation boundary:** Google now documents Iceberg V3 preview support in its REST catalog, while Microsoft's Google mirroring limitations still specify **V2 only**. Keep the Fabric pilot at V2; source-platform V3 support is not evidence of Fabric connector support. Likewise, Google's ability to request a larger metadata-file limit does not establish support above Fabric's documented **1 MB** limit.
-
-### GCP 2. Configure Entra-to-Google federation
-
-This connector uses **Google Cloud Workload Identity Federation**. Fabric presents an Entra OIDC token; it does not require a downloaded Google service-account JSON key, an AWS access key, or an AWS external ID.
-
-1. In Google Cloud console, choose the project that will own federation. Open **IAM & Admin** → **Workload Identity Federation** → **Create Pool**.
-2. Name the pool, choose its **Pool ID**, keep it enabled in location **global**, and record the ID.
-3. Open the pool → **Add Provider** → **OpenID Connect (OIDC)**. Enter and record a **Provider ID**, and use the following exact values:
-
-   | Setting | Required value |
-   |---|---|
-   | Issuer URL | `https://sts.windows.net/{TENANT_ID}/` — use the Entra tenant ID and keep the trailing slash |
-   | Allowed audience | `https://analysis.windows.net/powerbi/connector/MirroredGoogleLakehouseRuntimeCatalog` |
-   | Attribute mapping | `google.subject = assertion.oid` |
-
-4. Save and enable the provider. The issuer/audience must match the token claims exactly; a generic Microsoft login endpoint or a different Fabric connector's audience is not equivalent.
-5. Add each approved Entra identity as an IAM principal using its object ID:
-
-   ```text
-   principal://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/subject/ENTRA_OID
-   ```
-
-6. Grant that principal **BigLake Viewer** (`roles/biglake.viewer`) and **Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`) at the narrowest appropriate resource scope. Record the bindings. Prefer individual subjects over a pool-wide `principalSet://.../*`: a wildcard can grant access to identities accepted through other providers in the same pool.
-
-### GCP 3. Authorize storage separately
-
-Have the catalog owner identify the catalog's credential mode before granting bucket access:
-
-| Catalog credential mode | Bucket permission owner and action |
-|---|---|
-| **Credential vending** | Grant the catalog's **auto-provisioned service account** **Storage Object User** (`roles/storage.objectUser`) on **every associated bucket**. The federated Entra principal does not need direct bucket access in this mode. |
-| **End-user credentials** | Grant the **federated principal** the required read access on every associated bucket. Google's [Storage Object Viewer](https://docs.cloud.google.com/storage/docs/access-control/iam-roles) (`roles/storage.objectViewer`) provides object read/list access; scope it to the approved buckets and validate metadata, manifest and data reads. |
-
-This distinction comes from the Microsoft tutorial and Google's linked [Iceberg REST catalog setup](https://docs.cloud.google.com/lakehouse/docs/set-up-lakehouse-iceberg-rest-catalog). Do not generate a key for the catalog's service account or put it into Fabric: that account serves the catalog's storage authorization, not the Entra-to-Google sign-in. `BigLake Viewer` lets the principal access catalog metadata; it is not an implicit GCS object-read grant. Retain the documented Storage Object User requirement for vending rather than replacing it with a guessed read-only role.
-
-For a newly created credential-vending catalog, open **Catalog details** → **Authentication method** → **Set bucket permissions** → **Confirm**, as documented by Google, then verify the service-account binding on every associated bucket. When provisioning outside the console, apply those bucket bindings explicitly. The auto-provisioned account is eventually consistent: if it is not yet found, verify the catalog's actual account and allow propagation rather than generating a replacement account/key or granting project-wide storage access.
-
-### GCP 4. Connect and select tables in Fabric
-
-1. Open the intended workspace at `https://powerbi.com` → **+ New** → **Mirrored Google Lakehouse runtime catalog (preview)**.
-2. Create a new connection, or verify the target and identity of an existing one. Supply:
-
-   | Field | Value |
-   |---|---|
-   | **URL** | `https://biglake.googleapis.com/iceberg/v1/restcatalog` |
-   | **Warehouse**, multiple-bucket catalog | `bl://projects/PROJECT_ID/catalogs/CATALOG_ID` |
-   | **Warehouse**, single-bucket catalog | `gs://CLOUD_STORAGE_BUCKET_NAME` |
-   | **Project ID** | Project billed for catalog requests |
-   | **Project number** | Numeric project number owning the Workload Identity Pool |
-   | **Pool ID / Provider ID** | The enabled federation resources created above |
-
-3. Authenticate with an **Entra identity authorized by the Google IAM subject binding**. The Microsoft tutorial does not enumerate a broader list of wizard authentication kinds; do not assume all service-principal/workspace-identity modes from other connectors apply.
-4. On **Choose data**, choose **Catalog scope**, then include/exclude namespaces and supported tables. Review the default-enabled **Automatically sync future tables** option and approve the future scope. Keep total selected/auto-included tables below the 500-table limit.
-5. Select **Next**, review a unique mirrored item name and scope, and **Create**. Fabric creates shortcuts and a **SQL analytics endpoint**; empty namespaces are not shown. This creates metadata references, not copies of the GCS objects.
-
-### GCP 5. Validate, share, and hand over
-
-1. **Catalog validation:** compare namespaces and table names with the source. A failure here points to federation, role bindings, project identifiers, or catalog scope.
-2. **Read validation:** preview a known pilot row and query it through the SQL analytics endpoint using its generated schema/table name. If discovery succeeds but reads fail, check the vending service account or end-user bucket grants for the chosen mode, every bucket used by the table, and object reachability.
-3. **Change validation:** have the source owner commit one non-sensitive identifiable record using the normal Iceberg writer. Requery after propagation and compare with the source. Test future-table discovery separately. Refreshing catalog metadata does not ingest a snapshot; conversion latency and SQL metadata visibility are separate delays.
-4. For Spark, create a Lakehouse **Tables** shortcut → **Microsoft OneLake** → the mirrored Google catalog → selected tables. For an unreadable/stale Iceberg table, open its shortcut menu → **View files** and inspect virtual `_delta_log/latest_conversion_log.txt`. Do not edit that virtual log or source manifests.
-
-   ![Microsoft Lakehouse table menu with View files highlighted](../assets/setup/chapter-27/google-iceberg-view-files.png)
-   *Figure 27.3 — Shared OneLake Iceberg diagnostic step after creating the Google catalog shortcut; not a Google authentication screen. Microsoft tutorial screenshot, unchanged. Source: [Use Iceberg tables with OneLake](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#check-the-conversion-log); [original image](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/onelake/media/onelake-iceberg-table-shortcut/view-files.png). © Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The Google catalog Learn tutorial supplies no source-wizard screenshots.*
-
-5. Configure **OneLake security** and test as a non-admin consumer. Google source row/column policies are not enforced on the mirrored item. Approve its Fabric access independently.
-6. Hand over pool/provider IDs, Entra subject bindings, catalog mode/service-account identity, bucket-role scopes, owners, approved table scope, and test results. Disabling the pool/provider, changing issuer/audience, deleting bindings, or recreating an Entra identity with a new object ID can break access. Revalidate after every such change. Delete only the intended Fabric pilot objects during cleanup; source retention/purge remains a GCP responsibility.
-
-### GCP public issues and common pitfalls
-
-**Reviewed 8 October 2026.** Public research started with [`site:reddit.com "Google Lakehouse" "mirroring"`](https://www.google.com/search?q=site%3Areddit.com+%22Google+Lakehouse%22+%22mirroring%22). No verifiable source-specific Reddit problem report was found; results about BigQuery or generic GCS shortcuts are different integrations and are not treated as evidence here. Microsoft's [preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-google-lakehouse-runtime-catalog-data-to-onelake-preview/5360492) was also read, but is not a user incident or fix.
-
-Documented checks to put in the runbook:
-
-- **Federation fails:** verify project **number**, enabled pool/provider, exact issuer including `/`, exact audience, and `assertion.oid` mapping. Recreated Entra identities need new subject bindings.
-- **Catalog visible, files denied:** verify the credential mode and its distinct bucket principal; do not indiscriminately grant every federated user storage access.
-- **Table rejected or stale:** require Iceberg V2/Parquet, a `metadata.json` file no larger than **1 MB**, and supported OneLake conversion features. The last successful virtualized version can survive a later conversion failure.
-- **Unexpected data exposure:** review pool-wide wildcard bindings, automatic future-table selection, and independent Fabric security.
-
-These are documented constraints and diagnostic checks, not claims of observed connector bugs or a refresh SLA.
+The **Public Preview metadata-mirroring** walkthrough now has its own [Chapter 30: Google Lakehouse Runtime Catalog Mirroring](chapter-30.md), including federation, bucket authorization, validation, and troubleshooting. It is a separate source from AWS Glue and BigQuery. This heading remains so older links to the supplementary runbook still lead to the current guide.
 
 ---
 

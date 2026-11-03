@@ -14,6 +14,8 @@
 
 They also do not manage the source-side link behind a [Dataverse-linked Lakehouse](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md). Do not call `startMirroring` or `stopMirroring` against that Lakehouse ID. For [SAP BDC Connect](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md), require its documented sharing/administration interface rather than inferring native Mirrored Database API support from the term "mirroring-like."
 
+For [Business Central](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md), the destination is an open mirrored database, but these lifecycle calls do not configure the application's companies, tables, synchronization schedule, or privacy approval. Coordinate operations with its source-side publisher.
+
 [![chapter-06 diagram 1](../assets/diagrams/chapter-06/diagram-01.png)](../assets/diagrams/chapter-06/diagram-01.excalidraw.png)
 
 *Figure 6.1: Fabric REST API usage patterns*

@@ -185,4 +185,4 @@ Public evidence reviewed **8 October 2026**:
 [ms-sap]: https://learn.microsoft.com/en-us/fabric/mirroring/sap
 [sap-learning]: https://learning.sap.com/courses/mastering-sap-data-architecture/integrating-sap-business-data-cloud-with-microsoft-fabric_e4385b8a-0ecd-4cb2-a6c7-c4ca866e9885
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 28: Dataverse Link to Microsoft Fabric](chapter-28.md) | **Next:** [Chapter 30: What is Open Mirroring and Why It's Useful](../Part%203%20-%20Open%20Mirroring/chapter-30.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 28: Dataverse Link to Microsoft Fabric](chapter-28.md) | **Next:** [Chapter 30: Google Lakehouse Runtime Catalog Mirroring](chapter-30.md)

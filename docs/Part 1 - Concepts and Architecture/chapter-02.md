@@ -105,7 +105,7 @@ Avoiding row replication does not guarantee instant query freshness. Catalog ref
 
 For Dremio and AWS Glue, Fabric connects to an Iceberg REST Catalog endpoint. Authentication and access to the underlying storage are separate requirements. [Chapter 26](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-26.md) covers Dremio and [Chapter 27](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-27.md) covers AWS Glue.
 
-[Google Lakehouse Runtime Catalog mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime) also uses an Iceberg REST catalog, with table data remaining in Google Cloud Storage. It authenticates Microsoft Entra identities through Google Cloud Workload Identity Federation rather than a stored service-account key. This is distinct from the BigQuery database replication connector in Chapter 16. Use the [Google catalog setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial) for configuration; this book does not yet have a dedicated source chapter for it.
+[Google Lakehouse Runtime Catalog mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime) also uses an Iceberg REST catalog, with table data remaining in Google Cloud Storage. It authenticates Microsoft Entra identities through Google Cloud Workload Identity Federation rather than a stored service-account key. This is distinct from the BigQuery database replication connector in Chapter 16. [Chapter 30](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-30.md) now provides its dedicated setup, limits, and troubleshooting guide.
 
 The Google catalog preview supports up to 500 Iceberg V2 tables with Parquet data files. Both the catalog endpoint and storage must be reachable over the public internet; firewall-restricted catalog mirroring is not supported. Source row and column permissions do not carry over automatically. See its [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations).
 
@@ -154,6 +154,19 @@ If you do not want to build and operate a publisher, review the [open mirroring 
 
 > **Example sources:** Open mirroring suits sources without a native connector, such as unsupported on-premises databases, SaaS applications, or custom application event streams. Microsoft publishes sample connectors and partner examples at **aka.ms/FabricToolbox**.
 
+## Application-Managed Integrations Beyond the Connector List
+
+The three types above remain Fabric's official mirroring taxonomy. Application teams can use the underlying technology or provide related managed replication without appearing as a native source in the Fabric Mirroring wizard.
+
+| Application | Setup entry point and target | Availability and source guide |
+|---|---|---|
+| **Dynamics 365 Business Central** | Business Central online v29+ assisted setup configures its publisher for an **open mirrored database**; replicated Delta data lives in OneLake. | Prerelease documentation plans a production-ready preview for October 2026; the date alone does not confirm delivery or GA. [Chapter 31](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md). |
+| **Dataverse** | **Link data / Link to Fabric** creates a lakehouse and shortcuts to a **Dataverse-managed analytical replica**. Low-latency sync writes database data directly to Delta Parquet. | Link to Fabric is GA; low-latency sync is GA-announced with station-based rollout and existing-profile migration. [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md). |
+
+Dataverse's use of shortcuts does not make it a metadata-mirrored catalog, and public documentation does not establish that it uses the Open Mirroring landing-zone protocol. Business Central's underlying Open Mirroring GA status does not make its application integration GA. Follow the application-specific documentation for both setup and billing.
+
+Business Central also requires source-side company/table selection, synchronization settings, and administrator approval of its Fabric privacy notice. Use its [assisted setup guide](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring), not an assumed native connector in the Fabric source list.
+
 ## Comparison Matrix
 
 | Attribute                           | Database mirroring                                     | Metadata mirroring              | Open mirroring                              |
@@ -169,7 +182,7 @@ If you do not want to build and operate a publisher, review the [open mirroring 
 
 ## Selection Decision Framework
 
-Use this decision path to choose the right type.
+Use this decision path to choose the right type. For an application-managed integration, first check its own setup path above; a shortcut alone does not establish the integration's mirroring type.
 
 [![chapter-02 diagram 1](../assets/diagrams/chapter-02/diagram-01.png)](../assets/diagrams/chapter-02/diagram-01.excalidraw.png)
 

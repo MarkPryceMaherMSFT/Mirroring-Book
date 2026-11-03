@@ -78,6 +78,16 @@ Source-platform and self-hosted infrastructure costs sit outside the free Fabric
 * **Egress charges**: Moving data out of a source cloud provider's region or data centre can incur that provider's own egress or data-transfer charges. These are billed by the source platform, not by Fabric.
 * **On-premises data gateway costs**: If the source uses a self-hosted on-premises data gateway, budget for its machines and maintenance separately. Do not apply this model to the managed VNet data gateway, which consumes Fabric or Power BI Premium capacity as described above.
 
+### Application and Metadata Integration Boundaries
+
+| Integration | Apply the correct cost boundary |
+|---|---|
+| **Google Lakehouse Runtime Catalog** | Source data stays in GCS. Budget for Google catalog/storage requests, egress, Fabric queries, and shortcut operations; the replica-storage allowance is not free GCS storage. [Chapter 30](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-30.md). |
+| **Business Central** | Its [prerelease FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq) states no additional BC mirroring licence/consumption charge. The open mirrored destination follows the normal eligible replica allowance and core-compute rules; capacity, queries, overage, and optional extensions remain separate. [Chapter 31](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md). |
+| **Dataverse Link to Fabric** | The managed Delta replica consumes **Dataverse Database capacity**, not the native Mirroring TB-per-CU allowance. Fabric query/shortcut consumption and materialized downstream storage are additional. Legacy customer-managed ADLS/Spark exports have their own Azure charges. [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md). |
+
+Neither a shortcut nor the word mirroring establishes free source storage or free end-to-end analytics.
+
 ***
 
 ## 10.5 Planning Capacity for Mirroring

@@ -8,7 +8,7 @@ I was one of the Product Managers who helped bring Fabric Mirroring to customers
 
 This book explains those differences without making readers assemble the story from dozens of documentation pages.
 
-It started with a couple of sources. The [source matrix](docs/appendix.md#section-1-supported-sources-and-mirroring-types) shows the current database and catalog integrations.
+It started with a couple of sources. The [source matrix](docs/appendix.md#section-1-supported-sources-and-mirroring-types) shows the current database, catalog, and related application integrations.
 
 The main reason for doing this book is that I get asked the same Mirroring questions over and over again. Some of that I put on my [blog](https://medium.com/@sqltidy), but some things just need a longer explanation. So the aim is this should actually save me time.
 
@@ -32,7 +32,9 @@ The source chapters are intentionally separate. A correct answer for Snowflake m
 
 Part 2 includes practical setup walkthroughs: source-side preparation and permissions, connection and network requirements, Fabric configuration, first-data checks, and troubleshooting. Use the [setup and troubleshooting directory](docs/index.md#setup-and-troubleshooting-directory) to jump straight to either section for each source. Microsoft documentation screenshots are credited beside each image; public community reports and search-index-only leads are clearly separated from documented product requirements.
 
-Part 2 also covers related source-managed integrations: [Dataverse Link to Microsoft Fabric](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) and the announced [SAP Business Data Cloud Connect](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md). They belong in the architectural discussion without assuming they share native database mirroring's item types, replication engine, permissions, or billing. The SAP BDC chapter records availability evidence and readiness requirements rather than claiming a released Fabric setup guide, and is separate from [SAP Datasphere replication through ADLS Gen2](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-20.md).
+The expanded source guides include [Google Lakehouse Runtime Catalog](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-30.md) and a dedicated [Dynamics 365 Business Central Mirroring chapter](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-31.md). Business Central uses an application-managed Open Mirroring publisher; its setup follows the Business Central documentation and retains the documented prerelease qualifications.
+
+Part 2 also covers related source-managed integrations: [Dataverse Link to Microsoft Fabric and low-latency sync](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) and the announced [SAP Business Data Cloud Connect](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md). They belong in the architectural discussion without assuming they share native database mirroring's item types, replication engine, permissions, or billing. The SAP BDC chapter records availability evidence and readiness requirements rather than claiming a released Fabric setup guide, and is separate from both Business Central and [SAP Datasphere replication through ADLS Gen2](docs/Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-20.md).
 
 ## Suggested Reading Paths
 

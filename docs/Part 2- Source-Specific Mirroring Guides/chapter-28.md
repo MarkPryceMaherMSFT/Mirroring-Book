@@ -1,4 +1,4 @@
-# Chapter 28: Dataverse Link to Microsoft Fabric
+# Chapter 28: Dataverse Link to Microsoft Fabric and Low-Latency Sync
 
 > **Part 2: Source-Specific Mirroring Guides**
 >
@@ -6,7 +6,7 @@
 
 **Part index:** [Chapters in Part 2](readme.md)
 
-**Documentation reviewed:** 8 October 2026.
+**Documentation reviewed:** 3 November 2026.
 
 ---
 
@@ -16,7 +16,7 @@ Microsoft Dataverse stores the business data behind Power Apps and many Dynamics
 
 This is **not a native Fabric Mirroring source or a mirrored database item**. It belongs alongside the mirroring guides because its consumption model resembles metadata mirroring: the source service maintains analytical tables, and Fabric exposes them through shortcuts. Use the Dataverse link controls and Lakehouse operations, not native mirrored-database start/stop APIs.
 
-**Current status:** Microsoft's current setup and FAQ document direct Link to Fabric as an established capability. The newer **low-latency sync** engine is rolling out by station, rather than being available everywhere at once. **New SQL analytics endpoint metadata sync** is a separate preview feature; it is not a prerequisite for this walkthrough.
+**Current status:** Microsoft's [9 June 2026 announcement](https://www.microsoft.com/en-us/power-platform/blog/2026/06/09/low-latency-sync/) marks **low-latency sync GA**. The [23 October setup guide](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform) still describes **station-based rollout** and the **Low-latency mode** flag. GA does not mean every existing profile has migrated: new links use the engine after station enablement, while existing profiles need a planned unlink/relink and full initial synchronization. **New SQL analytics endpoint metadata sync** is a separate preview feature, not a prerequisite for low-latency source sync.
 
 ## Mirroring Type and Architecture
 
@@ -31,7 +31,12 @@ This is **not a native Fabric Mirroring source or a mirrored database item**. It
 
 The flow is **Dataverse operational tables → Dataverse-managed Delta analytical replica → OneLake shortcuts in a Fabric Lakehouse → analytical workloads**. “Zero-copy” describes shortcut consumption without another required customer-managed landing copy. It does **not** mean that Dataverse avoids creating a physical optimized replica.
 
+[![Figure 28.1: Dataverse low-latency sync and Fabric shortcut consumption](../assets/diagrams/chapter-28/diagram-01.png)](../assets/diagrams/chapter-28/diagram-01.excalidraw.png)
+*Figure 28.1: Source-managed replication, Dataverse storage accounting, and Fabric analytical access are separate boundaries.*
+
 Dataverse owns capture, initialization and replica maintenance. The Fabric team owns workspace access, connection governance, downstream models and query workloads. Treat synchronization progress and Fabric query readiness as separate checkpoints.
+
+The [Dataverse reference architecture](https://learn.microsoft.com/en-us/power-platform/architecture/reference-architectures/enterprise-data-fabric-dataverse) uses mirroring terminology for managed replication. It does not establish an internal Open Mirroring implementation or grant native mirrored-database REST lifecycle, landing-zone or pricing contracts.
 
 ### Do Not Substitute the Azure Synapse Link Architecture
 
@@ -49,13 +54,13 @@ Agree these responsibilities before enabling the link:
 |---|---|
 | Dataverse administrator | **System Administrator** security role in the source environment; approved table list; ability to create the required application user; database-capacity headroom |
 | Fabric workspace administrator | **Admin** on the target workspace; create/manage its workspace identity; permissions to manage the Dataverse cloud connection |
-| Fabric tenant/capacity administrator | Eligible Fabric capacity or trial, or supported Power BI Premium capacity with Fabric enabled; permitted geography; tenant settings below |
+| Fabric tenant/capacity administrator | Eligible Fabric capacity or trial, or supported Power BI Premium capacity with Fabric enabled; approved source/consumer placement; tenant settings below |
 | Data/security owner | Approval for the analytical replica, broad connection identity and downstream access model; sample data and acceptance criteria |
 | Analytics operator | Named owner for synchronization, schema changes, credentials, capacity consumption and downstream dependencies |
 
 **Premium Per User alone is insufficient.** Prefer an existing, capacity-backed collaborative workspace, not **My workspace**. If the wizard must create a workspace, the setup guide requires **Power BI Capacity Administrator** access to a suitable capacity.
 
-The setup guide uses “same Azure geographical region”; the troubleshooting guide explains that validation moved from exact-region to geography matching in 2024. Choose a workspace offered by the wizard in the supported Dataverse geography; do not promise arbitrary cross-region/cross-geo support. The source replica itself remains in the Dataverse environment's region.
+The **23 October 2026 core setup guide explicitly supports cross-region and cross-geography links**: the Fabric workspace/capacity need not share the Dataverse environment's Azure region or geography. The analytical replica remains in the Dataverse environment's region; query/consumer access can occur elsewhere. Approve residency and transfer implications separately. Older same-geography guidance does not override this newer core procedure, and cross-geography support does not establish cross-tenant workspace-identity support.
 
 Have the Fabric administrator approve **Users can create Fabric items**, **Create workspaces** where needed, and **Users can access data stored in OneLake with apps external to Fabric**. Record their security scope rather than enabling them tenant-wide merely to resolve a setup error.
 
@@ -64,7 +69,7 @@ Have the Fabric administrator approve **Users can create Fabric items**, **Creat
 ### Step 1: Prepare the Environment and Tables
 
 1. Use an approved sandbox or developer environment for the first test. Record its environment ID, URL, region, intended Fabric workspace/capacity and owners. Keep the workspace private until access tests pass.
-2. In Power Platform admin center, select **Manage → Environments → the environment → Settings → Product → Features**. Under **Microsoft Fabric**, confirm that administrators are allowed to link Dataverse tables with a Fabric workspace. This setting is normally on but can be disabled by policy.
+2. In Power Platform admin center, select **Manage → Environments → the environment → Settings → Product → Features**. Under **Microsoft Fabric**, confirm that administrators are allowed to link Dataverse tables with a Fabric workspace. This setting is normally on but can be disabled by policy; it permits linking, not a separate low-latency opt-in.
 3. Inventory the tables, sensitivity and approximate volume before creating the link. Include any mandatory system/add-in tables in the exposure review; not every table can be deselected.
 4. In Power Apps, select the environment and open **Tables → the table → Properties → Advanced options**. Under **For this table**, enable **Track changes** and save, if the approved table supports it. **Enabling change tracking cannot be undone.** Do not enable it across the environment just to simplify selection.
 5. Verify that the intended tables are supported. Tables without change tracking are unsupported; elastic tables are supported when change tracking is enabled. The FAQ specifically excludes `postcomment`, `postregarding`, `postlike`, `post` and `postrole` from customer-enabled synchronization. Their appearance in retention scenarios does not prove incremental-sync support.
@@ -95,14 +100,14 @@ The application user can be **unlicensed**; this does not remove the organizatio
 
 ![Microsoft's Fabric link Setup Configuration screen recommending workspace identity.](../assets/setup/chapter-28/link-data-wizard-03.png)
 
-*Figure 28.1 — Setup Configuration. © Microsoft; reproduced unchanged from [source image](https://raw.githubusercontent.com/MicrosoftDocs/powerapps-docs/main/powerapps-docs/maker/data-platform/media/Fabric/link-data-wizard-03.png) in [Configure your environment and link to Microsoft Fabric](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform#step-2-set-up-configuration), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([powerapps-docs LICENSE](https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE), including its warranty disclaimer). Microsoft's capture still contains an all-tables summary; verify scope in the current Select Tables step below.*
+*Figure 28.2 — Setup Configuration. © Microsoft; reproduced unchanged from [source image](https://raw.githubusercontent.com/MicrosoftDocs/powerapps-docs/main/powerapps-docs/maker/data-platform/media/Fabric/link-data-wizard-03.png) in [Configure your environment and link to Microsoft Fabric](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform#step-2-set-up-configuration), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([powerapps-docs LICENSE](https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE), including its warranty disclaimer). Microsoft's capture still contains an all-tables summary; verify scope in the current Select Tables step below.*
 
 5. On **Select Tables**, clear unwanted preselected Dataverse tables, explicitly add approved finance and operations tables where applicable, and review anything that cannot be removed.
 6. Select **Next → Review and create**, check the workspace, identity and table scope, then **Finish**. Watch creation/initialization tasks; the completed link appears under **Fabric Links** and opens **Manage tables**.
 
 ![Microsoft's Select Tables screen with Dataverse and finance and operations table selection.](../assets/setup/chapter-28/link-data-wizard-05.png)
 
-*Figure 28.2 — Select Tables. © Microsoft; reproduced unchanged from [source image](https://raw.githubusercontent.com/MicrosoftDocs/powerapps-docs/main/powerapps-docs/maker/data-platform/media/Fabric/link-data-wizard-05.png) in the [Microsoft setup article](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform#step-3-select-tables), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([powerapps-docs LICENSE](https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE), including its warranty disclaimer). No crop, annotation or other alteration.*
+*Figure 28.3 — Select Tables. © Microsoft; reproduced unchanged from [source image](https://raw.githubusercontent.com/MicrosoftDocs/powerapps-docs/main/powerapps-docs/maker/data-platform/media/Fabric/link-data-wizard-05.png) in the [Microsoft setup article](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform#step-3-select-tables), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([powerapps-docs LICENSE](https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE), including its warranty disclaimer). No crop, annotation or other alteration.*
 
 **Other supported authentication choices:** an organizational account, or a service principal with Tenant ID, Client ID and Key in the connection's protected credential fields. A service principal must first be onboarded as a Dataverse application user. Do not copy secrets into notebooks or runbooks. The newer setup steps and FAQ explicitly support all three choices despite a residual “only user based connections” sentence later in the setup article.
 
@@ -133,7 +138,7 @@ Therefore, do not rely on a viewer's Dataverse roles, record sharing or column r
 
 Connection management is a separate permission plane. In **Settings → Manage connections and gateways → Connections**, find the Dataverse connection, then **Manage users**. The setup guide describes **Owner** and **Reader** access and requires sharing the connection with other link operators/consumers as applicable. Grant ownership only to operators; test consumption separately from table-management rights. Dataverse System Administrator alone does not guarantee permission to refresh a Fabric connection.
 
-| Network question | Documented position as of 8 October 2026 |
+| Network question | Documented position as of 3 November 2026 |
 |---|---|
 | **On-premises gateway required?** | The direct cloud-to-cloud walkthrough does not install a gateway. “Manage connections and gateways” is also the management surface for cloud connections. |
 | **Workspace inbound restrictions?** | The current FAQ requires **Inbound access: allow connections from all networks**. A selected-networks/workspace-private-link-only workspace cannot be used for this link. |
@@ -178,9 +183,47 @@ To replace an organizational credential with workspace identity, first prepare t
 - Finance and operations **kernel tables** use a daily initial refresh rather than continuous incremental sync; `InitialSyncInProgress` can be expected for those tables.
 - SQL endpoint **new metadata sync** remains preview and must be enabled on the selected workspace before linking under the documented preview procedure. Do not unlink a production environment solely to adopt a preview.
 
+### Plan an Existing-Link Migration
+
+Changing the connection credential is not an engine upgrade. For a profile that must move to low-latency sync:
+
+1. Confirm station enablement and the relevant finance and operations builds, if applicable.
+2. Use **lineage view** to inventory dependent pipelines, Copy Jobs, SQL objects and semantic models. Retain their definitions and a recovery plan, and update/remove dependencies that prevent Lakehouse deletion.
+3. Schedule a change window, then **Unlink** through the application controls. The generated Lakehouse and shortcuts are removed.
+4. Relink through the current wizard and allow a **full initial sync**. Confirm **Low-latency mode** rather than inferring the engine from a generated item name.
+5. Rebind affected consumers and test data, independent Fabric security, INT64 timestamps, empty-string handling, choice-metadata projections and any Synapse serverless readers before restoring service. Confirm the live-only retained-data reporting boundary above.
+
+The current setup guide lists these minimum builds for linked finance and operations data:
+
+| F&O version | Minimum platform build | Minimum application build |
+|---|---|---|
+| 10.0.47 | 7.0.7858.157 | 10.0.2527.192 |
+| 10.0.48 | 7.0.7996.100 | 10.0.2645.108 |
+| 10.0.49 | 7.0.8199.19 | 10.0.2790.30 |
+
+Check **Help & Support > About** and apply the appropriate quality update. A supported build does not make every kernel table incrementally synchronized; keep the source table's documented tracking requirements.
+
+### Optional CDF and SQL Metadata Sync
+
+For prospective Dataverse change history, use **Settings > Product > Features > Microsoft Fabric > Enable Change Data Feed for low-latency sync mode**. Capture starts with subsequent changes and lasts approximately 24 hours; memory/compute overhead can increase latency. This is not a durable audit archive, an outage-replay guarantee or the generic paid Mirrored Database CDF switch in [Chapter 9](../Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md).
+
+The optional **Workspace settings > Warehouse settings > New metadata sync (preview)** affects SQL endpoint visibility, not the source sync engine. Its Link to Fabric preview procedure requires enablement before linking; an existing link needs the documented unlink/relink and a new endpoint/full initialization. The source guide explicitly excludes production use during preview.
+
+The [latency-planning guide](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-plan-latency) provides workload-specific observed telemetry, not an SLA. Its P50/P95 values, the announcement's lab throughput and the FAQ's older up-to-one-hour wording are different evidence, not a universal freshness guarantee. Measure representative UAT workloads, including bursts and CDF overhead.
+
+## Customer-Managed Parquet Export Deprecation
+
+Direct Link to Fabric is not the customer-owned-storage **BYOS Parquet/Delta export** path. The current [Synapse Link Delta Lake guide](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-delta-lake) deprecates that export option:
+
+- It is unavailable to new customers from **15 October 2026**.
+- Existing customers must transition to **CSV export or Link to Fabric by December 2027**.
+- Existing-customer recreation eligibility is assessed by **Dataverse organization ID**, not by another organization's eligibility in the same tenant.
+
+This does not retire all Synapse Link exports or make CSV profiles attachable to Fabric. The older announcement's continuation wording is superseded for Parquet export by the implementation guide. Plan storage, reader compatibility, permissions and reinitialization rather than treating migration as a branding change.
+
 ## Troubleshooting
 
-These checks are grounded in Microsoft's setup, FAQ and troubleshooting pages, reviewed **8 October 2026**; they are not unverified community fixes. Older error guidance uses **Synapse Link/Microsoft OneLake** names for what the current portal calls **Link data/Fabric Links**.
+These checks are grounded in Microsoft's setup, FAQ and troubleshooting pages, reviewed **3 November 2026**; they are not unverified community fixes. Older error guidance uses **Synapse Link/Microsoft OneLake** names for what the current portal calls **Link data/Fabric Links**.
 
 | Symptom | Check and practical response |
 |---|---|
@@ -194,6 +237,9 @@ These checks are grounded in Microsoft's setup, FAQ and troubleshooting pages, r
 | Permanent failures after type/precision change | Plan removal/re-addition of the affected table; do not repeatedly recreate a column of the same name or treat this as normal transient schema delay. |
 | Finance and operations tables missing/stale | Confirm linked environment, explicit selection and supported builds. Distinguish kernel-table daily refresh from stalled incremental sync. |
 | Unlink fails | Inspect Lakehouse/SQL endpoint lineage and resolve dependent items before retrying. Do not delete unrelated workspace content. |
+| New link is not low-latency | Check station enablement and **Low-latency mode**; an older profile is not automatically upgraded. |
+| Retained data disappears from shortcuts after relinking | The current low-latency migration exposes live data only; retention continues, but retained-data reporting through those shortcuts awaits the documented migration. |
+| Synapse serverless queries fail after migration | Check deletion-vector/newer Delta compatibility; prefer the Fabric SQL endpoint or explicitly budget/test a compatible downstream rewrite. |
 
 For latency investigations, distinguish source commit, replica refresh, shortcut metadata and query visibility. `ModifiedOn` describes the source record change; `SinkModifiedOn` describes writing to the Dataverse lake. Repeated finance and operations synchronization can advance the latter without indicating when the data first became queryable.
 
@@ -202,6 +248,7 @@ For latency investigations, distinguish source commit, replica refresh, shortcut
 - [Dataverse direct-link overview and comparison with Azure Synapse Link](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric) — architecture, source-region replica and single-workspace scope.
 - [Configure your environment and link to Microsoft Fabric](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform) — current wizard, identity, table management, low-latency rollout and preview boundaries.
 - [Fabric Link FAQ](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-faq) and [troubleshooting](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-troubleshoot) — storage classification, schema behavior, limits and network requirements.
+- [Low-latency GA announcement](https://www.microsoft.com/en-us/power-platform/blog/2026/06/09/low-latency-sync/), [latency planning](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-plan-latency), and [BYOS Parquet export deprecation](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-delta-lake) — separate announcement, measured-workload and migration boundaries.
 - [Enable change tracking](https://learn.microsoft.com/en-us/power-platform/admin/enable-change-tracking-control-data-synchronization), [application users](https://learn.microsoft.com/en-us/power-platform/admin/manage-application-users#create-an-application-user), and [environment feature settings](https://learn.microsoft.com/en-us/power-platform/admin/settings-features#microsoft-fabric) — source-side preparation.
 - [Dataverse shortcuts](https://learn.microsoft.com/en-us/fabric/onelake/create-dataverse-shortcut), [workspace identity](https://learn.microsoft.com/en-us/fabric/security/workspace-identity), and [OneLake security](https://learn.microsoft.com/en-us/fabric/onelake/security/get-started-security) — read-only access and independent identity/security boundaries.
 - Figures are Microsoft documentation assets from **powerapps-docs**, whose own [CC BY 4.0 LICENSE](https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE) was verified for this reuse; no Fabric-repository licence assumption is used.

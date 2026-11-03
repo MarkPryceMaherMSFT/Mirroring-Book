@@ -19,10 +19,10 @@ Cosmos DB mirroring is independent of **Azure Synapse Link for Cosmos DB**, its 
 ## Mirroring Type and Architecture
 
 - **Mirroring type**: Database mirroring
-- **Method**: Managed continuous replication using Continuous Backup infrastructure
-- **Change mechanism**: Azure Cosmos DB Continuous Backup
+- **Method**: Managed continuous replication; no general internal push/pull transport contract is documented
+- **Initial and incremental mechanism**: Continuous-backup backfill, followed by live-container changes
 
-Azure Cosmos DB mirroring uses Continuous Backup infrastructure to replicate inserts, updates, and explicit deletes into Delta tables in OneLake without consuming provisioned Request Units. Mirroring does not use the Azure Cosmos DB change feed or analytical store, and it has no built-in inactivity backoff.
+Azure Cosmos DB mirroring requires Continuous Backup. The October-updated [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq) distinguishes initial backfill from the most recent continuous backup and subsequent incremental inserts, updates, and explicit deletes read from the **live container**. Mirroring does not consume provisioned Request Units, use the Cosmos DB change feed/analytical store, or have built-in inactivity backoff.
 
 **Architecture flow:**
 
@@ -31,7 +31,15 @@ See the [Microsoft Learn architecture description](https://learn.microsoft.com/e
 [![Figure 13.1: Cosmos DB mirroring data flow](../assets/diagrams/chapter-13/diagram-01.png)](../assets/diagrams/chapter-13/diagram-01.excalidraw.png)
 *Figure 13.1: Cosmos DB mirroring data flow*
 
-> **Deletion stop gate:** Direct item deletes are replicated. Microsoft's [limitations page](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-limitations#replication-limitations) says TTL expiration is unsupported, but its [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq#analytical-time-to-live-ttl-or-soft-deletes) says TTL deletions **are** mirrored. This disagreement remained on **8 October 2026**. Do not promise either automatic expiry or historical retention in OneLake from TTL alone; validate separately and obtain Microsoft confirmation for a retention-dependent workload.
+> **Deletion stop gate:** Direct item deletes are replicated. Microsoft's [limitations page](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-limitations#replication-limitations) says TTL expiration is unsupported, but its [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq#analytical-time-to-live-ttl-or-soft-deletes) says TTL deletions **are** mirrored. This disagreement remained when both pages were rechecked on **3 November 2026**. Do not promise either automatic expiry or historical retention in OneLake from TTL alone; validate separately and obtain Microsoft confirmation for a retention-dependent workload.
+
+### Initial Backup Freshness Is Not Backup Retention
+
+The FAQ says the most recent backup used for initial backfill can be **up to seven days old**. Recent type changes to pre-existing items may therefore not appear immediately after a restart. The **7-day or 30-day retention tier controls PITR reach**, not backup cadence or a seven-day ongoing-mirroring latency.
+
+Validate consistent source types, allow the backup to include the required changes, and plan a restart/reseed only when appropriate. The troubleshooting guide suggests contacting support about a manual backup if waiting is unacceptable; restarting alone does not force a newer backup.
+
+Mirroring uses the account's current **write region/hub**, including after failover. The October documentation replaces the older nearest-read-region description. Plan replication latency and egress around that write-region path, not geographic proximity of a read replica.
 
 ---
 
@@ -48,19 +56,19 @@ See the [Microsoft Learn architecture description](https://learn.microsoft.com/e
 
 > **Network boundary:** The [overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db#network-security), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-limitations#security-limitations), and [private-network guide](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-private-network), updated 6 October 2026, now agree on this distinction. Support for a private source account is not a promise that replication flows through your private endpoint.
 
-The [FAQ's security answers](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq#security) still say private endpoints are unsupported. That conflicts with the explicit restricted-account procedure above; it is not a reason to open a private source publicly. Also check the gateway's own [capacity, region, same-tenant, and subnet-permission requirements](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways); connector region availability alone does not establish gateway eligibility.
+The [FAQ's security answers](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq#security) still say private endpoints are unsupported, including on **3 November 2026**. That conflicts with the explicit restricted-account procedure above; it is not a reason to open a private source publicly. Also check the gateway's own [capacity, region, same-tenant, and subnet-permission requirements](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways); connector region availability alone does not establish gateway eligibility.
 
 ---
 
 ## Setup Walkthrough
 
-This runbook follows the [Microsoft setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-tutorial) and the separate [restricted-network procedure](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-private-network). Official source references were rechecked **8 October 2026**. Begin with a recoverable development account; the account changes below are not merely Fabric settings.
+This runbook follows the [Microsoft setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-tutorial) and the separate [restricted-network procedure](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-private-network). Architecture, FAQ, troubleshooting, and limitations were rechecked **2 November 2026**; the FAQ and limitations were additionally checked **3 November 2026** for the contradictions called out above. Begin with a recoverable development account; the account changes below are not merely Fabric settings.
 
 ### 1. Agree the source scope and change window
 
 1. In **Azure portal → Azure Cosmos DB → Overview**, record the account resource ID, tenant, subscription, API, endpoint, region configuration, and intended database and containers.
 2. Confirm **API for NoSQL**, a single write region, and a supported Fabric region. Multiple read regions are supported; multi-region writes, MongoDB, Gremlin, Table, and Cassandra accounts are not native sources for this connector. Azure Government and Azure China are excluded. General continuous-backup support for multi-write accounts does not expand the mirroring connector's eligibility.
-3. Record the current backup mode, analytical-store history, local-authentication setting, firewall/private endpoints, and any customer-managed encryption-key dependency.
+3. Record the current backup mode, analytical-store history, local-authentication setting, firewall/private endpoints, data mapping, and any customer-managed encryption-key dependency. **Accounts with data mapping enabled are unsupported**; do not disable an application's mapping as unreviewed setup cleanup.
 4. Obtain source-owner approval for enabling continuous backup and, if choosing the restricted-network path, for disabling local authentication. The latter can break applications still using account keys.
 5. Reserve time for backup-policy migration to complete. This procedure does not request a database-engine restart, but migration is asynchronous and irreversible. Do not start Fabric configuration while the account still reports migration in progress.
 6. Agree an initial-load window, data-owner approval for copying the selected containers, and a disposable-item test. Do not use a production customer's document as a canary.
@@ -204,9 +212,12 @@ Fabric's Cosmos DB Data Explorer reads the **source** and consumes RUs; it canno
 | **Partition key** | The container partition key is replicated as a column. |
 | **Large documents** | SQL endpoint tables created after 18 November 2025 support `varchar(max)` up to the 2 MB document limit. Older tables use `varchar(8000)` and must be recreated to gain this support. |
 | **Backup configuration** | Enable 7-day or 30-day Continuous Backup. It cannot be disabled afterwards; review analytical-store migration restrictions before changing an existing account. |
-| **Throughput impact** | Mirroring from Continuous Backup does not consume provisioned RU/s. |
-| **Global distribution** | Fabric reads from the closest regional endpoint by default. |
-| **Restart behaviour** | Stopping and starting replication reseeds all target tables from the current source, rather than resuming incremental replication. |
+| **Backup freshness** | Initial backfill uses the latest available continuous backup, which the FAQ says can be up to seven days old. Retention is not backup frequency or ongoing sync latency. |
+| **Throughput impact** | Managed mirroring does not consume provisioned RU/s; ordinary source/Data Explorer queries still do. |
+| **Global distribution** | Reads use the current write region/hub, including after failover, not the closest read region. |
+| **Data mapping** | Accounts with data mapping enabled are unsupported. |
+| **Restart behaviour** | Stopping and starting reseeds all target tables using the latest available backup; it does not guarantee immediate reflection of recent type changes. |
+| **Delta CDF** | The source FAQ says unsupported while general extended-capability docs say all sources. Confirm source-specific availability rather than silently resolving that conflict. |
 
 ---
 
@@ -216,6 +227,7 @@ Fabric's Cosmos DB Data Explorer reads the **source** and consumes RUs; it canno
 - **Continuous Backup**: Standard Continuous Backup charges and limitations still apply. The 7-day tier is available without an additional backup charge.
 - **Fabric queries**: Queries from SQL, Spark, or Power BI consume Fabric capacity rather than Cosmos DB RU/s.
 - **Data Explorer**: Queries run against the source through Data Explorer consume Cosmos DB RU/s.
+- **Region and egress**: The current write-region path determines transfer costs and failover behavior; mirroring does not select a nearer read region to avoid egress.
 
 **Recommendation**: Choose the backup-retention tier for your source recovery requirements. Do not treat that retention period as a documented Fabric pause-and-resume guarantee.
 
@@ -229,6 +241,8 @@ Fabric's Cosmos DB Data Explorer reads the **source** and consumes RUs; it canno
 | TTL-expired items remain | TTL support is contradicted by the limitations page and FAQ | Verify source expiry and target behavior; obtain support confirmation and an approved retention design rather than changing application deletion semantics |
 | Mirror cannot be created | Continuous Backup is not enabled or the account uses multi-region writes | Enable a supported backup tier or use a supported account topology |
 | Data type mismatch | Inconsistent JSON property types across documents | Normalise source document schema or handle at the transformation layer |
+| Recent type fixes still absent after restart | Initial backfill used a backup that predates the fixes | Check backup freshness, allow an appropriate backup, and plan reseeding; consult support about a manual backup if required |
+| Account rejected despite supported backup/API | Data mapping is enabled | Verify the new account limitation with the source owner; do not remove mapping blindly |
 | Authentication failure | Unsupported credential or insufficient Microsoft Entra permissions | Use a read-write key or grant `readMetadata` and `readAnalytics` |
 | Private connection fails | Gateway DNS, outbound OAuth access, or trusted-workspace configuration is incomplete | Follow the private-network guide's validation steps; its portal gateway-selection limitation requires REST API creation |
 
@@ -265,6 +279,6 @@ Check third-party advice against the current [overview](https://learn.microsoft.
 
 ## Summary
 
-Azure Cosmos DB mirroring reads changes from Continuous Backup without consuming provisioned RU/s. Plan for NoSQL API support, backup retention, schema inference, explicit-delete validation, and unresolved TTL guidance. See the current [Cosmos DB mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-limitations), and [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq).
+Azure Cosmos DB mirroring uses continuous backup for initial backfill and live-container changes afterward, without consuming provisioned RU/s. Plan for NoSQL support, backup freshness versus retention, write-region transfer, schema inference, direct deletes, unresolved TTL guidance, and the data-mapping exclusion. See the current [overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-limitations), and [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 12: Azure SQL Managed Instance](chapter-12.md) | **Next:** [Chapter 14: Azure Databricks (Unity Catalog)](chapter-14.md)

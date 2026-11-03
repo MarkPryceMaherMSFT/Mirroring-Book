@@ -177,6 +177,8 @@ See the current [troubleshooting guide for Mirror Azure Monitor](https://learn.m
 
 **Reviewed 8 October 2026.** Research began with [`site:reddit.com "Azure Monitor" "mirroring"`](https://www.google.com/search?q=site%3Areddit.com+%22Azure+Monitor%22+%22mirroring%22). Search results included a source-specific performance discussion, but Reddit returned HTTP 403 when the thread was opened. Its full report and date could not be independently verified in this review, so the checks below rely on readable Microsoft guidance rather than presenting the search snippet as incident evidence.
 
+The [Azure Monitor Direct Lake guardrails discussion](https://www.reddit.com/r/MicrosoftFabric/comments/1wc9zd1/mirror_azure_monitor_preview_direct_lake_blocked/) is retained as an **unverified research lead**. Its title is not proof of a connector defect, current capacity limit, or confirmed resolution.
+
 | Evidence | Practical response |
 |---|---|
 | **Documented:** the [troubleshooting guide](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor-troubleshoot) distinguishes malformed workspace ID (`400`), wrong/expired identity (`401`), permissions (`403`), missing workspace (`404`), throttling (`429`), and service failures (`5xx`). | Read the detailed error before changing configuration. Check the GUID and tenant first; check source IAM for `403`, and back off rather than repeatedly recreating connections for `429`. |
