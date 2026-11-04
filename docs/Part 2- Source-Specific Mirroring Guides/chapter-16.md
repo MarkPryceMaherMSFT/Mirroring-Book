@@ -39,14 +39,17 @@ The setup documentation requires a Google Cloud Storage staging bucket for table
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [native BigQuery tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-tutorial#connect-to-your-bigquery-instance-in-any-cloud), [security guide](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-security), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-limitations) explicitly support both gateway types. This is evidence for database replication, not generic Power Query/Copy Job support or [Google catalog mirroring](chapter-30.md).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | No, for a directly reachable BigQuery project. Optional otherwise: an on-premises data gateway (version 3000.286.6 or later) or a VNet data gateway can route the connection. |
-| **Private endpoint support?** | Not applicable in the Azure sense, since BigQuery runs on Google Cloud. A gateway routes outbound connectivity from a controlled network instead. |
-| **Source network restrictions?** | Gateway support does not itself establish support for every Google Cloud perimeter or Fabric workspace outbound policy. Verify that the selected connection can reach the required BigQuery and Cloud Storage endpoints. |
+| **Standard-mode on-premises data gateway?** | **Optional, supported**; not required for a directly reachable cloud connection. Microsoft's source-specific feature floor is **3000.286.6**. Use standard mode, not the Power BI-only personal gateway. |
+| **VNet data gateway?** | **Optional, supported** by the source-specific mirroring documentation. It does not remove source authentication, export/staging, or Google Cloud network requirements. |
+| **Source network restrictions?** | Validate BigQuery API, authentication, and Cloud Storage reachability for the chosen path. The [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-faq#what-authentication-is-allowed) supports service keys, not SSO; a gateway does not establish a keyless or private Google API/VPC Service Controls recipe. The staging discrepancy above remains unresolved. |
+| **Fabric Private Link / public-access blocking?** | BigQuery is not in the supported-source lists for [tenant-level mirroring Private Link](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) or [workspace-level inbound protection](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support). Those guides say other mirror types pause and cannot start when tenant public access is blocked or workspace inbound public access is denied, respectively. Gateway support does not override this boundary. |
 | **Fabric workspace outbound protection?** | BigQuery is supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Allow the source connection in addition to configuring its network path. |
 
-See the current [BigQuery limitations](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-limitations) for gateway version requirements.
+The source's minimum version is a **feature floor, not a current maintenance recommendation**. Use a currently supported gateway release; see the [common gateway matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
 
 ---
 
@@ -177,7 +180,7 @@ Replace both timestamps with UTC values: start after change history was enabled,
 ### 6. Establish connectivity and create the mirror
 
 1. For direct access, have the network owner permit the Google API/authentication/storage endpoints used by the connection. Validate DNS, HTTPS, proxy rules, organization policies, and any Google service perimeter. Public service endpoints do not mean anonymous access.
-2. If using a gateway, configure its network route first. On-premises data gateway must be **3000.286.6 or later**; VNet data gateway is also supported. A gateway is optional, not universally required for BigQuery.
+2. If using a gateway, configure its network route first. A **standard-mode** on-premises data gateway must meet the **3000.286.6 feature floor** and current release-support policy; a VNet data gateway is also supported. Neither gateway is universally required for BigQuery, and neither bypasses the Fabric public-access restrictions above.
 3. In an outbound-protected Fabric workspace, allow the BigQuery connection through the documented data connection rules. Do not assume a gateway automatically bypasses workspace or Google-side restrictions.
 4. In the capacity-backed workspace, open **Create → Mirrored Google BigQuery**, name the item, and select **Create**.
 5. Select **BigQuery** under **New connection**, or an existing authorized connection. Enter the exact **Service Account Email** and the complete **Service Account JSON key file contents**. Select the approved gateway, if applicable, and give the connection a recognizable name.

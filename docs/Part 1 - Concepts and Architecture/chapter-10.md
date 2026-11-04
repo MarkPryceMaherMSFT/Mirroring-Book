@@ -68,6 +68,14 @@ Several things fall outside the free allowance:
 * **VNet data gateway**: Where the source supports this gateway, its uptime consumes the capacity linked to the gateway at **4 CUs per gateway member**. It is not free mirroring compute or an external hosting charge. See [VNet data gateway capacity consumption](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-business-model).
 * **Monitoring and downstream processing**: Workspace Monitoring, alerts, and downstream Copy Jobs or notebooks have their own workload consumption. Free replication does not make the monitoring or transformation workload free.
 
+### VNet Gateway Uptime Is Not Replication Time
+
+**Gateway billing reviewed: 4 November 2026.** The [gateway meter](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-business-model) charges **4 CUs per active member**, so `CU-seconds = 4 * active seconds * active members`. One member running for an hour consumes **4 CU-hours**; two consume **8 CU-hours**. This rate is not four CU-seconds per hour, a per-mirror fee, or the number of source connections.
+
+The gateway can be provisioned without an uptime charge until a query or connection test starts it. Its inactivity timeout can keep it running after work finishes; a later request can wake it again. The [HA/settings guidance](https://learn.microsoft.com/en-us/data-integration/vnet/high-availability-load-balancing) documents 1-9 members, a default 30-minute idle timeout, and a maximum 24-hour timeout, not an always-on switch. A connection-only gateway and one carrying sustained reads can therefore have different uptime costs. Gateway use is billable even when the native replication engine is free; the linked gateway capacity need not be the same billing placement as every downstream consumer.
+
+All F SKUs are eligible for the VNet gateway; **F8+ is a recommendation, not a minimum**, according to the [overview](https://learn.microsoft.com/en-us/data-integration/vnet/overview). Gateway eligibility on a Premium/Embedded or trial capacity is separate from the source item's Fabric-capacity requirements. A trial does not gain the purchased-capacity free mirrored-storage allowance. See the [source gateway matrix and operational baseline](../appendix.md#gateway-support-by-source).
+
 ***
 
 ## 10.4 Source-Side and Network Costs

@@ -22,7 +22,9 @@ SQL Server 2016–2022 uses SQL Server CDC. This walkthrough uses an on-premises
 - **Method**: Gateway-mediated replication
 - **Change mechanism**: SQL Server Change Data Capture (CDC)
 
-Use the standard Microsoft on-premises data gateway or VNet data gateway to connect Fabric to the SQL Server instance. Fabric enables and manages CDC for the selected tables; there is no separate Fabric Mirroring Agent.
+Use a **standard-mode Microsoft on-premises data gateway** or **VNet data gateway** to connect Fabric to the SQL Server instance. Fabric reuses existing CDC or configures missing CDC with the authorized setup principal; there is no separate Fabric Mirroring Agent.
+
+The gateway route carries **setup/discovery/metadata queries, initial snapshot reads, and ongoing CDC reads** from SQL Server back to Fabric. Keep it available after setup; it is not just a connection-wizard helper for this branch. SQL Server Agent captures changes locally, and Fabric ingests them through the gateway. Unlike SQL Server 2025, this path does not require an Arc identity or a database-engine change-feed publisher making direct OneLake writes.
 
 **Architecture flow:**
 
@@ -33,13 +35,19 @@ Use the standard Microsoft on-premises data gateway or VNet data gateway to conn
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [source overview](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server#mirroring-sql-server-behind-firewall), [version-specific tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-tutorial?tabs=sql201622), and [security requirements](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-security#security-requirements) explicitly name both gateway types for native SQL Server mirroring. The public-source wording discrepancy below remains unresolved; SQL MI's 2022-policy exception is explicit. See [gateway support by source](../appendix.md#gateway-support-by-source) for the shared comparison, lifecycle, and costs.
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | Use an on-premises or VNet data gateway for a private source. The version-specific tutorial and security article document this gateway path. |
-| **Private source connectivity?** | The gateway's network must reach SQL Server through the appropriate private network, private endpoint where applicable, or source firewall rule. This does not establish support for Fabric workspace Private Link. |
-| **Outbound-restricted source network?** | Allow the gateway service's [documented outbound endpoints and ports](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication), plus connectivity to SQL Server's configured listening port. No inbound Internet connection to the gateway is required, but the source firewall must allow the gateway to reach SQL Server. |
+| **Data gateway required?** | Required for a private source. The version-specific walkthrough/security article prescribe one; generic tutorial prerequisites make it conditional on public accessibility. Use the documented gateway route here; do not treat a public SQL endpoint as proof of a supported gatewayless design. **SQL MI on the 2022 update policy always requires a gateway**, even when public. |
+| **VNet data gateway supported?** | Yes, explicitly documented for native mirroring. For private on-premises SQL, provide actual routing from its Azure delegated subnet, such as a suitable VPN or ExpressRoute path, and working DNS. Creating the gateway alone does not provide that connectivity. |
+| **On-premises data gateway supported?** | Yes, in **standard mode**, not personal mode. Its Windows host must reach SQL; SQL Server itself can be on a separately supported Windows/Linux host. |
+| **Gateway minimum version?** | The reviewed native SQL Server mirroring pages state no gateway build minimum. Standard gateways should follow the [supported-release/latest-for-Fabric guidance](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-monthly-updates) and the shared [operational baseline, sign-in, and upgrade guidance](../appendix.md#gateway-releases-and-operational-baseline). Historical compatibility floors are not ongoing production baselines. VNet gateways are Microsoft-managed. |
+| **Connection authentication?** | The native tutorial demonstrates **SQL authentication** and **Entra-authenticated logins where the engine supports them**. This walkthrough uses Basic/SQL authentication. It does not publish a complete gateway-by-authentication matrix; do not import Windows/SSO, service-principal, or workspace-identity support from another workload's connector table. |
+| **Private source connectivity?** | The gateway must resolve/reach the SQL listener and configured port through private routing, a source private endpoint where applicable, or an approved firewall rule. This source route does not establish Fabric tenant/workspace Private Link support. |
+| **Outbound-restricted source network?** | Standard gateways need their [documented outbound service connectivity](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication), plus gateway-to-SQL access. VNet gateways use their managed service path and subnet routing/NSGs. The CDC source has no SQL Server 2025-style direct OneLake change-feed or Arc requirement. |
 
-The [tutorial prerequisites](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-tutorial#prerequisites) make the gateway conditional on source accessibility, while the version-specific steps instruct you to configure one. This chapter follows the documented gateway walkthrough rather than asserting that every public-source configuration requires one. Source firewall access is also distinct from Fabric workspace outbound access protection.
+The [tutorial prerequisites](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-tutorial#prerequisites) make the gateway conditional on source accessibility, while its 2016–2022 steps and the security article instruct you to configure one. Follow that walkthrough and obtain Microsoft clarification before planning a gatewayless public deployment; this is a documentation boundary, not a newly verified gatewayless feature. Personal-mode gateways are [Power BI only](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-onprem#types-of-gateways). Source support above comes from native mirroring articles, not the generic Power Query/Copy Job matrix. Source firewall access, Fabric inbound Private Link, and workspace outbound access protection are separate controls.
 
 ---
 
@@ -122,7 +130,7 @@ GRANT CONNECT, SELECT TO [fabric_user];
 
 Use consistent approved names, inspect existing principals rather than rerunning `CREATE`, and keep passwords in the approved secret store and Fabric credential fields. Do not put secrets in shared scripts or gateway troubleshooting exports.
 
-If selecting another supported gateway authentication method, provision the corresponding login and mapped user and apply the same version-appropriate permissions. Do not copy an Entra `CREATE LOGIN ... FROM EXTERNAL PROVIDER` example onto SQL Server 2016–2019: Entra authentication is not available uniformly across these versions. On SQL Server 2022 it needs its own [Entra configuration](https://learn.microsoft.com/en-us/sql/relational-databases/security/authentication-access/azure-ad-authentication-sql-server-overview).
+The native tutorial also demonstrates an Entra login, but do not copy `CREATE LOGIN ... FROM EXTERNAL PROVIDER` onto SQL Server 2016–2019: Entra authentication is not available uniformly across these versions. On SQL Server 2022 it needs its own [Entra configuration](https://learn.microsoft.com/en-us/sql/relational-databases/security/authentication-access/azure-ad-authentication-sql-server-overview). Confirm the selected mirroring gateway connection offers the intended authentication kind, provision that principal, and retain the same CDC/read permissions. The organizational account used to register a gateway is not automatically the SQL connection credential. Entra authentication setup, if chosen, has its own identity-network dependencies; the CDC replication mechanism itself does not require Arc.
 
 **DBA-prepared CDC, preferred where setup elevation is prohibited:** the DBA prepares every selected table before Fabric connects. For a safe first test, create the following table once in the approved source database:
 
@@ -173,14 +181,14 @@ This is instance-wide authority, not a minor database grant. Limit its duration 
 
 ### 4. Install/select and test the gateway
 
-1. Install the [standard on-premises data gateway](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-install), not personal mode, on an approved always-on host; alternatively provision a [VNet data gateway](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways).
+1. Install the [standard-mode on-premises data gateway](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-install), not personal mode, on an approved always-on Windows host; alternatively provision a [VNet data gateway](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways). Use Microsoft's current supported gateway release guidance, not an invented SQL-specific minimum.
 2. Register it to the intended tenant, name it meaningfully, and protect its recovery key in the approved store. Record service, patching, and high-availability ownership.
 3. From the gateway's network, resolve the server FQDN and connect to SQL's **configured** listening port. Named instances may use nondefault/dynamic ports; obtain the actual endpoint from the DBA instead of opening all ports. Configure TCP/IP and source firewall access under change control if they are not already enabled.
 4. Use a server certificate and hostname that validate for the gateway connection. Do not make **Trust server certificate** or disabling encryption a routine production solution.
-5. Permit the gateway's [documented outbound endpoints and ports](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication). An inbound Internet rule to the gateway is not required.
+5. For a standard gateway, permit its [documented outbound endpoints and ports](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication) and run its network ports test. An inbound Internet rule to the gateway is not required. For a VNet gateway, use its [managed network architecture](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-architecture) and [DNS/port troubleshooter](https://learn.microsoft.com/en-us/data-integration/vnet/troubleshoot-data-gateway); do not apply Windows gateway Azure Relay settings to the managed service.
 6. Verify the database login from this network and authorize the Fabric creator to use the gateway/connection. Keep source routing, gateway availability, and credential validation as separate tests.
 
-**VNet gateway alternative:** use the [creation procedure](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways), not the Windows installer. Check supported region, same tenant, and eligible capacity; the subscription owner registers `Microsoft.PowerPlatform`. A network administrator with subnet `join/action` permission creates a dedicated subnet, delegates it to `Microsoft.PowerPlatform/vnetaccesslinks`, and validates routes/DNS to SQL Server. In **Settings → Manage connections and gateways → Virtual network (VNet) data gateway → New**, select the capacity and Azure subnet details, then save. The delegated subnet cannot be shared with other services.
+**VNet gateway alternative:** use the [creation procedure](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways), not the Windows installer. Check supported region, same tenant, and eligible capacity; the subscription owner registers `Microsoft.PowerPlatform`. A network administrator with subnet `join/action` permission creates a dedicated subnet, delegates it to `Microsoft.PowerPlatform/vnetaccesslinks`, and validates routes/DNS to SQL Server, including the on-premises VPN/ExpressRoute path where needed. In **Settings → Manage connections and gateways → Virtual network (VNet) data gateway → New**, select the capacity and Azure subnet details, then save. The delegated subnet cannot be shared with other services. Authorize the creator to use the gateway and connection; for encrypted SQL connections, use the [managed gateway certificate settings](https://learn.microsoft.com/en-us/data-integration/vnet/manage-data-gateways#certificate--proxy-support) where required instead of disabling certificate validation.
 
 **Workspace outbound access protection:** [SQL Server is a supported mirrored source](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). If protection is enabled, ask the workspace Admin to allow this source using a **data connection rule** before validation. A healthy gateway or open SQL firewall port does not override the workspace's default-deny policy.
 
@@ -269,7 +277,7 @@ For `.dacpac` deployments, the [SQL Server limitations](https://learn.microsoft.
 | Topic | Detail |
 |---|---|
 | **Edition requirements** | Standard, Enterprise, and Developer on Windows are listed for SQL Server 2016–2022. Verify the installed build supports CDC. |
-| **Gateway** | Keep the on-premises data gateway current and monitor its availability. |
+| **Gateway** | Standard on-premises and VNet gateways are explicitly documented. On this walkthrough's route, availability and throughput affect both the initial snapshot and ongoing CDC reads, not only setup. The public-source prerequisite/walkthrough wording remains inconsistent. |
 | **Primary key required** | Each mirrored table must have a primary key. |
 | **SQL Server Agent** | CDC capture and cleanup depend on SQL Server Agent. |
 | **DDL changes** | A schema change can fail mirroring for the affected table. An administrator must disable and re-enable that table's CDC using the error's procedure, preserving the approved gating role/capture options; the table then takes a new snapshot. Coordinate with any other CDC consumers first. |
@@ -292,7 +300,7 @@ For `.dacpac` deployments, the [SQL Server limitations](https://learn.microsoft.
 - **CDC overhead**: CDC capture and cleanup add source CPU and I/O activity.
 - **CDC tables and jobs**: Fabric creates missing CDC objects when given setup permission, or reuses the DBA-prepared configuration. SQL Server Agent runs the associated jobs.
 - **Gateway traffic**: Replication traffic passes through the data gateway and consumes network bandwidth.
-- **Gateway cost**: Budget for the on-premises gateway host if you manage one. A VNet data gateway instead consumes its linked Fabric or Power BI Premium capacity at **4 CUs per running member**, based on uptime. See [gateway capacity consumption](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-business-model).
+- **Gateway cost and lifecycle**: Budget for the standard gateway host if you manage one. VNet gateways consume their assigned capacity separately from core mirroring; use the shared [gateway comparison, cost, and release guidance](../appendix.md#gateway-support-by-source).
 - **Log and change-table retention**: Monitor capture lag, cleanup jobs, change-table storage, and transaction-log usage separately. Long-running transactions and capture problems can prevent log truncation.
 
 ---
@@ -303,10 +311,11 @@ See the current [SQL Server mirroring troubleshooting guide](https://learn.micro
 
 | Symptom | Likely Cause | Resolution |
 |---|---|---|
-| Gateway is offline | Gateway service is stopped or cannot reach Fabric | Restart and update the gateway; verify outbound connectivity |
-| Gateway cannot reach SQL Server | Firewall, DNS, or SQL connectivity issue | Test the source connection from the gateway machine |
+| Gateway is offline or absent from the picker | Standard service stopped, wrong mode, missing access, managed gateway unavailable, or blocked service connectivity | Use standard mode or VNet, verify gateway/connection access and current supported releases, then use the appropriate gateway network test |
+| Gateway cannot reach SQL Server | Firewall, private routing/DNS, listener/port, TLS, or SQL credential issue | Test from the standard gateway host or VNet gateway network troubleshooter; check VPN/ExpressRoute and source firewall separately from the service connection |
 | CDC setup fails | CDC is not already configured and the setup login lacks permissions | Have an administrator configure CDC, or grant temporary setup membership and remove it after configuration |
 | Replication fails after DDL | Source table schema changed while CDC was active | Follow the documented table-level CDC reset procedure; expect a new snapshot |
+| Connection succeeds but snapshot/CDC replication stalls | Gateway throughput/connectivity, stopped capture, retention loss, or source pressure | Check runtime gateway health and bandwidth, SQL Agent capture/cleanup history, CDC watermarks/retention, source load and Fabric errors; connection validation alone is insufficient |
 | High CDC storage use | Replicator is falling behind | Check gateway health, network bandwidth, and source load |
 | Tables not visible or unsupported | Missing primary key, unsupported table feature, insufficient permissions, or the table limit | Check the table's replication status, source permissions, and limitations before changing the edition |
 
@@ -331,10 +340,12 @@ Reviewed **7 October 2026**: [version-specific setup tutorial](https://learn.mic
 
 Rechecked **8 October 2026**: those setup, version, limitations, troubleshooting, security, and CDC articles; additionally, [2016 edition/build requirements](https://learn.microsoft.com/en-us/previous-versions/sql/sql-server/editions-and-components-of-sql-server-2016#data-warehouse), [CDC table options](https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sys-sp-cdc-enable-table-transact-sql?view=sql-server-ver16), [VNet gateway creation](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways), [outbound protection](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases), and the dated forum report above.
 
+Gateway/network scope rechecked **4 November 2026**: source overview, 2016–2022 tutorial tab, security, limitations and troubleshooting; VNet creation/architecture/FAQ/management/troubleshooting; standard gateway modes, installation and communication; and the [supported gateway releases](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-monthly-updates) and linked [October 2026 release notes](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/on-premises-data-gateway-october-2026-release/5376557). No SQL Server-specific gateway build minimum is stated in those native source articles. The conditional public-access prerequisites versus prescriptive gateway steps remain explicitly qualified above.
+
 ---
 
 ## Summary
 
-SQL Server 2016–2022 uses Fabric-managed CDC through an on-premises or VNet data gateway. Plan supported versions and editions, SQL Server Agent, temporary setup permissions, primary keys, gateway availability, and DDL handling. See the current [SQL Server mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-tutorial), [security guidance](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-security), [performance guidance](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-performance), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-limitations).
+SQL Server 2016–2022 uses CDC, with initial-copy and ongoing CDC reads passing through a **standard-mode** on-premises or VNet gateway on the documented walkthrough's route. Private sources require one; public-source prerequisite wording is less restrictive than the walkthrough and should not be read as a verified gatewayless design. SQL MI's 2022-policy gateway requirement is unconditional. Plan editions, SQL Server Agent, scoped permissions, primary keys, gateway availability, and DDL handling. See the current [SQL Server mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-tutorial), [security guidance](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-security), [performance guidance](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-performance), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-limitations).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 22: Snowflake](chapter-22.md) | **Next:** [Chapter 24: SQL Server 2025](chapter-24.md)

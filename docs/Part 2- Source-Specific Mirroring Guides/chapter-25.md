@@ -54,13 +54,16 @@ The summary's [linked event-streaming tutorial](https://learn.microsoft.com/en-u
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [automatic-mirroring overview](https://learn.microsoft.com/en-us/fabric/database/sql/mirroring-overview) and [FAQ](https://learn.microsoft.com/en-us/fabric/database/sql/mirroring-faq) assign replication setup and authentication to Fabric. Supported data is replicated to OneLake in the **same workspace**, not through an external Azure SQL source connection.
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | No. There is no external source system, so no gateway of any kind applies. |
+| **Standard-mode on-premises data gateway?** | **Not part of this flow; not required** for automatic internal mirroring. There is no external source connection or customer-installed gateway to configure. |
+| **VNet data gateway?** | **Not part of this flow; not required.** A client's VNet/Private Link connectivity is separate from the Fabric-managed replication path. |
 | **Private endpoint support?** | Client access to the SQL database and its SQL analytics endpoint supports Fabric tenant-level and workspace-level Private Link; workspace-level support is preview. This is separate from automatic internal mirroring. |
 | **Outbound restrictions?** | There is no external source connection or customer gateway to configure for mirroring. Client firewall requirements and Fabric workspace outbound access protection are separate concerns; do not infer their support from mirroring being automatic. |
 
-See the [SQL database private-connectivity entry](https://learn.microsoft.com/en-us/fabric/database/sql/limitations#platform-capabilities) and [Private Link guidance for SQL database](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#sql-database).
+See the [SQL database private-connectivity entry](https://learn.microsoft.com/en-us/fabric/database/sql/limitations#platform-capabilities) and [Private Link guidance for SQL database](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#sql-database). The [workspace-level preview limitations](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#sql-database-support) require the SQL database to exist **before** enabling workspace Private Link; a database cannot be created in an already private-link-enabled workspace.
 
 ---
 
@@ -114,6 +117,8 @@ SQL database in Fabric uses **Microsoft Entra authentication only**. For a first
 *Figure 25.3: Open the transactional database in SQL tools. Companion to the [database creation tutorial](https://learn.microsoft.com/en-us/fabric/database/sql/create), from [Connect to your SQL database](https://learn.microsoft.com/en-us/fabric/database/sql/connect). Image: Microsoft, [original](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/database/sql/media/connect/open-in-sql-tools.png), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), unchanged.*
 
 The [documented public connection policy](https://learn.microsoft.com/en-us/fabric/database/sql/limitations#connection-policy) is **Default** and cannot be changed. Network administrators must allow outbound client traffic to regional Azure SQL gateway addresses on TCP **1433** and regional Azure SQL addresses on **11000–11999**. Use the current regional SQL service-tag/IP guidance, not a static copied list. For Private Link, validate the applicable Fabric setup, private DNS, and routes instead; public-client rules alone are not a private-connectivity design.
+
+Those **Azure SQL gateway addresses** are service endpoints for SQL client connections, not an instruction to install a Fabric on-premises data gateway.
 
 There is **no** `CREATE LOGIN ... WITH PASSWORD`, `sp_cdc_enable_db`, or external-mirror grant to run for this automatic mirroring setup. Those instructions belong to other sources.
 

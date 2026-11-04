@@ -35,11 +35,16 @@ SAP Datasphere owns extraction from the SAP source and delivery to ADLS Gen2. A 
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [SAP overview](https://learn.microsoft.com/en-us/fabric/mirroring/sap#mirroring-for-sap-via-sap-datasphere), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/sap-datasphere-tutorial), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/sap-limitations) document **SAP → Datasphere → ADLS Gen2 → Lakehouse shortcut → Fabric mirroring**. Any SAP Cloud Connector or cloud extraction service used upstream, and the ADLS staging area, are not Fabric data gateways.
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | The SAP walkthrough does not configure a Fabric data gateway. Fabric reads landed files through a Lakehouse shortcut to ADLS Gen2. |
+| **Standard-mode on-premises data gateway?** | **Not part of the documented flow.** The SAP walkthrough configures no Fabric gateway; Fabric reads the landed ADLS files, not the on-premises SAP database directly. |
+| **VNet data gateway?** | **Not documented for this native SAP mirroring flow.** Generic SAP connectors, Copy Job, partner publishers, or shortcut gateway support do not establish a gateway option for Mirrored SAP. |
 | **Storage firewall access?** | ADLS Gen2 shortcuts support trusted workspace access with a workspace identity, a storage resource-instance rule, and authorised connection credentials. This requires purchased F capacity, not a trial. Trusted workspace access is not a private endpoint. |
-| **Private endpoints and outbound restrictions?** | The ADLS shortcut documentation explicitly excludes connections using Fabric managed private endpoints. The SAP-specific documentation does not establish an outbound-restricted-workspace configuration. Trusted workspace access is a different mechanism; validate the SAP Datasphere-to-ADLS route separately. |
+| **Fabric Private Link?** | SAP mirrored items are explicitly listed for [tenant-level Private Link](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace-level inbound protection](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support). This protects Fabric ingress, not the SAP extraction or ADLS egress path. |
+| **ADLS managed private endpoints?** | The [ADLS shortcut limitations](https://learn.microsoft.com/en-us/fabric/onelake/create-adls-shortcut#limitations) explicitly exclude connections using Fabric managed private endpoints. Fabric ingress Private Link and trusted workspace access do not change that restriction. |
+| **Fabric workspace outbound protection?** | The [mirrored-database guide](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases) explicitly lists SAP. Configure approved data connection rules, including the ADLS target under the [OneLake shortcut rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake#allowing-requests-to-external-locations). Rules do not provide network reachability or authorise the separate Datasphere-to-ADLS writer. |
 
 See [Trusted workspace access](https://learn.microsoft.com/en-us/fabric/security/security-trusted-workspace-access) for the current guidance on connecting Fabric to firewall-restricted ADLS Gen2 storage.
 

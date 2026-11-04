@@ -20,7 +20,7 @@
 - **Method**: Gateway-mediated extraction using Oracle LogMiner
 - **CDC mechanism**: Oracle redo log (LogMiner-based)
 
-The Oracle Mirror Publisher runs on the on-premises data gateway and uses LogMiner to extract redo-log changes. Fabric applies the captured INSERT, UPDATE, and DELETE operations to the replica.
+The **Oracle Mirror Publisher runs on the standard-mode on-premises data gateway (OPDG)** and uses LogMiner to extract redo-log changes. The gateway is part of the extraction/publication runtime, not merely a table-discovery or control-plane connection. Fabric applies the captured INSERT, UPDATE, and DELETE operations to the replica. Unlike the Azure PostgreSQL/MySQL publishers, the Oracle source guides do not describe a separate database-host-to-OneLake publishing route. See [Oracle gateway/runtime requirements](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations#set-up-your-gateway).
 
 **Architecture flow:**
 
@@ -31,14 +31,21 @@ The Oracle Mirror Publisher runs on the on-premises data gateway and uses LogMin
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** Source contract: [Oracle overview](https://learn.microsoft.com/en-us/fabric/mirroring/oracle), [gateway setup and minimum version](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-tutorial#install-the-on-premises-data-gateway), [limitations/runtime troubleshooting](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations#set-up-your-gateway), and [Oracle security](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-security#security-requirements).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | Yes, always. An on-premises data gateway is a required prerequisite for every supported Oracle environment, including on-premises servers, Oracle Cloud Infrastructure (OCI), Oracle Database@Azure, and Oracle Exadata. |
-| **Private endpoint support?** | The gateway must reach the Oracle listener through a private route or a permitted firewall rule. Installing a gateway alone does not create that route. |
-| **Source firewall restrictions?** | Allow the gateway-to-Oracle listener connection and the gateway's documented outbound service endpoints. No inbound connection from Fabric to the gateway is required, but source-side listener firewall rules can still be necessary. |
-| **Fabric workspace outbound protection?** | Supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Allow the Oracle gateway connection explicitly. |
+| **Standard on-premises gateway required?** | Yes, for public **and** private Oracle endpoints in every supported environment: on-premises/VM, OCI, Oracle Database@Azure, and Exadata. Personal mode is Power BI-only and is not a mirroring runtime. |
+| **VNet data gateway?** | Not supported for native Oracle mirroring: the [source limitations](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations#set-up-your-gateway) explicitly say **only OPDG**. A generic Oracle/VNet connector listing does not override this. |
+| **Minimum gateway build?** | **3000.282.5**, per the [Oracle tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-tutorial#install-the-on-premises-data-gateway). This is a historical compatibility floor, **not an acceptable ongoing production baseline**; use the latest [supported monthly standard gateway](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-monthly-updates) and the [current operational baseline](../appendix.md#gateway-releases-and-operational-baseline). |
+| **Authentication and client?** | **Basic** Oracle username/password with the published sync-user grants. Prepare **64-bit Oracle Client for Microsoft Tools (OCMT)** on the gateway host; the native limitations prescribe updating OCMT for the unconstrained-`NUMBER` error. No numeric OCMT minimum is published there. |
+| **Private source connectivity?** | The gateway host must reach the Oracle listener through the approved private endpoint/routed network or a permitted firewall rule. A gateway does not create that route or configure DNS. A public listener still requires OPDG. |
+| **What traverses the gateway?** | Oracle connections and the gateway-hosted Mirror Publisher's extraction/publication work, not just discovery. Keep both listener access and publisher outbound connectivity; do not model Oracle as an Azure source-managed publisher that bypasses the gateway. |
+| **Source firewall restrictions?** | Allow gateway-to-listener access and the gateway's [documented outbound service connectivity](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication). No inbound internet connection from Fabric to the gateway is required. A relay test alone does not validate Oracle login or publication. |
+| **Fabric inbound Private Link?** | Separate from private access to Oracle. Oracle is not in the supported mirror-source lists for tenant **Block Public Internet Access** or workspace **deny inbound public access**; these restrictions pause replication/prevent starting it. See the [tenant](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support) rules. |
+| **Fabric workspace outbound protection?** | Supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Explicitly allow the Oracle source connection; this neither opens the source firewall nor bypasses Fabric inbound restrictions. |
 
-Unlike Azure SQL Database or PostgreSQL, Oracle has no gatewayless mirroring path, even when the Oracle listener is publicly reachable. See the current [Oracle mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/oracle) for the full prerequisite list.
+There is no documented gatewayless native Oracle mirroring path. The general [gateway installer](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-install#related-considerations) also warns about OPDG registration/migration/restore with Fabric Private Link enabled; its generic recommendation to use a VNet gateway is **not** an Oracle mirroring alternative. Resolve that deployment constraint with Microsoft rather than weakening network policy or substituting another connector. See [Gateway support by source](../appendix.md#gateway-support-by-source) for the connectivity comparison and [Gateway releases and operational baseline](../appendix.md#gateway-releases-and-operational-baseline) for the current support window, sign-in requirements, and controlled upgrades.
 
 ---
 
@@ -52,7 +59,7 @@ Unlike Azure SQL Database or PostgreSQL, Oracle has no gatewayless mirroring pat
 |---|---|
 | Oracle DBA | Confirm version/patch level, writable source, CDB/PDB topology, service name, LogMiner readiness, backup/restart plan, logging, sync-user grants, and archive retention. |
 | Schema/application owner | Approve tables and source workload changes; validate keys/types, add table logging, and perform disposable test writes. |
-| Gateway/network administrator | Supply and register a standard on-premises data gateway, supported Oracle connectivity, listener access, and outbound Fabric connectivity. |
+| Gateway/network administrator | Supply and register a standard on-premises data gateway, 64-bit OCMT, listener/DNS access, and outbound connectivity for the gateway-hosted Oracle Mirror Publisher. |
 | Fabric operator/security owner | Supply a capacity-backed workspace and item-creation permission; configure the connection and mirror, monitor it, and rebuild target access controls. |
 
 1. Microsoft's supported baseline is **Oracle 10 and later with LogMiner**, including on-premises/VM, OCI, Oracle Database@Azure, and Exadata. This is not a promise that every version, patch, multitenant topology, or Oracle-native data type has identical behavior.
@@ -183,26 +190,28 @@ GRANT LOGMINING TO FABRIC_REPL;
 
 ### 5. Install the gateway and prove the network path
 
-1. Install/register the latest supported **standard** on-premises data gateway on a supported Windows host with dedicated resources and recovery-key ownership. Personal mode is not the mirroring deployment.
-2. Use **3000.282.5 or later**, and keep monthly updates current. This requirement also applies to OCI, Exadata, and Oracle Database@Azure; VNet data gateway is not a substitute for this Oracle connector.
+1. Install/register the latest supported **standard-mode** on-premises data gateway on a supported Windows host with dedicated resources and recovery-key ownership. Personal mode is not the mirroring deployment. Check the Fabric inbound restrictions above before selecting the deployment topology.
+2. The [native tutorial's feature minimum is **3000.282.5**](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-tutorial#install-the-on-premises-data-gateway); older builds lack Exadata and the documented partial DDL support. This applies to OCI and Oracle Database@Azure too. Do not freeze at that old floor or the limitations page's stale “latest (August 2025)” wording: the [servicing list](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-monthly-updates) recommends the latest gateway for Fabric and supports only the last six monthly updates. Follow the [current operational baseline](../appendix.md#gateway-releases-and-operational-baseline), including sign-in compatibility and controlled maintenance; historical source compatibility alone is insufficient. VNet data gateway is not a substitute.
 3. Establish DNS and TCP access from that host to the actual Oracle listener/service. Port 1521 is common, not compulsory. For example, from gateway-host PowerShell:
 
 ```powershell
 Test-NetConnection -ComputerName '<ORACLE_HOST>' -Port <LISTENER_PORT>
 ```
 
-4. A TCP success is only a network check. Test Oracle authentication and a simple table query through the same naming method and supported Oracle client/provider available to the gateway. A TNS alias must resolve on the gateway host, not only on an administrator's laptop.
-5. Prepare **64-bit Oracle Client for Microsoft Tools (OCMT)** on the gateway host using Microsoft's [client-installation procedure](https://learn.microsoft.com/en-us/fabric/data-factory/connector-oracle-database#prerequisites): choose **Default**, set the installation folder, and record the **Oracle Configuration File Directory**. For a TNS alias, place/configure `tnsnames.ora` there and ensure the gateway service can read the required client configuration. Easy Connect/full descriptors do not require a TNS alias file. For the documented unconstrained-`NUMBER` precision error, the mirroring limitations specifically prescribe updating OCMT, then a controlled gateway/mirror restart; do not alter production numeric columns first.
-6. Allow the gateway's [documented outbound service endpoints](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication), proxy/TLS path, and authentication endpoints. In the gateway app, run **Diagnostics → Network ports test → Start new test** and retain its result; this tests the relay route, not Oracle authentication or every workload endpoint. No inbound internet connection to the gateway is required.
+4. Install **64-bit Oracle Client for Microsoft Tools (OCMT)** on the gateway host using Microsoft's [client-installation procedure](https://learn.microsoft.com/en-us/fabric/data-factory/connector-oracle-database#prerequisites): choose **Default**, set the installation folder, and record the **Oracle Configuration File Directory**. For a TNS alias, place/configure `tnsnames.ora` there and ensure the gateway service can read the required client configuration. Easy Connect/full descriptors do not require a TNS alias file. The native [precision/scale resolution](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations#invalid-decimal-precision-or-scale-for-oracle-number-columns) explicitly requires the latest OCMT followed by a controlled gateway/mirror restart; it does not publish a numeric client-version floor. Do not alter production numeric columns first.
+5. A TCP success is only a network check. Test Oracle authentication and a simple table query through the same naming method and Oracle client/provider available to the gateway. A TNS alias must resolve on the gateway host, not only on an administrator's laptop.
+6. Allow the gateway's [documented outbound service endpoints](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication), proxy/TLS path, authentication endpoints, and the publisher's required output access. The [native limitations](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations#set-up-your-gateway) specifically associate “Unable to connect to the remote server” with the **gateway-hosted publisher's outbound** requirements; it is not always an Oracle-listener failure. In the gateway app, run **Diagnostics → Network ports test → Start new test** and retain its result; this tests the relay route, not Oracle authentication or every publication endpoint. No inbound internet connection to the gateway is required.
 7. Give the Fabric operator access to the registered gateway/connection. For outbound-protected workspaces, add the Oracle connection rule as well as the network path.
 
-**Do not mix connector contracts:** The [Power Query Oracle guide](https://learn.microsoft.com/en-us/power-query/connectors/oracle-database) now describes a bundled driver and some gatewayless cloud connections, but its product/Import/DirectQuery instructions are not an Oracle Mirror Publisher deployment guide. Microsoft's mirroring pages still require OPDG and prescribe OCMT for the precision issue. Confirm any proposed bundled-driver substitution with Microsoft rather than removing OCMT or changing gateway configuration switches based on a different workload's instructions.
+**Topology boundary:** The [general OPDG installer](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-install#add-another-gateway-to-create-a-cluster) supports standalone hosts and clusters on separate machines; the [general HA guide](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-high-availability-clusters) permits up to ten same-version members. The native Oracle guides do **not** publish an Oracle Mirror Publisher-specific active/active, failover, or load-balancing procedure. That is a documentation gap, not a universal cluster ban or a guarantee of uninterrupted CDC. Confirm the supported publisher topology before relying on cluster failover; keep Oracle client/configuration and reachability consistent on any participating hosts. Follow the native recommendation for fewer, more powerful, dedicated gateway VMs with memory headroom: each mirroring pipeline runs its own process.
+
+**Do not mix connector contracts:** The [Power Query Oracle guide](https://learn.microsoft.com/en-us/power-query/connectors/oracle-database) describes a built-in managed ODP.NET driver and gatewayless cloud connections for its own workloads, with different version/authentication capabilities. Its Import/DirectQuery, Windows/Entra authentication, driver switches, and generic VNet connector listings do not extend native Oracle Mirroring. The native contract remains **Basic authentication, LogMiner, OPDG, and the documented OCMT remediation**. The Data Factory page above supplies the client-installation mechanics, not extra native-mirroring features. Confirm any proposed driver substitution with Microsoft rather than removing OCMT based on a different workload's instructions.
 
 ### 6. Create the connection, select tables, and start
 
 1. In the capacity-backed workspace, select **New/Create → Mirrored Oracle**, then **Oracle Database**.
 2. For **Server**, use the DBA-validated TNS alias, full connect descriptor, or Easy Connect service address, for example `<ORACLE_HOST>:<LISTENER_PORT>/<SERVICE_NAME>`. A SID and a service name are not interchangeable.
-3. Select **Create new connection**, provide a connection name, and choose the registered **on-premises data gateway**.
+3. Select **Create new connection**, provide a connection name, and choose the registered **standard-mode on-premises data gateway**, not None, a personal gateway, or a VNet gateway.
 4. Select **Basic** authentication and enter the dedicated sync user's credentials. Select **Connect** to test this identity and gateway path.
 
 ![Oracle connection dialog showing server, connection name, required gateway, and Basic authentication](../assets/setup/chapter-17/specify-oracle-server-details.png)
@@ -258,8 +267,8 @@ COMMIT;
 
 ### 8. Operational handoff and restart planning
 
-- Record the Oracle release/patch, service/container design, source schemas/tables, logging verification, grant approval, gateway version/host, mirror ID, and password-rotation owner.
-- Alert on gateway availability/memory, source CPU/I/O, redo generation, archive destination space, oldest retained required logs, replication errors, and lag relative to expected source commits.
+- Record the Oracle release/patch, service/container design, source schemas/tables, logging verification, grant approval, gateway and OCMT versions/hosts, naming configuration, mirror ID, approved topology, and password-rotation owner.
+- Alert on gateway/publisher availability and memory, listener and outbound publication failures separately, source CPU/I/O, redo generation, archive destination space, oldest retained required logs, replication errors, and lag relative to expected source commits.
 - Coordinate Oracle patching, gateway monthly maintenance, password changes, and capacity pauses. Keep required logs throughout the outage and catch-up period.
 - Before any restart/reseed, preserve error details and verify source logging, log coverage, and available gateway memory. Stagger large-table recoveries; avoid bulk restarts that cause concurrent reloads.
 - If logs are already missing, increasing future retention does not recover them. Agree a supported recovery/reseed plan and downstream reconciliation with the DBA and Microsoft.
@@ -277,8 +286,8 @@ COMMIT;
 | **DDL** | Adding, deleting, and renaming columns have partial support. Changing a column's data type is not supported. |
 | **Scale and names** | Up to 1,000 tables. Table names must be shorter than 30 characters. |
 | **Redo log retention** | Avoid aggressive archive-log purging during initial loads and heavy CDC. Microsoft recommends retaining at least approximately 24 hours when downtime windows are unclear; size retention for your actual recovery needs. |
-| **On-premises Oracle** | Requires an on-premises data gateway installed on a machine with network access to the Oracle instance. |
-| **Oracle Cloud (OCI)** | Also requires an on-premises data gateway. Deploy the gateway on a VM with network access to the OCI-hosted instance; there is no gatewayless direct-connectivity path. |
+| **On-premises Oracle** | Requires standard-mode OPDG hosting the Oracle Mirror Publisher, with Oracle client configuration, listener access, and outbound publication connectivity. |
+| **Oracle Cloud (OCI)** | Also requires standard-mode OPDG, as do Oracle Database@Azure and Exadata. Deploy a gateway host with network access to the instance; neither public access nor a generic VNet Oracle connector removes this runtime requirement. |
 | **Partitioned tables** | Supported; partitions are replicated as part of the base table. |
 
 ---
@@ -297,7 +306,9 @@ COMMIT;
 |---|---|---|
 | LogMiner errors | Insufficient privileges or supplemental logging not enabled | Grant required privileges; enable supplemental logging |
 | Archive log not found | Archived redo logs purged before the Replicator could read them | Have the DBA assess recoverable log coverage or a supported reseed; increase future retention, but do not expect it to restore already missing logs |
-| Data gateway errors | Gateway cannot reach Oracle listener | Verify firewall rules; test TNS connectivity from gateway machine |
+| Source connection/discovery fails | Listener/DNS/TNS, credentials/grants, gateway build, or Oracle client configuration | Confirm standard OPDG, the native version floor and current servicing, 64-bit OCMT, and the exact Basic-authenticated service connection from the gateway host |
+| “Unable to connect to the remote server” during replication | Gateway-hosted Oracle Mirror Publisher cannot reach required outbound services | Follow the [native gateway troubleshooting](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations#set-up-your-gateway) and [communication requirements](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication); test relay, proxy/TLS, and publication access separately from the Oracle listener |
+| Mirror pauses after Fabric network lockdown | Tenant Block Public Internet Access or workspace deny-inbound-public-access excludes Oracle mirroring | Check the published Fabric inbound support lists; a source private route or outbound allow rule does not override this limitation. Escalate the design rather than weakening policy or selecting an unsupported VNet Oracle path |
 | Schema mismatch | Unsupported type change or incomplete supplemental logging | Verify supported DDL and database plus table logging settings |
 | Performance degradation | Source logging load or concurrent large-table reseeds | Measure source and gateway load and stagger large-table onboarding; do not switch to a read-only replica |
 | Invalid decimal precision or scale | Outdated Oracle client on the gateway mishandles unconstrained `NUMBER` | Follow the limitations guide to update Oracle Client for Microsoft Tools and restart the gateway and mirroring |
@@ -328,6 +339,6 @@ Reviewed **8 October 2026** (Reddit recheck limitations noted above):
 
 ## Summary
 
-Oracle mirroring provides near-real-time row-level replication into OneLake. Its setup requires particular attention to supplemental logging, redo-log retention, privilege grants, and gateway connectivity. See the current [Oracle mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/oracle), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-tutorial), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations).
+Oracle mirroring provides near-real-time row-level replication into OneLake through the **Oracle Mirror Publisher on standard-mode OPDG**, even for cloud/public Oracle sources. Use Basic authentication, prepare 64-bit OCMT, and distinguish the **3000.282.5 feature floor** from the latest supported gateway release. VNet/gatewayless Oracle paths are not part of this native contract. Plan logging, redo retention, privileges, listener access, publisher outbound connectivity, and Fabric inbound-policy compatibility separately. See the current [overview](https://learn.microsoft.com/en-us/fabric/mirroring/oracle), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-tutorial), [security](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-security), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 16: Google BigQuery](chapter-16.md) | **Next:** [Chapter 18: PostgreSQL](chapter-18.md)

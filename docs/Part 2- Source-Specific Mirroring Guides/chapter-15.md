@@ -45,11 +45,17 @@ See [Mirror Azure Monitor data in Microsoft Fabric](https://learn.microsoft.com/
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [native tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor-tutorial), [source security/connection requirements](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor#security-and-permissions), and [troubleshooting guide](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor-troubleshoot) describe the Azure Monitor service connection, not a gateway deployment. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | The documented setup uses a Fabric Azure Monitor connection without a data gateway. |
-| **Private endpoint support?** | The connector documentation does not specify an Azure Monitor Private Link deployment procedure. Do not infer support from the authentication options. |
-| **Fabric workspace outbound protection?** | The [mirrored-database support list](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases) does not explicitly enumerate Azure Monitor. Source authentication does not establish support; validate the catalog item and its shortcut access paths before deployment. |
+| **Data gateway required?** | The documented setup uses the native Fabric Azure Monitor connection without a gateway. Neither a **VNet** nor a **standard-mode on-premises** gateway procedure is documented for this mirrored item; that absence is not an explicit blanket gateway exclusion. |
+| **Private source access?** | No native mirroring procedure is documented for Azure Monitor Private Link/private-only workspaces. [AMPLS documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/fundamentals/private-link-security) covers Azure Monitor ingestion/query endpoints; it does not establish this Fabric storage/connection path. Do not infer support from authentication options or another connector's gateway. |
+| **Fabric Private Link and format conversion?** | Source AMPLS, Fabric inbound Private Link, and workspace outbound controls are separate questions. This source exposes existing **Delta Parquet**, not an Iceberg-to-Delta conversion; the Iceberg virtualization Private Link/region exclusions do not establish Azure Monitor's support policy. |
+| **Export destination required?** | No. Native mirroring uses Azure Monitor-managed storage, not a customer Blob/Event Hubs export destination or a separate ADLS gateway connection. |
+| **Fabric workspace outbound protection?** | The [mirrored-database support list](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases) does not explicitly enumerate Azure Monitor. [OneLake outbound controls](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) govern shortcut access and chains separately. Source authentication or a data connection rule alone does not establish end-to-end support. |
+
+**Different integrations:** [Log Analytics data export rules](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-data-export) write to customer Blob Storage/Event Hubs and have their own destination-region/firewall requirements. The [DCR-based Fabric/Eventhouse destination preview](https://learn.microsoft.com/en-us/azure/azure-monitor/vm/send-fabric-destination) retired on **1 September 2026**; its public-destination and same-region prerequisites are not documented native-mirroring prerequisites. Neither export recipe nor a generic shortcut gateway supplies the missing private-mirroring procedure.
 
 ---
 
@@ -57,7 +63,7 @@ See [Mirror Azure Monitor data in Microsoft Fabric](https://learn.microsoft.com/
 
 ### 1. Source administrator and security preflight
 
-Follow the [Microsoft setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor-tutorial) and [source permission requirements](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor#security-and-permissions), checked **8 October 2026**. This is an exposure of Azure Monitor's existing storage, not a log-export or CDC setup.
+Follow the [Microsoft setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor-tutorial) and [source permission requirements](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor#security-and-permissions), checked **4 November 2026**. This is an exposure of Azure Monitor's existing storage, not a log-export or CDC setup.
 
 1. **Log Analytics administrator:** identify the source workspace and copy **Workspace ID** from its Azure portal **Overview** page. Use this GUID, not the workspace name, subscription ID, or Azure resource ID. Record the Log Analytics tenant and compare it with the Fabric tenant.
 2. Pick a non-sensitive, actively ingesting table such as `Heartbeat` or `AppRequests`. Query it in Log Analytics and record the latest `TimeGenerated` plus an identifiable recent record. Merely creating a custom table is insufficient: it must receive streaming records to appear in the preview picker. No export rule, new destination storage account, or source CDC configuration is required.
@@ -87,7 +93,7 @@ The cross-tenant prerequisites mention read access, but the tutorial's connectio
 
 For workspace identity, follow the [identity administration guidance](https://learn.microsoft.com/en-us/fabric/security/workspace-identity). Creating the identity does not itself assign Azure source permissions; match its ID, not just its display name, when making the IAM assignment. Azure Monitor's native connection manages the underlying storage path: there is no documented customer storage-account key, separate ADLS shortcut connection, or Blob Data Reader grant to configure here.
 
-The connector pages provide no complete Azure Monitor Private Link/gateway setup procedure. Where networking is restricted, verify support with the service team before onboarding; do not substitute Databricks' VNet instructions or make a workspace public to force a test through.
+The connector pages provide no complete Azure Monitor Private Link, VNet gateway, or standard-mode on-premises gateway setup procedure. Where networking is restricted, verify the source service connection, managed-storage access, and Fabric consumer/outbound paths with the service team before onboarding. Do not substitute Databricks' VNet instructions, create an export destination, or make a workspace public to force a test through.
 
 ### 3. Create the item and select actively ingesting tables
 
@@ -136,6 +142,7 @@ Keep source retention and the documented **two-step purge** process in the opera
 | **Regional availability** | Available in all supported Microsoft Fabric regions, which are a subset of Azure regions. |
 | **Initial setup latency** | Tables typically take about 15 minutes to appear in OneLake and Eventhouse after item creation. |
 | **Cross-region reads** | Reads work across regions, but network egress charges might apply. |
+| **Network/format scope** | Azure Monitor's existing Delta Parquet path does not inherit the Iceberg-to-Delta virtualization exclusions. Separate export/DCR service constraints and gateway support for other connectors are not a native Azure Monitor mirroring recipe. |
 | **Auth lifecycle** | Items created with organizational-account (OAuth) authentication stop working if the creating user leaves the tenant or loses workspace access. Prefer workspace identity or a service principal for production. |
 | **Two-step data purge** | Microsoft documents both the Log Analytics data purge API and the Lake Data Purge API after onboarding. If the latter is unavailable during preview, contact support; do not assume a source purge is sufficient. |
 | **Some columns unavailable** | Mirrored tables do not include the `_ResourceId`, `_SubscriptionId`, and `Type` system columns. |
@@ -170,6 +177,7 @@ See the current [troubleshooting guide for Mirror Azure Monitor](https://learn.m
 | Lakehouse shortcut fails | Shortcut-specific issue, separate from mirrored item health | Confirm the mirrored item itself is healthy first, then troubleshoot the shortcut independently |
 | Mirrored item stops working | Organizational-account connection's creating user left the tenant or lost access | Recreate the connection using workspace identity or a service principal for production use |
 | Workspace identity fails validation | Known early-preview issue still affects the deployment | The troubleshooting guide recommends Organizational account for same-tenant access until fixed; create a new Workspace identity connection afterwards |
+| Restricted-network deployment fails | Native connection/storage or Fabric outbound support has not been established | Retain the detailed error, workspace/tenant IDs, and timestamp; review the service connection and each shortcut path with the service owner. Do not assume AMPLS or a generic gateway supplies a supported private route |
 
 ---
 

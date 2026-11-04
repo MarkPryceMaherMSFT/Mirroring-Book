@@ -70,6 +70,14 @@ token = credential.get_token("https://storage.azure.com/.default")
 
 Pass `credential`, not the token string, to the storage SDK so it can refresh tokens. Fabric control-plane calls use a separate token for `https://api.fabric.microsoft.com/.default`. See [OneLake authentication](https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api), [item permissions](https://learn.microsoft.com/en-us/fabric/mirroring/share-and-manage-permissions), and [service principal tenant settings](https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer).
 
+### Publisher Networking and Data Gateways
+
+**Reviewed 4 November 2026.** Generic [Open Mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring) does not configure a native connection to your source or require a Fabric VNet/on-premises data gateway. The publisher's host needs its own approved source access, Entra authentication, and HTTPS access to the OneLake landing zone, plus the Fabric REST endpoint if it manages the item. A source connector's gateway option does not turn that gateway into a general-purpose landing-zone upload service.
+
+A partner or application-managed publisher can impose its own gateway, agent, or network requirements; follow its actual implementation rather than borrowing a native connector's recipe. Fabric inbound Private Link, OneLake permissions, and workspace outbound policies remain separate controls. Use the [source-specific gateway reference](../appendix.md#gateway-support-by-source) when comparing a custom publisher with a managed integration.
+
+When Fabric inbound public access is blocked, the supported [Open Mirroring Private Link path](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) requires the publisher to reach OneLake through the approved private endpoint. For [workspace-level Private Link](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support), use the documented workspace FQDN. A publisher that can upload only to an unrelated public route is not made compliant by installing a source gateway.
+
 ---
 
 ## Step 3: Implementing Change Data Extraction

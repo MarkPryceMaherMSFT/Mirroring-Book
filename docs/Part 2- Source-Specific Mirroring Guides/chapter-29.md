@@ -103,6 +103,20 @@ Public SAP Help pages were readable for this review. Their supporting SAP Notes,
 
 ---
 
+## Network and Gateway Boundaries
+
+**Gateway documentation reviewed: 4 November 2026.** [Microsoft's SAP integration guidance][ms-sap-options] still classifies BDC Connect for Fabric as **announced**. The [joint announcement][ms-announcement] describes bidirectional, zero-copy sharing, not a released Fabric connection or networking procedure.
+
+| Question | Evidence boundary |
+|---|---|
+| **Standard-mode on-premises data gateway?** | **Not documented for BDC Connect for Fabric.** No required or optional Fabric gateway route was verified. SAP Cloud Connector, Datasphere extraction/staging, or another SAP connector's gateway recipe does not establish one. |
+| **VNet data gateway?** | **Not documented for BDC Connect for Fabric.** General VNet Mirroring workload support and other SAP partners' released procedures do not approve this announced integration. |
+| **Private endpoints, endpoints to allow, or outbound restrictions?** | **Fabric-specific configuration not verified.** Obtain the released transport, identity, endpoint and region contract for each sharing direction before implementation; neither a zero-copy claim nor another partner's network allowlist supplies it. |
+
+These are documentation gaps, **not claims that either Fabric gateway is explicitly unsupported**. Stay at readiness until both vendors establish the actual Fabric flow.
+
+---
+
 ## Readiness Checklist — Not an Executable Setup Procedure
 
 There is no verified Fabric-specific public walkthrough to reproduce. Complete these gates **before** opening a production change:

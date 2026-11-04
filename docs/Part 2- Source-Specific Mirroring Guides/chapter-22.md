@@ -22,14 +22,16 @@
 
 **Snowflake Streams** tracks changes to managed tables, including inserts, updates, and deletes. Do not apply this architecture to every supported Snowflake object. Views and materialized views use scheduled syncs. [Mirroring views](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-views) is an optional, paid capability. Iceberg tables keep their data in source storage, with Fabric mirroring metadata and creating shortcuts.
 
-The September [Fabric release notes](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new#generally-available-features) announce GA for Delta change data feed and source-view mirroring. October's implementation-documentation update now corroborates GA in the dedicated Views guide and overview banner. One residual overview sentence still calls Snowflake views preview; [Chapter 9](../Part%201%20-%20Concepts%20and%20Architecture/chapter-09.md) records the remaining conflict without treating all Snowflake features as preview.
+The September [Fabric release notes](https://learn.microsoft.com/en-us/fabric/fundamentals/whats-new#generally-available-features) announce GA for Delta change data feed and source-view mirroring. The current [Views guide](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-views) explicitly corroborates GA, and the Snowflake overview now lists views without the former preview qualification. This does not make every extended capability or networking scenario generally available.
 
 Iceberg tables require a separate connection to their underlying storage. All Iceberg tables in one mirrored database must be reachable through that same storage connection. OneLake generates virtual Delta metadata over the existing Parquet files; it does not copy the Iceberg table data.
+
+**Keep the network/data paths distinct:** Fabric initiates Snowflake discovery/control and extraction queries through the selected **direct, VNet-gateway, or standard OPDG connection**. Managed-table replication uses a **OneLake staging/landing-zone path** for snapshots and changes; Snowflake unload/staging authorization and reachability must work independently of the SQL connection. A gateway is not an Oracle-style source-log publisher, and selecting one is not evidence that every bulk-data byte traverses it. The source guides do not specify every internal staging-transfer hop. Iceberg metadata discovery uses the Snowflake connection, but data-file reads use the **separate storage connection/shortcut**, not a Streams-to-OneLake full data copy.
 
 **Architecture flow:**
 
 [![Figure 22.1: Snowflake mirroring via Snowflake Streams](../assets/diagrams/chapter-22/diagram-01.png)](../assets/diagrams/chapter-22/diagram-01.excalidraw.png)
-*Figure 22.1: The managed-table path uses Snowflake Streams; Iceberg shortcuts and view refreshes follow different paths.*
+*Figure 22.1: The managed-table path uses Snowflake Streams and staging. Its optional gateway is a source-connection route, not proof of an all-bytes-through-gateway topology; Iceberg shortcuts and view refreshes follow different paths.*
 
 [![Figure 22.2: Snowflake Stream lifecycle and staleness risk](../assets/diagrams/chapter-22/diagram-02.png)](../assets/diagrams/chapter-22/diagram-02.excalidraw.png)
 *Figure 22.2: Snowflake Stream lifecycle and staleness risk. Check the stream's `STALE_AFTER` value, including retention-extension settings, rather than a fixed retention period.*
@@ -38,15 +40,22 @@ Iceberg tables require a separate connection to their underlying storage. All Ic
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** Source contract: [behind-firewall overview](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake#mirroring-snowflake-behind-firewall), [gateway/authentication selector](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial#connect-to-your-snowflake-instance-in-any-cloud), [connection and staging limitations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations), and [Snowflake security](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-how-to-data-security).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | No, if Snowflake's network policy allows Fabric's IP ranges directly. Optional otherwise: a VNet data gateway or an on-premises data gateway for private connectivity. |
-| **Private endpoint support?** | Not yet. Native Private Link connectivity between a Fabric workspace and Snowflake is not currently available. |
-| **Source behind a firewall?** | Use a gateway whose network can reach Snowflake through a private endpoint or an allowed firewall rule. This source route and Fabric workspace outbound policy are separate checks. |
-| **Fabric workspace outbound protection?** | Snowflake is explicitly supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Allow the Snowflake connection; a gateway does not bypass this policy. |
-| **Iceberg storage path?** | Validate the separate storage connection as well as Snowflake connectivity. Iceberg-to-Delta virtualization is not supported in tenants or workspaces with Private Link enabled. |
+| **Public source connection?** | Choose **None** when Snowflake's network policy permits direct Fabric access. A gateway is not required simply because the source is Snowflake. |
+| **VNet data gateway?** | Explicitly supported by the native overview/tutorial. Its VNet must reach Snowflake through an approved private endpoint or permitted firewall rule. |
+| **Standard on-premises gateway?** | Explicitly supported as another source-connection route, including for a private/firewall-restricted source. Use **standard mode**, not the Power BI-only personal gateway, on a host with that reachability. |
+| **Minimum gateway build/client?** | The native Snowflake guides do **not** publish a source-specific numeric OPDG minimum or customer-installed driver requirement. Use the latest [supported standard gateway](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-monthly-updates); VNet gateways are managed. A Power Query/ADBC implementation minimum is not automatically a native-mirroring minimum. |
+| **Authentication?** | Native mirroring supports **username/password**, **Microsoft Entra ID SSO**, and **RSA key pair**. **Workspace identity is not supported**, even if another Fabric Snowflake experience supports it. |
+| **Private source endpoint support?** | **Yes, through a reachable VNet/standard gateway.** Direct native Private Link connectivity from a Fabric workspace to Snowflake is **not yet available**. Do not confuse those two claims. |
+| **What traverses the gateway?** | The selected Snowflake connection's commands and returned query results. Validate the separate OneLake unload/staging path too; gateway selection neither removes staging nor documents its full byte-level route. Direct-read fallback under an unload restriction is available only for the direct/public path without storage integration. |
+| **Fabric inbound Private Link?** | Separate from source private connectivity. Snowflake is absent from the [tenant](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support) supported mirror-source lists: tenant **Block Public Internet Access** or workspace **deny inbound public access** pauses/prevents starting its mirror. |
+| **Fabric workspace outbound protection?** | Snowflake is explicitly supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Allow the Snowflake connection; this does not open the source firewall, authorize staging, or bypass Fabric inbound policy. |
+| **Iceberg storage path?** | Validate its **independent storage credential/network path** in addition to Snowflake. [Iceberg virtualization](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#availability-and-platform-limitations) has a stricter limitation: it is not supported in tenants/workspaces with Private Link **enabled**, even without a public-access-deny rule. A gateway to Snowflake does not remove that restriction. |
 
-See the current [Snowflake mirroring limitations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations) for the Private Link status and connectivity guidance.
+**Staging is not the Iceberg storage connection.** A Snowflake storage integration changes authentication/authorization for managed-table replication's staging path; the underlying Iceberg storage connection authorizes shortcut reads of files that remain in source storage. See the [staging scenario table](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations#performance-limitations), [Gateway support by source](../appendix.md#gateway-support-by-source) for network boundaries and costs, and [Gateway releases and operational baseline](../appendix.md#gateway-releases-and-operational-baseline) for current OPDG servicing, sign-in requirements, and controlled upgrades.
 
 ---
 
@@ -166,8 +175,8 @@ Use an approved nonsensitive pilot for the read test. This proves discovery/read
 
 1. Have the warehouse owner confirm `ANALYTICS_WH` exists, can execute the pilot query, and has an approved resume/suspend policy and resource monitor. `USAGE` is the runtime grant; broad warehouse administration is not required. A suspended warehouse with auto-resume disabled or a resource-monitor suspension must be resolved by its owner; adding table grants does not make unavailable compute usable.
 2. Microsoft suggests considering the warehouse already used by source writers to avoid waking a second warehouse. A dedicated warehouse is reasonable for isolation, but is a measured cost/concurrency choice, not automatically cheaper.
-3. Choose **None** for gateway only when the account's network policy permits direct Fabric access. Otherwise create a VNet gateway or standard on-premises gateway whose network can reach Snowflake through the approved private endpoint/firewall path.
-4. Validate hostname/DNS, HTTPS/proxy/TLS, and Snowflake authentication from the chosen route. Use administrator-maintained current allowlists rather than pasting old IP addresses from a forum.
+3. Choose **None** for gateway only when the account's network policy permits direct Fabric access. Otherwise [create a VNet gateway](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways) or [install/register a standard on-premises gateway](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-install#download-and-install-a-standard-gateway) whose network can reach Snowflake through the approved private endpoint/firewall path. Arrange gateway/connection access for the Fabric creator. The native guide publishes no Snowflake-specific numeric gateway minimum; keep OPDG on the latest supported release under the [current operational baseline](../appendix.md#gateway-releases-and-operational-baseline), not a driver-version floor borrowed from Copy or Power Query.
+4. Validate hostname/DNS, HTTPS/proxy/TLS, and Snowflake authentication from the chosen route. For OPDG, also validate the [gateway service's outbound communication](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication). For VNet, verify delegated-subnet routing and DNS. Use current administrator-maintained allowlists, not forum IP addresses. A successful connection/relay test does not prove successful Snowflake unload to OneLake or shortcut storage access.
 5. The Snowflake administrator must inspect the export control:
 
 ```sql
@@ -175,14 +184,14 @@ SHOW PARAMETERS LIKE 'PREVENT_UNLOAD_TO_INLINE_URL' IN ACCOUNT;
 ```
 
 6. When this parameter is `true`, plan the now-documented **Snowflake storage integration** for authorized staging. Without an integration, direct/public mirroring can fall back to slower reads, but **both gateway paths remain blocked**. Keep the source policy intact; do not weaken it merely to make mirroring work.
-7. Native Private Link between a Fabric workspace and Snowflake is not currently available. Separate Iceberg storage endpoints have additional requirements and must be tested independently.
+7. Private access **to Snowflake through a gateway** is supported, but direct native Fabric-workspace-to-Snowflake Private Link is not. Separately, Fabric's [tenant](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support) inbound-deny modes exclude this mirror source; do not promise end-to-end Fabric Private Link merely because a gateway can log in. Iceberg virtualization is additionally blocked when tenant/workspace Private Link is enabled. Resolve mandatory private-only requirements before deployment, without weakening policy to pass a test.
 8. If workspace outbound access protection is enabled, have its administrator explicitly allow the Snowflake connection through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). This does not remove Iceberg virtualization's separate Private Link limitation.
 
 ### 5. Create the mirror and start managed-table replication
 
 1. In the Fabric workspace, open **Create → Mirrored Snowflake**, enter the item name, and select **Create**.
 2. Select **Snowflake** under **New connection**, or an existing authorized connection. Copy the Snowflake account hostname without `https://`; the tutorial instructs lowercasing the hostname. Preserve exact casing for warehouse/database/schema/table/view identifiers.
-3. Enter **Warehouse** as the compute warehouse name, set the connection name, and select the approved gateway or **None**.
+3. Enter **Warehouse** as the compute warehouse name, set the connection name, and select **None**, the approved **VNet data gateway**, or the registered **standard-mode on-premises gateway** according to the tested source route.
 4. For **Key Pair**, supply the runtime username, upload the private-key file, and enter its passphrase when encrypted. Keep key material out of SQL, screenshots, and the repository. The [connection instructions](https://learn.microsoft.com/en-us/fabric/data-factory/connector-snowflake#key-pair-authentication) describe these credential fields; their support for other Fabric experiences does not add workspace-identity support to mirroring.
 5. If using Entra ID instead, have the Snowflake identity administrator configure the corresponding SSO mapping/integration and role access before selecting it. Workspace identity is **not supported for Snowflake mirroring**.
 6. Select the intended database. Disable **Mirror all data** for the pilot and choose only the prepared managed table(s). The all-data option can include managed plus Iceberg tables, or managed tables only.
@@ -273,7 +282,7 @@ SELECT SYSTEM$GET_ICEBERG_TABLE_INFORMATION(
 
 ### 8. Hand over operation
 
-- Record the connection identity/default role, grants, warehouse, authentication owner, gateway route, table selection, retention settings, stream staleness, and any separate storage connections.
+- Record the connection identity/default role, grants, warehouse, authentication owner, direct/VNet/standard-gateway route, gateway servicing owner, staging authorization/storage integration, table selection, retention settings, stream staleness, and the independent Iceberg storage connections.
 - Monitor Snowflake warehouse/query history, resource monitors, cloud-services charges, egress, stream age, and recurring initial-copy behavior. Core replication compute is free in Fabric, not in Snowflake.
 - Schedule DDL, dbt rebuilds, credential rotation, and gateway/capacity maintenance with a recovery budget. Stop/start reinitializes managed tables; it is not a cost-free “pause schedule.”
 - For Iceberg, monitor conversion timestamps/errors and underlying metadata/data retention. Never remove manifests/data files merely to clear a conversion error without the source owner's recovery plan.
@@ -286,7 +295,7 @@ SELECT SYSTEM$GET_ICEBERG_TABLE_INFORMATION(
 | Topic | Detail |
 |---|---|
 | **Object support** | Managed tables, Iceberg tables, views, and materialized views are supported. External, transient, temporary, and dynamic tables are not supported by this connector, regardless of their native Snowflake capabilities. |
-| **View refreshes** | Views and materialized views sync every 12 hours. View mirroring is a paid GA extension, with a residual preview sentence in the overview; it materializes query results rather than deploying source SQL view definitions. Complex views with unsupported functions or nested subqueries may fail. |
+| **View refreshes** | Views and materialized views sync every 12 hours. View mirroring is a paid GA extension; it materializes query results rather than deploying source SQL view definitions. Complex views with unsupported functions or nested subqueries may fail. |
 | **Table limit** | Up to 1,000 tables. With **Mirror all data**, Fabric takes the first 1,000 sorted by schema and table name; manual selection prevents exceeding the limit. |
 | **Stream retention** | Check `STALE_AFTER` with `SHOW STREAMS` or `DESCRIBE STREAM`. Retention depends on `DATA_RETENTION_TIME_IN_DAYS` and `MAX_DATA_EXTENSION_TIME_IN_DAYS`; 14 days is a default extension limit, not a universal table-retention setting. See [Snowflake stream retention](https://docs.snowflake.com/en/user-guide/streams-intro#data-retention-period-and-staleness). |
 | **Reseeding** | DDL timestamp changes, recurring schema tools such as dbt, and stop/start operations can trigger a full reload. An extended capacity pause can also require reseeding. |
@@ -325,13 +334,15 @@ The linked extended-capabilities page still has no role-replication setup or com
 | Symptom | Likely Cause | Resolution |
 |---|---|---|
 | Stream staleness error | The retained change history no longer covers the stream offset | Check `STALE_AFTER` and retention settings; plan a Fabric-managed full reload rather than dropping a service-managed stream ad hoc |
+| Source connection/discovery fails | Wrong direct/gateway route, source DNS/network policy, or gateway access | Test the actual selected source route and gateway/connection permissions. Private Snowflake endpoints can use a VNet or standard OPDG route; the lack of direct native Private Link is not a ban on gateway-mediated private access |
 | Authentication failure | Wrong credentials, key pair mismatch, or authentication policy | Verify the username, assigned/default role, public-key fingerprint and current policy; rotate credentials through the approved process only if required |
 | Permission denied on STREAM | User lacks CREATE STREAM privilege | Grant CREATE STREAM on the schema to the Fabric role |
 | High credit consumption | Repeated reseeds, broad table selection, or warehouse wake-ups | Check DDL and dbt activity, narrow the selected objects, and review warehouse usage; there is no user-configurable polling interval |
 | Gateway replication blocked | Inline unload is restricted and no valid storage integration is configured | Keep the source policy; create/authorize/select the documented storage integration and validate staging |
 | Integration-backed staging fails | Integration selection, service-principal grants, or OneLake allowlist is invalid | Check the wizard's actual URL, integration identity, read/write access, and selected integration; preserve the actionable error |
+| Mirror pauses after Fabric inbound lockdown | Tenant Block Public Internet Access or workspace deny inbound public access excludes Snowflake mirroring | Check the Fabric inbound support lists; a reachable source private endpoint, gateway, or outbound rule does not override this |
 | Missing objects or connection failure | Identifier casing or object permissions do not match | Copy the source identifiers exactly and verify the active role's access |
-| Iceberg table is stale or unavailable | Format virtualization failed | Inspect `_delta_log/latest_conversion_log.txt` through the shortcut and check unsupported deletes, types, or schema changes |
+| Iceberg table is stale or unavailable | Independent storage access or format virtualization failed | Test the storage connection/credential/firewall separately from Snowflake, inspect `_delta_log/latest_conversion_log.txt`, and check unsupported deletes/types/schema changes and the tenant/workspace Private Link limitation |
 | Change tracking not enabled | Table does not have `CHANGE_TRACKING = TRUE` | Run `ALTER TABLE ... SET CHANGE_TRACKING = TRUE` |
 
 ---
@@ -348,7 +359,7 @@ The linked extended-capabilities page still has no role-replication setup or com
 
 ### References and Image Provenance
 
-Documentation rechecked **2 November 2026**; dated community evidence above remains from the earlier **8 October 2026** review:
+Source/gateway documentation rechecked **4 November 2026**; dated community evidence above remains from the earlier **8 October 2026** review:
 
 - Microsoft Learn: [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations), [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-mirroring-faq), [connection credential fields](https://learn.microsoft.com/en-us/fabric/data-factory/connector-snowflake), and [Iceberg walkthrough/limits](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables).
 - Source-operation checks: [public Microsoft tutorial source](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/mirroring/snowflake-tutorial.md), [Snowflake Streams/retention](https://docs.snowflake.com/en/user-guide/streams-intro), [key pairs](https://docs.snowflake.com/en/user-guide/key-pair-auth), and [`SYSTEM$GET_ICEBERG_TABLE_INFORMATION` ownership requirement](https://docs.snowflake.com/en/sql-reference/functions/system_get_iceberg_table_information).
@@ -359,6 +370,6 @@ Documentation rechecked **2 November 2026**; dated community evidence above rema
 
 ## Summary
 
-Snowflake mirroring combines Streams-based managed-table replication, 12-hour view syncs, and metadata mirroring for Iceberg tables. Plan for source credits, retention, reseeds, separate Iceberg storage access, and Fabric security. See the current [Snowflake mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations), and [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-mirroring-faq).
+Snowflake mirroring combines Fabric-pulled Streams-based managed-table replication with staging, 12-hour view syncs, and independent Iceberg storage/shortcut reads. Choose a permitted direct, **VNet**, or **standard OPDG** source connection; no source-specific numeric gateway floor is published. Preserve the supported authentication contract, staging access, source credits/retention, and separate Iceberg credentials. Gateway-mediated source privacy is not Fabric inbound-lockdown compatibility. See the current [overview](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-tutorial), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-limitations), and [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake-mirroring-faq).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 21: SharePoint List](chapter-21.md) | **Next:** [Chapter 23: SQL Server 2016–2022](chapter-23.md)

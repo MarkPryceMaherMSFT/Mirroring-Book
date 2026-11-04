@@ -1,5 +1,7 @@
 # Part 2: Source-Specific Mirroring Guides
 
+**Gateway reference:** [VNet and standard-mode on-premises support by source](../appendix.md#gateway-support-by-source), with the [release and operational baseline](../appendix.md#gateway-releases-and-operational-baseline), reviewed 4 November 2026.
+
 ## Chapters
 
 - [Chapter 11: Azure SQL Database](chapter-11.md)

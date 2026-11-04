@@ -22,10 +22,12 @@
 
 PostgreSQL natively supports **logical replication** through its Write-Ahead Log (WAL). The Azure-managed `azure_cdc` extension creates an initial snapshot, decodes subsequent changes, and exports Parquet batches to a OneLake landing zone using the server's managed identity. Fabric's Replicator applies those files to Delta tables. This is not a generic external Fabric client directly polling PostgreSQL's WAL. See the [Azure PostgreSQL architecture guide](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring#architecture).
 
+A VNet data gateway, when selected, provides **Fabric-to-source connection access** for setup/control queries, table discovery, and returned query results. It does not host `azure_cdc` or become a WAL forwarder. The documented snapshot/change-batch publisher still runs **on the PostgreSQL server and writes to OneLake using SAMI**, independently of that source connection.
+
 **Architecture flow:**
 
 [![Figure 18.1: PostgreSQL mirroring via WAL logical replication](../assets/diagrams/chapter-18/diagram-01.png)](../assets/diagrams/chapter-18/diagram-01.excalidraw.png)
-*Figure 18.1: PostgreSQL mirroring via WAL logical replication*
+*Figure 18.1: PostgreSQL mirroring via WAL logical replication. The source-managed publisher writes snapshot/change batches to OneLake; an optional VNet gateway serves the Fabric-to-source connection, not a relocated WAL publisher.*
 
 > **Critical operational risk:** Delayed logical decoding, long-running transactions, or stalled publication can retain WAL and consume source storage. Monitor replication slots and the `azure_cdc` publication, not just Fabric's table status.
 
@@ -33,14 +35,21 @@ PostgreSQL natively supports **logical replication** through its Write-Ahead Log
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** Source contract: [network requirements](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql#network-requirements), [connection tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-tutorial#connect-to-your-azure-database-for-postgresql-flexible-server), [security](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-how-to-data-security), and [source-side publishing architecture](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring#architecture).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | Not for a permitted public connection. Use a VNet data gateway for private connectivity. The connector documentation does not offer an on-premises data gateway path. |
-| **Private endpoint support?** | Yes. A VNet data gateway connects to a server reachable through a private endpoint or hosted inside a virtual network. |
-| **Source firewall restrictions?** | Permit the VNet gateway's route to the server. Also preserve the source publishing identity's access to OneLake; a gateway alone does not configure that outbound path. |
-| **Fabric workspace outbound protection?** | Supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Explicitly allow the source connection. |
+| **Public source connection?** | Use **Data gateway: None** when Fabric can connect through the approved public endpoint/firewall policy. A public hostname alone is not permission to connect. |
+| **VNet data gateway?** | Explicitly supported by the native tutorial for **VNet-integrated** servers and servers reached through **private endpoints**. Its network must have working DNS/routing/firewall access to PostgreSQL. |
+| **Standard on-premises gateway?** | **Not documented for this integration.** The native overview/tutorial/limitations provide a VNet gateway recipe, not an OPDG selector or setup procedure. Personal mode is not a Fabric mirroring runtime. |
+| **Gateway version/client prerequisite?** | The VNet gateway is a managed service, not a Windows OPDG installation. The native source guides publish no numeric gateway-build floor or customer-installed PostgreSQL gateway-driver requirement. |
+| **Authentication?** | **Basic** PostgreSQL authentication or **Organizational account** (mapped Entra role), with the documented CDC privileges and table ownership. The server's **SAMI** separately authenticates OneLake publication; it is not the source login. |
+| **What traverses the gateway?** | The selected Fabric-to-PostgreSQL connection and its query traffic/results. Snapshots and CDC Parquet batches are published **source-to-OneLake by `azure_cdc`**, not by a gateway-hosted replication agent. |
+| **Source firewall restrictions?** | Permit the selected connection route to PostgreSQL and independently verify the source publisher's OneLake communication and SAMI target access. A VNet gateway does not configure the publisher's outbound path. |
+| **Fabric inbound Private Link?** | Separate from the server's private endpoint. PostgreSQL is not in the supported mirror-source lists for tenant **Block Public Internet Access** or workspace **deny inbound public access**; these restrictions pause/prevent starting its mirror. See [tenant](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support) guidance. |
+| **Fabric workspace outbound protection?** | Supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Explicitly allow the source connection; this does not establish a source route, grant SAMI access, or override Fabric inbound restrictions. |
 
-See [Network requirements for PostgreSQL mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql#network-requirements) for the current setup guidance.
+**Workload boundary:** The [Data Factory Azure PostgreSQL connector](https://learn.microsoft.com/en-us/fabric/data-factory/connector-azure-database-for-postgresql-overview) lists None/on-premises/VNet gateways for **Copy/Pipeline**. That does not establish an OPDG path for native Mirroring, nor does the generic VNet connector list expand the supported source beyond Azure Flexible Server. See [Gateway support by source](../appendix.md#gateway-support-by-source) for common gateway prerequisites, servicing, and costs.
 
 ---
 
@@ -187,15 +196,16 @@ The general-availability component rollout is maintained by Azure. The tutorial 
    - In **Settings → Manage connections and gateways → Virtual network data gateways → New**, select the capacity, subscription, resource group, VNet, and delegated subnet, then save. Arrange gateway access for the Fabric connection creator; creating a workspace item does not by itself grant gateway administration.
 3. Check DNS and TCP **5432** from the gateway's network, not only from the DBA laptop. A private endpoint without the associated private DNS/routing is insufficient.
 4. Keep **Use encrypted connection** enabled. Do not solve a certificate/authentication problem by disabling encryption.
-5. Separately preserve the server SAMI's ability to publish to OneLake. A working gateway connection does not prove the publishing identity has target permissions.
-6. If workspace outbound protection is enabled, have the Fabric administrator create the required data connection rule.
+5. Separately validate the **source-to-OneLake** publisher: preserve the server SAMI's item-level Read/Write permissions and inspect `azure_cdc` health/batch progress. A successful VNet connection test proves neither publishing reachability nor target authorization. Do not move `azure_cdc` onto a gateway or assume all WAL/snapshot bytes traverse it.
+6. Check Fabric inbound policy independently. The [tenant](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support) support lists do not include PostgreSQL mirroring with public inbound access denied. A source private endpoint plus a VNet gateway does not overcome that limitation; resolve a mandatory lockdown requirement before deployment.
+7. If workspace outbound protection is enabled, have the Fabric administrator create the required data connection rule. Do not change the source firewall or the SAMI to work around an unrelated workspace policy.
 
 ### 6. Create the Fabric connection and select tables
 
 1. In the approved workspace, choose **New item → Mirrored Azure Database for PostgreSQL**.
 2. Choose **Azure Database for PostgreSQL** under new sources, or inspect an existing connection before reusing it.
 3. Enter **Server** as `<server-name>.postgres.database.azure.com` and **Database** as the actual PostgreSQL **database name**, not the server's resource name.
-4. Set the connection name, choose the VNet gateway for the private path, and select **Basic** or **Organizational account** using the role prepared above.
+4. Set the connection name and **Data gateway: None** for an approved public connection, or the available **VNet data gateway** for VNet integration/private endpoints. Select **Basic** or **Organizational account** using the role prepared above. The native procedure does not document choosing a standard on-premises gateway.
 5. Keep encryption selected. The tutorial says to leave the separate **This connection can be used with on-premises data gateway and VNET data gateway** reuse checkbox unselected; it is not the gateway selector.
 6. Select **Connect**, then inspect the table list and any warnings.
 7. For a controlled first deployment, disable **Mirror all data** and select the approved schemas/tables explicitly.
@@ -221,7 +231,7 @@ A successful insert alone does not validate UPDATE/DELETE identity. The SQL endp
 
 ### 8. Establish monitoring and handoff before production
 
-Record server/database/item/connection IDs, selected tables, role ownership changes, identity object ID, worker/slot budgets, baseline storage, and the canary results.
+Record server/database/item/connection IDs, selected tables, role ownership changes, SAMI object ID, public/VNet connection route and gateway owner, source-to-OneLake publishing checks, worker/slot budgets, baseline storage, and the canary results.
 
 Assign a source DBA for worker/WAL/storage alerts and ownership-sensitive application migrations, a connection owner for password or Entra-credential renewal, and a Fabric operator for capacity, gateway/connection access, and replication alerts. Keep these separate from the SAMI lifecycle owner; rotating the database credential does not require replacing the server identity.
 
@@ -242,6 +252,7 @@ SELECT * FROM azure_cdc.get_health_status('<source_database>', '<publication_nam
 ```
 
 - Alert on persistent table failures, stale changes despite confirmed source writes, source storage growth, long transactions, and stalled slot/publication progress.
+- Monitor the VNet gateway/source connection separately from `azure_cdc` uploads. Source discovery can fail while a publisher has another problem, and healthy discovery does not rule out `CDC_ERR_SYS_ONELAKE_COMM_FAILED` or publication-level OneLake errors.
 - Keep the server SAMI's **Read and Write** permissions on the mirrored item. Do not toggle SAMI off/on; that changes the identity and can break publication.
 - Recreate source access controls in Fabric; source table ownership/security is not replicated as analytical authorization.
 - Document the capacity-pause procedure, reseed budget, HA/version behavior, PITR reconfiguration, and major-version-upgrade plan.
@@ -286,7 +297,10 @@ The type and DDL discrepancies above remain unresolved between the [limitations]
 | Symptom | Likely Cause | Resolution |
 |---|---|---|
 | `wal_level` error | `wal_level` not set to `logical` | Update the server parameter and restart PostgreSQL |
+| Private source connection/discovery fails | VNet gateway selection/access, DNS, route/firewall, TLS, or source-role authentication | Use the native VNet gateway route, test the exact source endpoint/role with encryption enabled, and check gateway/connection permissions; a Copy connector's OPDG support is not a native-mirroring workaround |
 | Setup reports Internal error | Missing `azure_cdc` prerequisites, database permissions, or table ownership | Run `azure_cdc.check_prerequisites()` and `azure_cdc.get_all_tables_mirror_status()` |
+| Connection succeeds but OneLake publication fails | Source `azure_cdc` upload communication or SAMI item permissions | Inspect `azure_cdc.get_health_status` for system/publication OneLake errors and verify source publishing access plus SAMI Read/Write, rather than only testing the VNet gateway |
+| Mirror pauses after Fabric inbound lockdown | Tenant Block Public Internet Access or workspace deny inbound public access is enabled | Check the explicit Fabric mirror-source support lists; private source reachability and an outbound data connection rule do not add PostgreSQL support to these inbound modes |
 | UPDATE/DELETE not captured | Invalid row identity or stalled publication | Verify keys or full row identity and inspect `azure_cdc.tracked_publications` and `azure_cdc.tracked_batches` |
 | WAL disk usage growing | Slot lag or a long-running transaction | Inspect `pg_replication_slots`, `pg_stat_activity`, and `azure_cdc.get_health_status('', '')`; resolve the cause before a controlled restart |
 | Data type error | Source component rejects a type or value | Check table eligibility and the conflicting documentation; use a compatible physical source table if needed, not a view |
@@ -316,6 +330,6 @@ Preserve sanitized errors, source version, component readiness, publication stat
 
 ## Summary
 
-PostgreSQL mirroring leverages the database's native logical replication framework, providing reliable near-real-time CDC. The primary operational risks are replication slot lag (and its impact on WAL retention) and data type compatibility. Both require ongoing monitoring in production environments. See the current [PostgreSQL mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-tutorial), [security guidance](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-how-to-data-security), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-limitations), and [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-mirroring-faq).
+Azure PostgreSQL mirroring uses source-managed `azure_cdc` and SAMI to publish snapshots/change batches to OneLake. Use a permitted public Fabric-to-source connection or the native **VNet gateway** path for private endpoints/VNet integration; an OPDG procedure is not documented for this integration. Keep connection authentication/ownership, source publication, and Fabric inbound/outbound policies separate. Monitor WAL/slot lag, source resources, identity permissions, and data-type compatibility. See the current [overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-tutorial), [security](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-how-to-data-security), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-limitations), and [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-mirroring-faq).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 17: Oracle](chapter-17.md) | **Next:** [Chapter 19: MySQL](chapter-19.md)

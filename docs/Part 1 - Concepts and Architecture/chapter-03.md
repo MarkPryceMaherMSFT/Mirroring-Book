@@ -31,6 +31,10 @@ These three methods answer practical questions:
 
 Some managed integrations do not publish enough transport detail to assign a push/pull contract. This chapter keeps those cases explicit rather than forcing every source or application into one of the three buckets.
 
+**Gateway support is source-specific.** A VNet data gateway is a Microsoft-managed service injected into an Azure subnet; an on-premises data gateway is a customer-managed Windows service in **standard mode**. Neither is the Azure VPN Gateway or an Azure Data Factory self-hosted integration runtime. A connector available through a gateway for Power Query, Copy Job, or a pipeline is not automatically supported through that gateway for native Mirroring. Use the [gateway support matrix](../appendix.md#gateway-support-by-source), reviewed **4 November 2026**, before choosing a connection.
+
+Separate **connection/setup/metadata traffic** from **snapshot and incremental data traffic**. Depending on the source, the gateway can carry ongoing reads, host a publisher, or only validate/administer the connection while the source publishes directly to OneLake. Gateway capacity and availability are not universal measures of replication throughput.
+
 [![Figure 3.1: The three methods overview](../assets/diagrams/chapter-03/diagram-01.png)](../assets/diagrams/chapter-03/diagram-01.excalidraw.png)
 *Figure 3.1: The three methods overview*
 
@@ -42,13 +46,13 @@ In the replication models used in this book, **push-based** mirroring means the 
 
 This avoids repeated queries for changed rows, but it is not a guarantee of lower latency or lower source load. Log capture, source resource limits, network throughput, and target processing still matter.
 
-Push-based mirroring does not mean gateway-free mirroring. SQL Server 2025 requires Azure Arc and a supported data gateway, while other integrations have different connection requirements. Read the source chapter's network section for both the connection path and the outbound path to OneLake.
+Push-based mirroring does not mean gateway-free mirroring. SQL Server 2025 requires Azure Arc and its documented walkthrough uses a supported data gateway. Private source access requires a gateway; the public-endpoint prerequisite wording and walkthrough are not fully aligned, as [Chapter 24](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-24.md) records. Read each source's network section for both the connection path and the independent outbound path to OneLake.
 
 For Fabric database mirroring, the underlying mechanism depends on the source:
 
 * **Azure SQL Database** uses the **change feed**.
 * **Azure SQL Managed Instance** on the **Always-up-to-date** or **SQL Server 2025** update policy uses the **change feed**.
-* **SQL Server 2025** uses the **change feed** and requires **[Azure Arc](https://learn.microsoft.com/en-us/azure/azure-arc/overview)** plus a data gateway.
+* **SQL Server 2025** uses the **change feed**, requires **[Azure Arc](https://learn.microsoft.com/en-us/azure/azure-arc/overview)**, and follows a gateway-backed documented setup. Gateway connection traffic is separate from engine publishing.
 * **Fabric SQL Database** uses the **change feed**, auto-configured inside Fabric.
 * **Azure Database for PostgreSQL** uses logical replication to capture changes, then a source-side component publishes Parquet batches to OneLake. See the [PostgreSQL mirroring architecture](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring#architecture).
 * **Azure Database for MySQL** captures binlog changes and publishes them from the source to OneLake using its managed identity. See the [MySQL mirroring architecture](https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql#architecture).
@@ -100,7 +104,7 @@ Source-driven capture can still batch changes, wait for resources, or retry afte
 
 In the replication model used in this book, **pull or polling-based** mirroring groups connectors that read changes from a source API, change table, log stream, or staging store. A source's use of logs does not by itself make its connector pull-based: PostgreSQL and MySQL use source-side publishers and belong in the preceding group.
 
-A publicly reachable source can use a supported cloud connection without a gateway. A private source may require an [on-premises or VNet data gateway](https://learn.microsoft.com/en-us/data-integration/gateway/), depending on the connector. Gateways add operational requirements and can become throughput bottlenecks, but they are not mandatory for every pull-based source and do not necessarily carry every part of the data path.
+Where the source-specific connector supports it, a publicly reachable source can use a cloud connection without a gateway. Other connectors still require a gateway. A private source can use an [on-premises or VNet data gateway](https://learn.microsoft.com/en-us/data-integration/gateway/) only when that Mirroring integration explicitly supports it; a public-only catalog does not gain private access just because a generic connector has a gateway option. Gateways add operational requirements and can constrain the traffic they handle, but they do not necessarily carry every part of the replication data path.
 
 Repeated checks can add source load and, for services such as Snowflake, compute charges even when few rows change. Adaptive polling reduces unnecessary work.
 
@@ -288,7 +292,7 @@ The table below brings the source list together using the replication model in t
 | **Snowflake**                                                                                  | Pull or polling-based                                |                    Yes | Fabric polls and creates Snowflake Streams                               | 22      |
 | **SharePoint List** | Hybrid: replicated rows and document shortcuts | Partial | Managed list-row replication; OneLake shortcuts for Document Library content | 21 |
 | **SQL Server 2016–2022**                                                                       | Pull or polling-based                                |                    Yes | SQL Server CDC via data gateway                                          | 23      |
-| **SQL Server 2025**                                                                            | Push-based                                           |                    Yes | Change feed + Azure Arc + data gateway                                   | 24      |
+| **SQL Server 2025**                                                                            | Push-based                                           |                    Yes | Change feed + Azure Arc; documented gateway-backed setup                 | 24      |
 | **Fabric SQL Database**                                                                        | Push-based                                           |         Yes, automatic | Auto-configured inside Fabric                                            | 25      |
 | **Dremio**                                                                                     | Shortcuts                                            |                     No | Dremio metadata + OneLake shortcuts                                      | 26      |
 | **AWS Glue**                                                                                   | Shortcuts                                            |                     No | AWS Glue Iceberg catalog metadata + OneLake shortcuts                    | 27      |
@@ -300,7 +304,7 @@ The table below brings the source list together using the replication model in t
 The Dataverse and Business Central rows are application-managed routes, not extra native connectors. Their chapters identify which platform owns synchronization and how the consumer reaches the data. [SAP BDC Connect, Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) covers a separately announced data-product sharing integration and readiness checks, not a verified released setup or the Chapter 20 Datasphere pipeline.
 
 [![Figure 3.6: Source groupings](../assets/diagrams/chapter-03/diagram-07.png)](../assets/diagrams/chapter-03/diagram-07.excalidraw.png)
-*Figure 3.6: Source groupings*
+*Figure 3.6: Source groupings. The SQL Server 2025 gateway label represents the documented setup, not a claim that the engine's change-feed uploads traverse the gateway; see Chapter 24 for the public-route documentation difference.*
 
 ***
 

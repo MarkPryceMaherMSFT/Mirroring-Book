@@ -142,6 +142,16 @@ FROM dbo.YourMirroredTable;
 
 These queries do not expose replication lag or state, but they help confirm that the expected table and data are present.
 
+### Gateway Diagnostics Are a Separate Layer
+
+**Reviewed 4 November 2026.** For a gateway-backed connection, retain the gateway cluster/member version, connection ID, error/correlation ID, and source endpoint alongside mirroring status. Use the on-premises gateway's [network ports test](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication#network-ports-test) and [troubleshooting guide](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-tshoot), or the VNet gateway's [DNS/endpoint network tests](https://learn.microsoft.com/en-us/data-integration/vnet/troubleshoot-data-gateway). Test from the gateway's network, not just an administrator's laptop.
+
+The [VNet diagnostics reference](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-download-diagnostics) documents **48-hour Mashup logs** and **29-day** system-counter, query-execution, and resource-consumption retention. Download requires gateway Admin; availability has region and tenant-Private-Link restrictions. These records describe gateway activity, not a universal Mirroring LSN, source watermark, or end-to-end replication-lag metric. Pipeline/Copy Job reports and Dataflow Gen2-integrated diagnostics remain those workloads' diagnostics, not a new native Mirroring monitoring surface.
+
+Plan the monitoring path before closing network access. The current [workspace Private Link limitations](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#considerations-and-limitations) exclude Workspace Monitoring, while tenant Private Link also restricts VNet diagnostic downloads and the Capacity Metrics app. Missing access to those tools is not proof that replication stopped or gateway consumption became free; retain supported item/API/source observations without disabling the approved network policy.
+
+A successful connection test proves only that tested path. For example, Cosmos DB's restricted-account gateway tests the connection while ongoing replication runs in Fabric Replicator, and source-published change-feed integrations can need independent OneLake egress. Inspect the [source-specific gateway role](../appendix.md#gateway-support-by-source) before blaming a gateway's idle state, CPU, or network counters for replication lag. Share only sanitized diagnostic evidence; consent-driven cloud diagnostic uploads are a separate administrative decision.
+
 ***
 
 ## Workspace Monitoring

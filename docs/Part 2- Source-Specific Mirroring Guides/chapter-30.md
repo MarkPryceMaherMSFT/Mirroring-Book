@@ -46,12 +46,16 @@ The source overview describes initial table availability within seconds and meta
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial), [source limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations), and [24 August preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-google-lakehouse-runtime-catalog-data-to-onelake-preview/5360492) do not document a native gateway path; the tutorial and limitations explicitly require public catalog/storage reachability. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | No gateway configuration is documented for this connector. A gateway is not a supported workaround for its public-reachability requirement. |
+| **Data gateway required?** | Neither a **VNet** nor a **standard-mode on-premises** gateway configuration is documented for this native catalog. A generic gateway is not a documented workaround for the explicit public-reachability requirement. |
 | **Private source access?** | The catalog endpoint and GCS locations must be reachable over the public internet. Firewall rules and other source-network restrictions are unsupported. |
 | **Anonymous bucket access?** | Not required. Public reachability is not public bucket permission; retain authenticated access. |
 | **Fabric Private Link?** | OneLake Iceberg-to-Delta virtualization excludes Private Link-enabled tenants/workspaces. Its current regional exclusions include Qatar Central and Norway West. |
+| **Fabric workspace outbound protection?** | Google Lakehouse runtime catalog is not explicitly enumerated in the [mirrored-database support list](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). [OneLake outbound rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) govern shortcut reads and chains separately; an allow rule does not add native private-catalog support. |
+| **Different gateway integration?** | A standalone [GCS storage shortcut](https://learn.microsoft.com/en-us/fabric/onelake/create-on-premises-shortcut) can use a **standard-mode on-premises gateway**. This is a different integration from the native federated catalog, not a gateway to its Iceberg REST endpoint, and it does not remove Iceberg virtualization exclusions. |
 | **Regional Google endpoint?** | Follow Microsoft's documented endpoint. Google's support for regional REST endpoints does not establish that substituting one is supported by this Fabric connector. |
 
 See the [connector limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations) and [OneLake virtualization limitations](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#limitations-and-considerations). Do not turn a restriction on OneLake-to-OneLake shortcut locations into an undocumented requirement that GCS and Fabric use the same region.
@@ -67,7 +71,7 @@ This procedure follows the [Microsoft tutorial](https://learn.microsoft.com/en-u
 1. **Google project/catalog owner:** confirm billing and enable the **BigLake API**. Identify a catalog containing **Iceberg V2** tables with **Parquet** data files. Start with a small pilot table and record every bucket containing its metadata and data.
 2. Record the catalog warehouse path and billing **project ID**. Separately record the numeric **project number** owning federation; these identifiers are not interchangeable.
 3. **IAM owner:** arrange permission to create/manage a Workload Identity Pool and OIDC provider and grant IAM roles. Obtain the Entra **tenant ID** and authorized identities' **object IDs**, not their application client IDs.
-4. **Network owner:** validate the catalog and all storage locations through the documented public path while retaining bucket authentication.
+4. **Network owner:** validate the catalog and every metadata/data storage location through the documented public path while retaining bucket authentication. The native catalog has no documented VNet/on-premises gateway setup; a separately created GCS gateway shortcut does not satisfy this prerequisite.
 5. **Fabric administrator:** provide an F SKU or permitted trial workspace, item-creation permissions, and **Enable new mirrored catalog items (Preview)**. The tutorial does not name a Google-specific minimum workspace role; use an authorized item creator, not a Viewer.
 
 ### 2. Configure Entra-to-Google federation
@@ -144,6 +148,7 @@ Have the catalog owner identify its credential mode before changing bucket permi
 | Topic | Detail |
 |---|---|
 | **Format** | This connector supports Iceberg V2 with Parquet files. Broader Google V3 Preview or partial OneLake V3 support does not establish V3 support here. |
+| **Native network path** | Both the Iceberg REST endpoint and all table GCS locations require public reachability. No source firewall/private-network workaround is documented; standalone GCS shortcut gateways do not add native catalog support. Check Fabric Private Link/virtualization and outbound rules separately. |
 | **Object limits** | At most 500 tables; source Iceberg `metadata.json` must not exceed 1 MB. Database, metastore, and Iceberg views are unsupported. |
 | **Read-only** | No writes back to Google tables through the mirrored item. |
 | **History and deletes** | OneLake conversion requires fewer than 5,000 source transactions/commits. Position deletes can become Delta deletion vectors; equality deletes fail conversion. |
@@ -169,7 +174,8 @@ The **7 October 2026** community search found no verified Google-catalog-specifi
 | Symptom | First checks |
 |---|---|
 | Federation or catalog access fails | Enabled pool/provider, numeric project number, issuer slash, exact audience, `assertion.oid`, subject bindings, and catalog roles |
-| Catalog visible but table unreadable | Correct storage principal for the credential mode; every metadata/data bucket; effective object-read permissions |
+| Catalog visible but table unreadable | Public reachability of every metadata/data location, correct storage principal for the credential mode, and effective object-read permissions |
+| Private-only source or gateway-based workaround fails | Recheck the native public catalog/GCS requirement. A standard-mode gateway for a standalone GCS storage shortcut is not a native catalog gateway or an exemption from format-virtualization limits |
 | Rejected or stale table | V2/Parquet, 1 MB metadata limit, supported deletes/schema, and `_delta_log/latest_conversion_log.txt` |
 | SQL schema lags behind | Distinguish catalog/conversion failures from SQL endpoint metadata sync; a SQL refresh cannot repair failed federation |
 | Unexpected exposure | Wildcard IAM bindings, automatic future-table selection, and independent Fabric/OneLake permissions |

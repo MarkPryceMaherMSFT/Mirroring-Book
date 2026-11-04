@@ -138,13 +138,16 @@ Therefore, do not rely on a viewer's Dataverse roles, record sharing or column r
 
 Connection management is a separate permission plane. In **Settings → Manage connections and gateways → Connections**, find the Dataverse connection, then **Manage users**. The setup guide describes **Owner** and **Reader** access and requires sharing the connection with other link operators/consumers as applicable. Grant ownership only to operators; test consumption separately from table-management rights. Dataverse System Administrator alone does not guarantee permission to refresh a Fabric connection.
 
-| Network question | Documented position as of 3 November 2026 |
+**Gateway documentation reviewed: 4 November 2026.** The [current Link to Fabric setup](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform) uses a Dataverse-managed Delta replica and Fabric shortcuts, not a native mirrored-database source connection. Low-latency sync changes the source-managed data path; it does not add a Fabric gateway or remove the FAQ's network requirements.
+
+| Network question | Documented position as of 4 November 2026 |
 |---|---|
-| **On-premises gateway required?** | The direct cloud-to-cloud walkthrough does not install a gateway. “Manage connections and gateways” is also the management surface for cloud connections. |
+| **Standard-mode on-premises data gateway?** | **Not part of the documented direct-link flow; not required.** The cloud-to-cloud walkthrough installs no gateway. “Manage connections and gateways” is also the management surface for cloud connections, not evidence that a gateway is deployed. |
+| **VNet data gateway?** | **Not part of the documented direct-link flow.** The setup and [network FAQ](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-faq#what-network-settings-are-required-in-microsoft-fabric-to-create-a-link-to-fabric) do not document a gateway option or a gateway-based workaround for inbound restrictions. |
 | **Workspace inbound restrictions?** | The current FAQ requires **Inbound access: allow connections from all networks**. A selected-networks/workspace-private-link-only workspace cannot be used for this link. |
 | **Can outbound public access stay blocked?** | Yes, according to the FAQ, provided a **data connection rule** allows the Dataverse environment URL as an endpoint. |
 | **Private endpoints for all traffic?** | Not supported by the documented Link to Fabric configuration. Do not infer support from unrelated ADLS shortcut/private-link features. |
-| **Cross-tenant workspace identity?** | Workspace identity documentation excludes B2B/cross-tenant scenarios; this walkthrough assumes a same-tenant deployment. |
+| **Cross-tenant workspace identity?** | [Workspace identity limitations](https://learn.microsoft.com/en-us/fabric/security/workspace-identity#considerations-and-limitations) exclude B2B/cross-tenant scenarios; this walkthrough assumes a same-tenant deployment. This identity boundary does not negate the core setup guide's cross-region/cross-geography support. |
 
 Have the security owner approve these settings. If inbound all-networks access is prohibited, stop rather than weakening policy silently. See the [network FAQ](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-faq#what-network-settings-are-required-in-microsoft-fabric-to-create-a-link-to-fabric) and [outbound data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-allow-list-connector).
 

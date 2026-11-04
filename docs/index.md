@@ -39,6 +39,8 @@ For eligible database and open mirrored replicas, Fabric includes 1 TB of free m
 
 **Start with the source, then its setup walkthrough.** Each guide takes you from source preparation and permissions through the Fabric connection, initial validation and operational troubleshooting. Do the source-administrator steps before opening the Fabric wizard; a successful sign-in does not prove that change capture or storage access is configured.
 
+**Gateway review, 4 November 2026:** use the [source-by-source VNet and standard-mode on-premises gateway reference](appendix.md#gateway-support-by-source) before choosing a private-network design. It separates documented support from unpublished procedures and distinguishes gateway connection traffic from ongoing replication. The [release/operational baseline](appendix.md#gateway-releases-and-operational-baseline) covers supported versions, sign-in updates, subnet/identity requirements, diagnostics, and costs.
+
 #### Setup and Troubleshooting Directory
 
 Each setup link starts with the source-administrator work, not just the Fabric wizard. The common-problems sections distinguish documented behavior, public reports, and access-limited research leads.

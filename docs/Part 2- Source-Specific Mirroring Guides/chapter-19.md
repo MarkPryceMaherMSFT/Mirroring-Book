@@ -22,23 +22,32 @@
 
 MySQL records row changes in its **binary log (binlog)**. Azure MySQL background processing exports an initial snapshot and subsequent change batches as Parquet files to a OneLake landing zone. Fabric's Replicator converts and applies them to Delta tables. This is not a generic external MySQL replica connection. See the [Azure MySQL architecture guide](https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql#architecture).
 
+The Fabric source connection is used to configure/control the integration and discover tables. The **source-side publisher**, using the assigned UAMI, sends the snapshot/change batches to OneLake; there is no documented gateway-hosted binlog publisher or gateway data route for this native connector.
+
 **Architecture flow:**
 
 [![Figure 19.1: MySQL mirroring via binary log replication](../assets/diagrams/chapter-19/diagram-01.png)](../assets/diagrams/chapter-19/diagram-01.excalidraw.png)
-*Figure 19.1: MySQL mirroring via binary log replication*
+*Figure 19.1: MySQL mirroring via binary log replication. Azure MySQL publishes Parquet snapshots/change batches to OneLake; this is not a gateway-mediated external binlog-reader deployment.*
 
 ---
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** Source contract: [network requirements](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql#network-requirements), [connection tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-tutorial#connect-to-your-azure-database-for-mysql-and-start-mirroring), [network limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-limitations#network-and-connectivity-security), and [source architecture/UAMI setup](https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | The tutorial requires **Data gateway: None** and leaves gateway reuse disabled. VNet data gateways are explicitly unsupported; an on-premises gateway path is not documented. |
-| **Private endpoint support?** | Public access and Private Link/private endpoint connectivity are supported. VNet-integrated Azure MySQL servers are not supported. These are different deployment modes. |
-| **Source network restrictions?** | Do not substitute a gateway for the supported Private Link path. Validate both the source connection and the source-to-OneLake publishing path. |
-| **Fabric workspace outbound protection?** | MySQL is supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). This does not add support for VNet-integrated servers or VNet gateways. |
+| **Data gateway selection?** | **None**, including the documented Private Link/private endpoint scenario. The native tutorial also leaves the gateway-reuse checkbox unselected. |
+| **VNet data gateway?** | Explicitly **not supported** by the native tutorial/limitations. Generic VNet support for MySQL in other workloads does not change this. |
+| **Standard on-premises gateway?** | **Not documented for this integration.** There is no native OPDG recipe or published minimum OPDG build; do not select it as an assumed workaround. Personal mode is not a Fabric mirroring runtime. |
+| **Public/private source options?** | Public access and **Private Link/private endpoint** connectivity are stated as supported. **VNet-integrated** Azure MySQL servers are not supported; VNet integration and Private Link are different deployment modes. The source guides leave a private-service provisioning recipe gap, discussed below. |
+| **Authentication/client prerequisite?** | **Basic MySQL authentication** and the source-specific routine/table grants. A **UAMI** separately publishes to OneLake. The native setup requires no gateway installation or customer-installed gateway driver. Entra source authentication is not supported. |
+| **What traverses a gateway?** | No gateway route is documented here. Azure MySQL background processing sends snapshot/change Parquet batches **source-to-OneLake using UAMI**; Fabric consumes the landing zone. Do not turn the source SQL connection into a gateway-forwarded binlog stream. |
+| **Source network restrictions?** | Validate the actual encrypted Fabric-to-MySQL service connection and the independent source-to-OneLake publishing path. Installing a gateway neither implements the supported private-service path nor grants UAMI target access. |
+| **Fabric inbound Private Link?** | The **source's** Private Link support does not mean Fabric inbound lockdown is supported. MySQL is absent from the [tenant](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support) mirror-source allowlists; tenant **Block Public Internet Access** or workspace **deny inbound public access** pauses/prevents starting its mirror. |
+| **Fabric workspace outbound protection?** | MySQL is supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). This does not add VNet-gateway/server support, establish the private source route, or override Fabric inbound restrictions. |
 
-See [Network requirements for MySQL mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql#network-requirements) for the current setup guidance.
+**Workload boundary:** The [Data Factory Azure MySQL connector](https://learn.microsoft.com/en-us/fabric/data-factory/connector-azure-database-for-mysql-overview) advertises None/on-premises/VNet gateways for **Copy/Pipeline**, not this native Mirroring setup. Follow the concrete **None** selector and stated native restrictions rather than inferring gateway support from that table. See [Gateway support by source](../appendix.md#gateway-support-by-source) for the cross-source comparison.
 
 ---
 
@@ -163,11 +172,13 @@ These are the [Azure mirroring-specific permissions](https://learn.microsoft.com
 5. Match database/table-name case exactly. Keep an approved list of expected target columns as well as table names.
 6. For a permitted public connection, verify the source FQDN, TLS, standard port **3306**, and the approved Azure network/firewall policy for the service connection.
 7. For a network-isolated server, use the documented **Private Link/private endpoint** deployment path. Verify endpoint approval, DNS, and the actual supported service connection before starting.
-8. Do **not** select a VNet-integrated server or install a VNet/on-premises gateway as a workaround. The tutorial requires **Data gateway: None**, including for the supported Private Link path.
+8. Do **not** select a VNet-integrated server or use a gateway as an assumed workaround. The native tutorial requires **Data gateway: None**, including for the stated Private Link path. VNet gateways are expressly unsupported; a standard OPDG path is not documented.
 
 The [network support statement](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql#network-requirements) does not document a universal service IP allow-list or a gateway-based workaround. The linked connector pages state Private Link support but do **not** supply an end-to-end Fabric-side private-connection provisioning procedure. An approved Azure private endpoint alone therefore does not prove the Fabric service can use it. Record the supported routing/DNS/approval design with the network owner/Microsoft and pass the actual Fabric connection test before proceeding. A successful laptop connection is insufficient evidence that Fabric can connect or that the server publisher can reach OneLake; do not open the server to all addresses to bypass that gap.
 
 For an outbound-protected Fabric workspace, also configure the required [data connection rule](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). That does not change the connector's gateway or deployment restrictions.
+
+Check **Fabric inbound policy separately** before provisioning. The [tenant Private Link](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace inbound-protection](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support) support lists exclude this source when public inbound access is denied. Neither an Azure MySQL private endpoint nor the UAMI bypasses that restriction. Resolve a mandatory Fabric-lockdown requirement with Microsoft rather than weakening the source or Fabric policy.
 
 ### 6. Create the Fabric item, connection, and fixed table selection
 
@@ -211,8 +222,8 @@ SELECT * FROM fabric_info.error_logs;
 Capture status codes and timestamps alongside Fabric's per-table status. Establish these responsibilities before accepting the deployment:
 
 - Source DBA: CPU/IOPS/storage headroom, long transactions, binlog growth, effective retention behavior, parameter drift, and DDL change coordination.
-- Identity owner: UAMI lifecycle and target Read/Write permissions; don't delete, replace, or detach the identity during unrelated cleanup.
-- Connection owner: Basic-authentication password expiry/rotation and the exact Fabric connection to update.
+- Identity owner: UAMI lifecycle, source-to-OneLake upload progress, and target Read/Write permissions; don't delete, replace, or detach the identity during unrelated cleanup.
+- Connection/network owner: Basic-authentication password expiry/rotation, the exact **gateway: None** Fabric connection, its public/private service route and DNS, and separate source-publisher connectivity.
 - Fabric operator: capacity availability, failed/stalled tables, snapshot completion, SQL visibility, and the agreed freshness target.
 - Data owner: excluded-column acceptance, initial/canary evidence, and recreated Fabric access controls. Source MySQL grants are not analytical authorization in Fabric.
 - Recovery owner: approved stop/start/reseed procedure, time/storage budget, PITR reconfiguration, and major-version-upgrade eligibility. Do not upgrade a mirrored server to unsupported 8.4.
@@ -252,9 +263,11 @@ The troubleshooting guide's UAMI recovery involves disabling/re-enabling source 
 | Binlog not enabled | `log_bin = OFF` or wrong deployment | Flexible Server normally always enables binlogs; verify the supported source and investigate with the DBA/support rather than editing `my.cnf` |
 | Binlog format not ROW | Unexpected source configuration | Verify the supported Flexible Server and active values; Azure documents row logging as the normal managed behavior |
 | Authentication or setup error | Unsupported authentication, missing routine permissions, or invalid server settings | Use Basic authentication; verify the documented grants, `gtid_mode = OFF`, and `aad_auth_only = OFF` |
+| Private source cannot connect, or a gateway is proposed as the fix | Unsupported VNet integration/gateway selection or an incomplete Private Link service route | Keep gateway **None**, distinguish source VNet integration from Private Link, and validate the actual Fabric service connection/DNS/approval design with the network owner or Microsoft; a laptop test or Copy connector recipe is insufficient |
+| Mirror pauses after Fabric inbound lockdown | Tenant Block Public Internet Access or workspace deny inbound public access excludes native MySQL mirroring | Check the explicit Fabric inbound support lists; source Private Link support and an outbound allow rule do not establish compatibility |
 | Table not replicating | Table lacks primary key | Arrange an approved primary-key/schema change before onboarding; do not change a live mirrored schema ad hoc |
 | Replication error | Source capture, schema, or upload error | Inspect `SELECT * FROM fabric_info.error_logs;` and follow the documented resolution for its status code |
-| OneLake publishing fails | UAMI permission was removed | Preserve errors and confirm identity/permissions; if the documented rebuild is required, approve disable/re-enable and recreation with a reseed budget |
+| OneLake publishing fails despite successful source login | Source-to-OneLake upload communication or UAMI permissions | Preserve `fabric_info.error_logs`, verify the **source publisher's** path and UAMI Read/Write; gateway changes do not fix that route. If the documented rebuild is required, approve disable/re-enable and recreation with a reseed budget |
 
 ---
 
@@ -282,6 +295,6 @@ Preview limitations can change. Recheck the tutorial, limitations, and troublesh
 
 ## Summary
 
-Azure MySQL mirroring is a preview source-managed, binlog-based integration. Prepare the server and UAMI in Azure, use supported MySQL 8.0 settings and primary keys, then validate the fixed table selection and excluded columns. See the current [overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-tutorial), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-limitations), and [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-mirroring-faq).
+Azure MySQL mirroring is a preview source-managed, binlog-based integration: the server publishes to OneLake using UAMI, while Fabric connects using **Basic authentication and gateway: None**. Public and stated Private Link source connectivity do not add VNet-gateway support, an undocumented OPDG route, or Fabric inbound-lockdown compatibility. Prepare supported MySQL 8.0 settings, grants, primary keys, publishing access, fixed table selection, and excluded-column validation. See the current [overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-tutorial), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-limitations), and [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-mirroring-faq).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 18: PostgreSQL](chapter-18.md) | **Next:** [Chapter 20: SAP](chapter-20.md)

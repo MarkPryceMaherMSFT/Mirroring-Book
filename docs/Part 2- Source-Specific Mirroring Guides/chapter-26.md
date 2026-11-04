@@ -33,11 +33,16 @@ Mirrored tables are typically available to query within seconds of selection, wi
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/dremio-tutorial) and [source limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/dremio-limitations) still require public connectivity. The [27 April preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-dremio-data-into-onelake-preview/5171986) describes on-premises gateway connectivity as **future work**, not a released native-catalog path. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | No gateway path is documented for this connector. A gateway is not a documented workaround for its public-reachability requirement. |
-| **Private endpoint support?** | No private source-network path is documented. In addition, Iceberg-to-Delta virtualization is unsupported in tenants or workspaces with Private Link enabled. |
+| **Data gateway required?** | Neither a **VNet** nor a **standard-mode on-premises** gateway configuration is documented for the native Dremio catalog. The explicit public-reachability requirement still applies; a generic gateway feature is not a documented workaround. |
+| **Private source access?** | No private native-catalog procedure is documented; the source limitations explicitly exclude firewall rules and other network restrictions. |
 | **Outbound-restricted (firewalled) networks?** | Not supported. The Dremio project and the storage location of all Iceberg tables must be reachable over the public internet. |
+| **Fabric Private Link?** | Separately, Iceberg-to-Delta virtualization excludes Private Link-enabled tenants/workspaces. This is not the same control as a private Dremio/storage endpoint. |
+| **Fabric workspace outbound protection?** | Dremio is not explicitly enumerated in the [mirrored-database support list](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). [OneLake outbound rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) also govern shortcut reads and each hop; allowing a storage connection does not establish native catalog support. |
+| **Different gateway integration?** | Standalone Amazon S3, S3-compatible, and GCS [storage shortcuts](https://learn.microsoft.com/en-us/fabric/onelake/create-on-premises-shortcut) can use a **standard-mode on-premises gateway**. They are separate integrations, not a gateway route for Dremio REST catalog mirroring or a waiver of format-virtualization limits. |
 
 Confirm both catalog and storage reachability before planning a deployment. Publicly reachable does not mean anonymously accessible: the connection still requires authorised credentials.
 
@@ -62,7 +67,7 @@ Use the [Microsoft tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/
 
    Dremio roles inherit grants; avoid project-wide `SELECT` or `ALL` when only a few tables are approved. Microsoft's tutorial says “necessary permissions” without publishing connector-specific GRANT statements. The table above makes the Dremio Cloud role review concrete but is not a claim that every Dremio edition uses identical privilege syntax.
 4. Sign in as the intended identity and confirm it can navigate the selected namespace and query the pilot table. Have the catalog/storage owner also verify that Dremio can authorize **external storage reads through credential vending**. `READ METADATA` alone does not grant object-storage access, and a successful query inside Dremio does not by itself prove Fabric's external read path.
-5. Confirm that **both** the project endpoint and every selected table's storage location are publicly reachable, while still requiring authentication. Do not make buckets anonymous. No firewall/private-source gateway path is documented. Check the separate OneLake format-virtualization region and Private Link limits below.
+5. Confirm that **both** the project endpoint and every selected table's storage location are publicly reachable, while still requiring authentication. Do not make buckets anonymous. No native VNet/on-premises gateway path is documented; a separately configured storage shortcut gateway does not satisfy this catalog prerequisite. Check the separate OneLake format-virtualization region and Private Link limits below.
 6. In Fabric, have the tenant administrator enable **Enable new mirrored catalog items (Preview)**. Use a workspace with F SKU or trial capacity and a creator with item-creation rights. Approve the intended Fabric/OneLake audience separately from Dremio permissions.
 
 ### 2. Prepare credentials, then create the catalog item
@@ -113,7 +118,7 @@ Record project/catalog owner, reader-role grants, PAT expiry or organizational-a
 | Topic | Detail |
 |---|---|
 | **500-table limit** | A maximum of 500 tables can be mirrored at once, whether individually selected or automatically synced. |
-| **Public internet only** | The Dremio project and its Iceberg table storage must be reachable via the public internet. Firewall rules and other network restrictions are not currently supported. |
+| **Public internet only** | The Dremio project and its Iceberg table storage must be reachable via the public internet. Firewall rules and other network restrictions are not currently supported. The announcement's planned gateway capability and released storage-shortcut gateways do not change this native-catalog limitation. |
 | **Iceberg-to-Delta virtualization** | OneLake generates Delta metadata without rewriting the source data. Only Parquet data files are supported. Iceberg V2 is supported; V3 support is partial. |
 | **Conversion limits** | Source tables must have fewer than 5,000 transactions or commits. Equality deletes and live files spanning multiple partition specs fail conversion; supported position deletes and V3 deletion vectors become Delta deletion vectors. Column renames and incompatible schema changes are not supported. |
 | **Conversion timing** | Metadata generation can take 5 seconds to 2 minutes. Microsoft advises source updates less frequent than once per 2 minutes to avoid an inconsistent virtual view. This is not a guaranteed end-to-end refresh SLA. |
@@ -139,7 +144,7 @@ See the [Dremio limitations](https://learn.microsoft.com/en-us/fabric/mirroring/
 | Symptom | Likely Cause | Resolution |
 |---|---|---|
 | Cannot create a mirrored catalog item | Tenant admin setting not enabled | Ask your Fabric tenant administrator to enable **Enable new mirrored catalog items (Preview)** |
-| Connection fails | Dremio project not reachable over the public internet, or invalid credentials | Confirm public reachability and verify the PAT or organizational account credentials |
+| Connection or file read fails | Dremio project or table storage is not publicly reachable, or catalog/vended credentials lack access | Verify the public catalog and every storage path, then check PAT/organizational-account and vended storage authorization separately; do not substitute a generic shortcut gateway for the native catalog connection |
 | Table not mirrored after recreation | A table with the same name was previously dropped and recreated | Check the documented storage-folder reuse limitation; use a distinct table identity/location or seek support before deleting source metadata |
 | Expected tables exceed the mirror limit | More than 500 tables selected or eligible for automatic sync | Reduce the namespace or table selection to stay within the 500-table limit |
 | Data looks stale | Propagation still in progress | Wait a few minutes; check the [SQL analytics endpoint performance guidance](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-performance) for expected propagation times |

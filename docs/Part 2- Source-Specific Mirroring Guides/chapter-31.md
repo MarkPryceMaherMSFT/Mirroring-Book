@@ -60,6 +60,18 @@ Source roles are distinct:
 
 The FAQ describes global availability, but that does not override the same-tenant setup requirement or establish every sovereign-cloud/private-network scenario. See the [management guide](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-manage-fabric-export).
 
+### Network and Gateway Boundary
+
+**Gateway documentation reviewed: 4 November 2026.** The [Business Central setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring) and [FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq) describe an application-managed publisher sending snapshots and changes to a Fabric **open mirrored database**. The documented baseline remains **Business Central online v29.0+, same Entra tenant, prerelease**; a gateway does not extend it to an on-premises deployment.
+
+| Question | Documented position |
+|---|---|
+| **Standard-mode on-premises data gateway?** | **Not part of the documented publisher flow; not required by the setup.** Business Central uses its internal replication service, not a Fabric SQL Server pull connection or personal-mode gateway. |
+| **VNet data gateway?** | **Not part of the documented publisher flow.** No Business Central-specific gateway option is published in these setup/FAQ pages; generic connector or Mirroring workload support does not establish one. |
+| **Private endpoint recipe?** | **Not documented for this publisher.** Generic [Open Mirroring Private Link support](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) requires the publisher to write through the private route; it does not establish that Business Central can use that route. Do not invent endpoint overrides, a private-network allowlist, or an end-to-end private configuration. |
+
+Use **Test connection** to check the stored credential's Fabric API access, then verify synchronization separately. A successful API test alone is not proof of a private data path or complete data delivery.
+
 ---
 
 ## Setup Walkthrough

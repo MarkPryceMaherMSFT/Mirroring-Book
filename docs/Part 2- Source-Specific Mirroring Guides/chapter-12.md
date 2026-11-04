@@ -25,6 +25,8 @@ SQL MI is commonly used as a migration target for on-premises SQL Server workloa
 
 The replication path depends on the managed instance update policy. The dedicated **Mirrored Azure SQL Managed Instance** connector uses the change feed. Instances on the SQL Server 2022 update policy instead follow the [SQL Server 2016-2022 mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-tutorial?tabs=sql201622), using CDC and a gateway even when a public endpoint exists.
 
+For **Always-up-to-date/2025**, Fabric's direct or gateway-assisted SQL connection handles authentication, setup, discovery, and management/metadata queries; the **MI engine → OneLake** path publishes the snapshot and incremental change feed using the MI's primary SAMI. The gateway does not tunnel that outbound publisher. For the **2022 policy**, Fabric reads the snapshot and CDC changes **through the gateway**; this branch is not an MI change-feed publisher and does not require the change-feed identity setup or Azure Arc.
+
 [![Figure 12.1: SQL Managed Instance mirroring with VNet connectivity options](../assets/diagrams/chapter-12/diagram-01.png)](../assets/diagrams/chapter-12/diagram-01.excalidraw.png)
 *Figure 12.1: SQL Managed Instance mirroring with VNet connectivity options*
 
@@ -32,14 +34,21 @@ The replication path depends on the managed instance update policy. The dedicate
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [MI tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-tutorial#prerequisites) and [network limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations#network-and-connectivity-security) explicitly support both gateway types and require one for the 2022 policy even if a public endpoint exists. The [overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance#mirroring-azure-sql-managed-instance-behind-firewall) and [security article](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-how-to-data-security#security-requirements) discuss the private-source case without that policy exception; use the more specific tutorial/limitations rule. See [gateway support by source](../appendix.md#gateway-support-by-source) for the shared comparison, lifecycle, and costs.
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | Always for the SQL Server 2022 update-policy path. For change-feed policies, required when the instance is not publicly accessible; otherwise the public endpoint uses port 3342. |
-| **Private endpoint support?** | Yes. Use an on-premises data gateway or VNet data gateway with a route to the SQL MI private endpoint. |
-| **Source firewall restrictions?** | For gatewayless public access, allow inbound traffic using the Power BI and Data Factory service tags, or the AzureCloud service tag, in the NSG. A gateway still requires its own permitted outbound connectivity. |
+| **Data gateway required?** | **2022 policy: always**, including a publicly accessible MI. **Always-up-to-date/2025:** required for a private-only source; optional when Fabric can reach the approved public endpoint on TCP **3342**. |
+| **VNet data gateway supported?** | Yes, explicitly documented for both policy paths. Its delegated subnet must reach and resolve the intended MI endpoint. |
+| **On-premises data gateway supported?** | Yes, **standard mode**, not personal mode. Run it on a Windows host with a permitted route to MI, not inside the managed instance service. |
+| **Gateway minimum version?** | No source-specific build minimum is stated in the reviewed native mirroring pages for either policy. Standard gateways should follow the [supported-release/latest-for-Fabric guidance](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-monthly-updates) and the shared [operational baseline, sign-in, and upgrade guidance](../appendix.md#gateway-releases-and-operational-baseline). Historical compatibility floors are not ongoing production baselines. VNet gateways are Microsoft-managed. |
+| **Connection authentication?** | The dedicated MI tutorial lists **Basic (SQL)**, **Organizational account (Entra)**, and **Service principal**. The 2022-policy SQL Server tutorial demonstrates SQL and Entra logins. Neither publishes a complete gateway-by-authentication matrix; confirm the chosen kind in that connector's gateway connection. Only change-feed publishing requires the MI's primary **SAMI**; UAMI is not supported there. |
+| **Private endpoint support?** | Yes. Either gateway can use a permitted private route. An MI Private Link endpoint uses TCP **1433** and needs MI-specific DNS; it is different from the default VNet-local endpoint and the public endpoint on 3342. |
+| **Source firewall restrictions?** | For gatewayless change-feed public access, allow the **Power BI and Data Factory** service tags, or the broader **AzureCloud** tag, in the NSG. Gateway-to-MI rules, gateway service connectivity, and MI-to-OneLake publishing are separate dependencies. |
+| **Workspace Private Link?** | The MI tutorial gives additional source-VNet/subnet-to-workspace private-link steps for publishing. A gateway or MI private endpoint alone does not establish that route. Do not apply Azure SQL Database's Resource Instance Rule recipe to MI without explicit support for its resource type. |
 | **Fabric workspace outbound protection?** | Supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Allow the source connection separately from its network route. |
 
-Unlike Azure SQL Database, SQL MI has no simple "Allow Azure services" toggle, so one of these two paths (public endpoint or gateway-mediated VNet access) is always required.
+Unlike Azure SQL Database, SQL MI has no simple "Allow Azure services" toggle. A VNet-deployed MI does not necessarily need a **VNet data gateway**: approved public change-feed access can use **None**, and private access can use either supported gateway. Personal-mode gateways are [Power BI only](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-onprem#types-of-gateways); source support here is established by native mirroring documentation, not a generic connector matrix.
 
 ---
 
@@ -142,7 +151,7 @@ TO [<EXISTING_ENTRA_PRINCIPAL_NAME>];
 
 Use a tool that understands `GO`, or execute its batches separately. Choose one path, not both. Inspect any existing principals rather than rerunning `CREATE`. Complete the [SQL MI Entra prerequisites](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure) if choosing Entra authentication; a Fabric role does not confer SQL access.
 
-> **Unresolved documentation discrepancy, rechecked 8 October 2026:** The tutorial's SQL lists the four narrower grants above, but its introductory prose mentions `CONTROL DATABASE`, and the [limitations page](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations#permissions-in-the-source-database) requires database `CONTROL` or `db_owner`. Test the tutorial grants in the non-production target and obtain Microsoft clarification if validation fails. If a supported deployment needs escalation, have the DBA authorize it on **this database only**; do not silently grant server-wide administration.
+> **Unresolved documentation discrepancy, rechecked 4 November 2026:** The tutorial's SQL lists the four narrower grants above, but its introductory prose mentions `CONTROL DATABASE`, and the [limitations page](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations#permissions-in-the-source-database) requires database `CONTROL` or `db_owner`. Test the tutorial grants in the non-production target and obtain Microsoft clarification if validation fails. If a supported deployment needs escalation, have the DBA authorize it on **this database only**; do not silently grant server-wide administration.
 
 Reconnect as the planned connection account and check the database context and effective grants:
 
@@ -163,17 +172,19 @@ Keep real passwords/client secrets in the approved secret store and Fabric conne
 4. Copy the public FQDN from Azure: `<instance>.public.<dns-zone>.database.windows.net,3342`. The `.public.` hostname and comma-port suffix both matter.
 5. Follow [public endpoint configuration](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/public-endpoint-configure), then test from the intended access path.
 
-**Private-only access, or any SQL Server 2022 update-policy deployment:**
+**Gateway route: required for private-only access and for every SQL Server 2022 update-policy deployment:**
 
-1. Have the gateway administrator install/register an on-premises data gateway or provision a VNet data gateway with access to the MI private endpoint/network.
+1. Have the gateway administrator install/register a **standard-mode on-premises data gateway** or provision a **VNet data gateway** with access to the MI private endpoint/network. The documented private-endpoint route below is appropriate even when a 2022-policy MI also has a public endpoint; that endpoint does not authorize selecting **None** for CDC.
 2. For an MI **Private Link endpoint**, create/select the endpoint targeting `Microsoft.Sql/managedInstances` / `managedInstance`, and have the MI owner approve any pending connection under **Security → Private endpoint connections**. It uses TCP **1433** and the proxy connection type, not public port 3342. This is distinct from the instance's default VNet-local endpoint.
 3. Configure and test [MI-specific private endpoint DNS](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/private-endpoint-overview?view=azuresql-mi#set-up-domain-name-resolution-for-private-endpoint) from the gateway network: DNS registration is not automatic, and connecting by private IP instead of the instance hostname fails. Follow the **same-VNet** or **different-VNet** procedure as applicable; do not overwrite the instance's own VNet-local DNS resolution. The same-VNet procedure also needs certificate-hostname handling—verify that the chosen connector supports the required settings rather than disabling TLS validation.
-4. Test an encrypted SQL connection to the target database through that route and check the gateway's [outbound service connectivity](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication).
+4. Test an encrypted SQL connection to the target database through that route. For a standard gateway, verify [outbound Azure Relay/service connectivity](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-communication) with its network ports test; no inbound Internet rule to the gateway is required. For VNet gateways, test DNS and the source port with the [VNet network troubleshooter](https://learn.microsoft.com/en-us/data-integration/vnet/troubleshoot-data-gateway) and apply its [managed-network requirements](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-architecture) instead of Windows gateway Relay settings.
 5. Give the creator permission to use the gateway and connection. A gateway invisible in the picker can be an access or region issue, not a SQL password failure.
 
 **If creating a VNet gateway:** follow the [gateway creation prerequisites](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways). Check supported region, tenant, and eligible capacity; have the subscription owner register `Microsoft.PowerPlatform`. A network administrator with subnet `join/action` permission creates a **dedicated gateway subnet**, delegates it to `Microsoft.PowerPlatform/vnetaccesslinks`, and provides routing/DNS to MI. Do not reuse or redelegate the MI subnet. In Fabric/Power BI **Settings → Manage connections and gateways → Virtual network (VNet) data gateway → New**, select the capacity, subscription, resource group, VNet, and delegated subnet, then save. This managed gateway is not created merely by creating the MI private endpoint.
 
-For workspace-level Private Link, the MI tutorial has additional instructions to create the private link service and private endpoint from the MI VNet/subnet. Apply those where relevant; a source private endpoint alone does not establish the source-to-OneLake publishing path. Workspace outbound access protection also needs its own connection rule.
+For Entra/OAuth or service-principal connections, also permit identity-service and certificate-validation dependencies. The [VNet FAQ](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-faqs#why-can-t-i-create-a-virtual-network-data-gateway-connection-with-oauth-authentication-towards-an-azure-resource-configured-with-private-endpoints-) documents a `Microsoft.AzureActiveDirectory` service endpoint fix for specific private-resource OAuth failures; do not treat it as a requirement to expose MI publicly.
+
+For workspace-level Private Link, the [MI tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-tutorial#prerequisites) has additional instructions to [create the private link service](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-set-up#step-2-create-the-private-link-service-in-azure) and [private endpoint](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-set-up#step-5-create-a-private-endpoint) from the MI VNet/subnet. Apply those to the **change-feed publishing** path where relevant; a source private endpoint or healthy gateway alone does not establish MI-to-OneLake connectivity. The [Resource Instance Rules supported-resource list](https://learn.microsoft.com/en-us/fabric/onelake/onelake-manage-inbound-access-trusted-resources#supported-resource-types) lists `Microsoft.Sql/servers`, not `Microsoft.Sql/managedInstances`; do not assume the Azure SQL Database rule covers MI. Workspace outbound access protection also needs its own connection rule and does not create either private route.
 
 ### SQL Server 2022 update-policy branch: prepare CDC, not external mirroring
 
@@ -276,14 +287,14 @@ Plan MI database renames, copy/move operations, and capacity maintenance with th
 
 | Topic | Detail |
 |---|---|
-| **VNet connectivity** | Unlike Azure SQL Database, SQL MI has no simple "Allow Azure services" toggle. VNet configuration is required. |
+| **VNet connectivity** | MI is VNet-deployed, but a VNet data gateway is not universally required. The update policy and source reachability determine whether **None**, a standard on-premises gateway, or a VNet gateway is appropriate. |
 | **Public endpoint port** | The public endpoint for SQL MI uses port **3342**, not the standard 1433. |
 | **Update policy** | The update policy determines whether the source uses the change feed or SQL Server CDC. |
 | **Change-feed table limit and keys** | Up to 1,000 tables. Tables without primary keys are supported, but unsupported key or clustered-index types can block a table. |
 | **Change-feed types and features** | Computed columns are excluded, including persisted ones. Tables with native `json`, Always Encrypted, in-memory or graph features, external tables, history tables, and clustered columnstore indexes are unsupported. Review the MI-specific list rather than assuming complete parity with Azure SQL Database. |
 | **Large values and precision** | LOB values above 1 MB are truncated. Values above 65,536 bytes also require an appropriate `max text repl size` setting. Delta supports six fractional-second digits; time-zone information is lost from `datetimeoffset`. |
 | **DDL** | Supported DDL reseeds the affected table. Partition switching, primary-key changes, column alteration, and column renaming are not supported while mirrored. Views and materialized views cannot be mirrored. |
-| **CDC scope** | On a SQL Server 2022 update policy, CDC is configured per database and selected table. |
+| **CDC scope** | On a SQL Server 2022 update policy, CDC is configured per database and selected table, and snapshot/CDC reads require the gateway even with a public endpoint. Do not use the change-feed SAMI, grants, or DMVs as substitutes for CDC setup. |
 | **SQL MI link** | SQL MI supports a native "Managed Instance Link" for disaster recovery to SQL Server. This is separate from Fabric Mirroring. |
 | **Instance-level features** | Instance-level objects (logins, SQL Agent jobs, linked servers) are not replicated. Only database-level table data is mirrored. |
 | **Recovery and restart** | Geo-disaster-recovery configurations and readable MI Link replicas are not supported. Stopping and starting mirroring reseeds all tables; after a capacity pause, the MI limitations page requires a manual restart. |
@@ -294,7 +305,7 @@ Plan MI database renames, copy/move operations, and capacity maintenance with th
 
 - **Change-feed path**: Fabric manages the external mirroring change feed. User CDC objects are not part of this path.
 - **CDC path**: SQL Server CDC creates capture and cleanup activity on the instance.
-- **Network**: Both paths depend on stable connectivity between Fabric and the managed instance.
+- **Network**: The CDC path depends on gateway throughput for the initial copy and ongoing CDC reads. The change-feed path separates Fabric-to-MI setup/metadata connectivity from MI-to-OneLake snapshot/change publishing; monitor both.
 - **Primary replica**: Mirroring connects to the primary for supported configurations.
 - **Log pressure**: Initial snapshots consume CPU and I/O. Long transactions and delayed change-feed processing can hold log truncation; monitor log usage and automatic reseeds.
 
@@ -308,8 +319,9 @@ Plan MI database renames, copy/move operations, and capacity maintenance with th
 | Firewall error | SQL MI NSG blocks the selected route | Verify the public endpoint's service-tag rule or the gateway's private route |
 | Change mechanism error | Setup does not match the instance update policy | Confirm the update policy and use the corresponding mirroring path |
 | CDC error on SQL Server 2022 policy | CDC setup or permissions failed | Review Fabric-managed CDC setup and source permissions |
-| Data gateway errors | Gateway cannot reach SQL MI endpoint | Verify gateway VNet routing and NSG rules |
-| Change feed stalls | Publishing identity or source error | Check the primary system-assigned identity's item permissions and `sys.dm_change_feed_errors` |
+| Data gateway errors | Wrong gateway mode, missing access, or gateway cannot reach SQL MI | Use standard mode or VNet, verify gateway/connection access, endpoint-specific DNS/ports, NSGs, and the appropriate gateway network test |
+| Public endpoint works but CDC setup fails | 2022-policy connection omitted the mandatory gateway or used the dedicated MI connector | Use the SQL Server CDC connector and a supported gateway; public access does not waive this policy-specific prerequisite |
+| Change feed stalls after a successful SQL connection | MI publishing identity, MI-to-OneLake route, or source error | Check the primary SAMI's item Read/Write grants, tenant settings, publishing path and `sys.dm_change_feed_errors`; testing only the gateway connection does not validate publishing |
 
 For the change-feed path, the [SQL MI troubleshooting guide](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-troubleshoot) uses `sys.dm_change_feed_log_scan_sessions`, `sys.dm_change_feed_errors`, and `sys.sp_help_change_feed`. Do not use CDC diagnostics as a substitute for these checks.
 
@@ -335,10 +347,12 @@ Reviewed **7 October 2026**: [MI tutorial](https://learn.microsoft.com/en-us/fab
 
 Rechecked **8 October 2026**: the MI tutorial, limitations, troubleshooting, SQL Server version branches, and shared troubleshooting; additionally, [MI private endpoints and DNS](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/private-endpoint-overview?view=azuresql-mi), [VNet gateway creation](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways), and the dated forum report above.
 
+Gateway/network scope rechecked **4 November 2026**: MI overview, tutorial, [security](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-how-to-data-security), limitations and troubleshooting; the SQL Server CDC tutorial; MI endpoint/DNS guidance; VNet creation/architecture/FAQ/troubleshooting; standard gateway modes, installation and communication; and the [supported gateway releases](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-monthly-updates) and linked [October 2026 release notes](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/on-premises-data-gateway-october-2026-release/5376557). No SQL MI-specific gateway build minimum is stated by those source articles. The gateway-policy exception and unresolved permission wording are retained explicitly above.
+
 ---
 
 ## Summary
 
-Azure SQL Managed Instance uses either the change feed or SQL Server CDC, depending on its update policy. Confirm that policy, source permissions, and VNet connectivity before setup. See the current [Azure SQL Managed Instance mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-tutorial), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations) for the matching path.
+Azure SQL Managed Instance uses change feed for Always-up-to-date/2025 or gateway-mediated CDC for the 2022 update policy. Both VNet and **standard-mode** on-premises gateways are documented. Private change-feed access needs one; approved public change-feed access can use **None**, but the 2022-policy CDC path always needs a gateway. Keep MI-to-OneLake publishing and source connection security separate. See the current [Azure SQL Managed Instance mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-tutorial), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations) for the matching path.
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 11: Azure SQL Database](chapter-11.md) | **Next:** [Chapter 13: Azure Cosmos DB](chapter-13.md)

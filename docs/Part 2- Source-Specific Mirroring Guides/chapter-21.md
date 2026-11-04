@@ -38,11 +38,14 @@ Each mirrored SharePoint List database has an auto-generated **SQL analytics end
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [native tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/sharepoint-list-tutorial#create-a-mirrored-database) selects **SharePoint Online List**. The [overview](https://learn.microsoft.com/en-us/fabric/mirroring/sharepoint-list) distinguishes replicated list rows from Document Library shortcuts; neither path establishes on-premises SharePoint support through a gateway.
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | The published SharePoint Online List walkthrough does not include a gateway setup step. Do not substitute the on-premises SharePoint connector. |
-| **Private endpoint support?** | The SharePoint mirroring overview and tutorial do not document a private-endpoint configuration. Validate this requirement before deployment. |
-| **Outbound-restricted (firewalled) networks?** | Not established in the source-specific mirroring documentation. SharePoint Online being a cloud service does not make Fabric workspace outbound restrictions irrelevant. |
+| **Standard-mode on-premises data gateway?** | **Not part of the published cloud setup; an optional native-mirroring gateway path is not documented.** Do not substitute a generic SharePoint connector or personal-mode gateway. |
+| **VNet data gateway?** | **Not documented for native SharePoint List mirroring.** Power Query, Copy Job, or OneLake shortcut gateway capabilities are not source-specific approval for this mirrored item. Absence of a documented option is not an explicit unsupported statement. |
+| **Fabric Private Link?** | SharePoint List mirrored items are explicitly supported in the [tenant-level guide](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) and [workspace-level inbound-protection guide](https://learn.microsoft.com/en-us/fabric/security/security-workspace-level-private-links-support#mirrored-database-support). This is Fabric ingress protection, not a private SharePoint Server source connection or a gateway requirement. |
+| **Fabric workspace outbound protection?** | SharePoint List is explicitly listed in the [mirrored-database outbound-protection guide](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Permit the approved source through data connection rules; cloud hosting and inbound Private Link do not bypass outbound policy. |
 
 ---
 
@@ -120,7 +123,7 @@ If a schema change is needed, try it on the test list first and inspect the resu
 | Topic | Detail |
 |---|---|
 | **Documentation coverage** | The release notes announce GA, but the source-specific documentation remains brief and has no dedicated limitations article. Check the [overview](https://learn.microsoft.com/en-us/fabric/mirroring/sharepoint-list) and [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/sharepoint-list-tutorial) before relying on an undocumented capability. |
-| **SharePoint Online only** | On-premises SharePoint Server is not a supported source. |
+| **SharePoint Online documented flow** | The native tutorial selects SharePoint Online List. It does not document mirroring on-premises SharePoint Server; adding a gateway or using a generic SharePoint connector does not establish that support. |
 | **Hybrid mechanism** | List rows are replicated into Delta tables; Document Library content is accessed through OneLake shortcuts rather than copied. Plan queries accordingly. |
 | **Unspecified limits** | The source-specific pages do not publish a table-count limit, a refresh interval, a supported-column matrix, or detailed schema-change behaviour. Do not reuse limits from another connector. |
 | **Document Library scope** | The overview says that supported content can be surfaced as Delta tables, but does not enumerate supported file types. It does not promise that every document becomes a queryable table. |

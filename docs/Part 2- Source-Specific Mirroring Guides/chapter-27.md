@@ -33,11 +33,16 @@ Mirrored tables are typically available to query within seconds of selection, wi
 
 ## Network and Connectivity
 
+**Gateway documentation reviewed: 4 November 2026.** The [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial), [source limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-limitations), and [preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-azure-monitor-and-aws-glue-data-to-onelake-preview/5326474) do not supply a native gateway procedure; the tutorial and limitations explicitly require public catalog/storage reachability. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
+
 | Question | Answer |
 |---|---|
-| **Data gateway required?** | No gateway path is documented for this connector. A gateway is not a documented workaround for the public-reachability requirement. |
-| **Private endpoint support?** | No private source-network path is documented. Iceberg-to-Delta virtualization also does not support tenants or workspaces with Private Link enabled. |
+| **Data gateway required?** | Neither a **VNet** nor a **standard-mode on-premises** gateway setup is documented for the native Glue catalog. A generic gateway is not a documented workaround for its public-reachability requirement. |
+| **Private source access?** | No private native-catalog procedure is documented. The source limitations explicitly exclude firewall rules and other network restrictions. |
 | **Outbound-restricted (firewalled) networks?** | The AWS Glue Iceberg REST catalog endpoint and the S3 locations holding the Iceberg data must be publicly reachable. The connector does not support firewall rules or other network restrictions. |
+| **Fabric Private Link?** | Separately, Iceberg-to-Delta virtualization does not support tenants/workspaces with Private Link enabled. This restriction is distinct from AWS endpoint/VPC configuration. |
+| **Fabric workspace outbound protection?** | AWS Glue is not explicitly enumerated in the [mirrored-database support list](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). [OneLake outbound rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) govern shortcut reads and chains separately; a storage allow rule does not establish native catalog support. |
+| **Different gateway integration?** | A standalone [Amazon S3 storage shortcut](https://learn.microsoft.com/en-us/fabric/onelake/create-on-premises-shortcut) can use a **standard-mode on-premises gateway** for network-restricted storage. That is not native AWS Glue catalog mirroring and does not provide a gateway to the Glue REST endpoint. |
 
 Confirm both catalog and storage reachability before deployment. This does **not** require public or anonymous S3 bucket access: the connection must still authenticate with the authorised IAM credential.
 
@@ -50,7 +55,7 @@ Confirm both catalog and storage reachability before deployment. This does **not
 Follow the [Microsoft AWS Glue tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial). Record the AWS account's 12-digit catalog ID, Region, Glue databases/tables, S3 buckets/prefixes, IAM connection user, and target Fabric workspace. This procedure mirrors metadata and reads existing Iceberg files; it does not configure a Glue ETL job, crawler-driven data copy, or CDC stream.
 
 1. **Glue data owner:** select an existing catalog containing valid **Apache Iceberg tables**, not just Parquet files registered as Hive tables. Pick one small table, verify its current metadata location and a known source row, and record every bucket holding its metadata and data. A crawler listing a table is not proof of supported Iceberg format.
-2. **Network/storage owner:** verify that the regional Glue Iceberg REST endpoint and every S3 data location are reachable through the public internet. Firewall/private-only paths are not supported by the documented connector. Keep bucket authentication and access controls enabled; “publicly reachable” does not mean public bucket permissions.
+2. **Network/storage owner:** verify that the regional Glue Iceberg REST endpoint and every S3 data location are reachable through the public internet. Firewall/private-only paths are not supported by the documented connector. A separate S3-shortcut gateway does not satisfy these native-catalog prerequisites. Keep bucket authentication and access controls enabled; “publicly reachable” does not mean public bucket permissions.
 3. **AWS IAM administrator:** create or select a dedicated **IAM user** for the connection. Attach the following action set from Microsoft's tutorial, substituting all required buckets. The Glue statement is broad (`Resource: "*"`); have the IAM owner review resource scoping and applicable organization/bucket policies rather than calling this universally minimal:
 
 ```json
@@ -109,7 +114,7 @@ Follow the [Microsoft AWS Glue tutorial](https://learn.microsoft.com/en-us/fabri
    | **Authentication kind** | **Access Key** |
    | **Access Key ID / Secret Access Key** | The dedicated IAM user's credential |
 
-3. On **Choose data**, choose **Catalog scope** and include only the approved databases/Iceberg tables. The picker reflects Glue **and** Lake Formation access. Exclude non-Iceberg tables explicitly.
+3. This native connection procedure has no documented gateway-selection step; do not replace the Glue connection with an Amazon S3 shortcut connection. On **Choose data**, choose **Catalog scope** and include only the approved databases/Iceberg tables. The picker reflects Glue **and** Lake Formation access. Exclude non-Iceberg tables explicitly.
 4. Review **Automatically sync future tables**, enabled by default. Disable it for a fixed pilot scope or approve the selected databases for future automatic exposure. This discovers catalog objects; it does not schedule an S3 ingest. Allow room below the 500-table limit for auto-included tables.
 5. Select **Next**, review scope and a workspace-unique item name, then **Create**. Confirm a shortcut per selected eligible table; empty databases are not shown.
 
@@ -147,7 +152,7 @@ Record the key owner/rotation date without recording the secret, Glue account/Re
 |---|---|
 | **Iceberg tables only** | Only tables in the Apache Iceberg format can be mirrored. Selecting a non-Iceberg table (Hive, CSV, JSON, or plain Parquet) does not mirror it, and can show an error on the mirrored item. |
 | **500-table limit** | A maximum of 500 tables can be mirrored at once, whether individually selected or automatically synced. |
-| **Public internet only** | The AWS Glue Iceberg REST catalog endpoint and the Amazon S3 storage locations must be reachable via the public internet. Firewall rules and other network restrictions are not currently supported. |
+| **Public internet only** | The AWS Glue Iceberg REST catalog endpoint and the Amazon S3 storage locations must be reachable via the public internet. Firewall rules and other network restrictions are not currently supported; a standalone S3 gateway shortcut is a different integration. |
 | **Iceberg-to-Delta virtualization** | OneLake generates Delta metadata over existing Parquet files. Iceberg V2 is supported; V3 support is partial. There is no second data copy. |
 | **Conversion limits** | Source tables must have fewer than 5,000 transactions or commits. Equality deletes and live files spanning multiple partition specs fail conversion; supported position deletes and V3 deletion vectors become Delta deletion vectors. Column renames and incompatible schema changes are unsupported. |
 | **Conversion timing** | Metadata generation can take 5 seconds to 2 minutes. Microsoft advises source updates less frequent than once per 2 minutes to avoid an inconsistent virtual view. This is not an end-to-end refresh SLA. |
@@ -175,7 +180,7 @@ See the current [AWS Glue catalog mirroring limitations](https://learn.microsoft
 | Symptom | Likely Cause | Resolution |
 |---|---|---|
 | Cannot create a mirrored catalog item | Tenant admin setting not enabled | Ask your Fabric tenant administrator to enable **Enable new mirrored catalog items (Preview)** |
-| Connection fails | AWS Glue endpoint or S3 storage not reachable over the public internet, or invalid access key | Confirm public reachability and verify the IAM access key ID and secret access key |
+| Connection fails | AWS Glue endpoint or S3 storage not reachable over the public internet, or invalid access key | Verify the regional Glue endpoint and every S3 metadata/data location through the public path, then verify the IAM access key. An S3-only shortcut gateway does not supply native Glue connectivity |
 | Database or table not visible | IAM user lacks Glue or Lake Formation read permissions on it | Grant the required `glue:Get*` actions and, if Lake Formation governs the catalog, the corresponding Lake Formation permissions |
 | Table not mirrored | Table is not in Apache Iceberg format | Confirm the table is cataloged as Iceberg; Hive, CSV, JSON, and plain Parquet tables are not supported |
 | Expected tables exceed the mirror limit | More than 500 tables selected or eligible for automatic sync | Reduce the database or table selection to stay within the 500-table limit |
