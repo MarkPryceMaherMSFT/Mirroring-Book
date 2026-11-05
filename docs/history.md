@@ -4,6 +4,12 @@ This page records documentation reviews, product-status changes, and material co
 
 Microsoft Learn remains the authoritative source for current product availability, limits, and licensing.
 
+## 5 November 2026 (MD Sync v1, v2, and On-Demand SQL Refresh)
+
+Expanded [Section 4.4](Part%201%20-%20Concepts%20and%20Architecture/chapter-04.md#44-sql-analytics-endpoint) into separate **MD Sync v1** and **MD Sync v2** explanations, distinguishing source-to-OneLake replication from SQL query visibility. Added the **Workspace settings > Warehouse settings > New metadata sync** steps: mirrored databases created afterwards receive v2 SQL analytics endpoints, while existing endpoints retain v1. Preserved the current Public Preview, workspace Private Link, and Delta-checkpoint limitations.
+
+Added a professional, explicit explanation that **SQL metadata lag does not require an upgrade to v2**. The [manual-refresh walkthrough](Part%201%20-%20Concepts%20and%20Architecture/chapter-04.md#refresh-an-existing-endpoint-without-upgrading) documents the SQL endpoint `refreshMetadata` REST route, correct item ID, permissions/token audience, non-recreation default, asynchronous completion, and per-table failure checks. It does not prescribe a mirror restart/reseed. Cross-linked Chapter 8 and retained the v2-only boundary for the T-SQL table-refresh procedure. Sources reviewed 5 November: [metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync), [performance](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-performance), [REST API](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/refresh-sql-endpoint-metadata), and [Mirroring troubleshooting](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting#data-doesnt-appear-to-be-replicating).
+
 ## 4 November 2026 (Source-by-Source Gateway Review)
 
 Reviewed the **21 Part 2 source guides** against their current public setup, security/network, and limitation pages, together with the shared VNet/on-premises gateway architecture, installation, roles, networking, proxy/certificate, update, billing, HA, and diagnostic references. Added a dated [gateway support matrix](appendix.md#gateway-support-by-source) and [operational/release baseline](appendix.md#gateway-releases-and-operational-baseline); each source records the two gateway types separately rather than inheriting support from Power Query, Copy Job, pipelines, or unrelated shortcut connectors.
