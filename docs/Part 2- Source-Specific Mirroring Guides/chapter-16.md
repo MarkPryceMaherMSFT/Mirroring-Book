@@ -124,6 +124,11 @@ The following is the **union of the current Microsoft permission include**, not 
 5. Review retention locks and lifecycle rules with the storage owner. Do not automatically delete files that a running export might still need, and do not assume a retention lock is compatible with the required object-delete permission.
 6. Alternatively, grant `storage.buckets.create` and let Fabric provision its bucket. Verify the resulting name, location, permissions, and charges before adding larger tables.
 
+Use the table and bucket checks as separate sign-offs. A successful BigQuery login or `CHANGES` query does not prove that the replication identity can export snapshots into the correctly located staging bucket.
+
+![BigQuery readiness checks separating keyed tables and change-history polling from same-location Cloud Storage staging and snapshot-export permissions](../assets/diagrams/chapter-16/walkthrough-staging-readiness.png)
+*Figure 16.1a: Source-table readiness and export-staging readiness require different permissions. Original book diagram, not a Microsoft product screenshot; based on the [BigQuery setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-tutorial) and [source security requirements](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-security), reviewed 9 November 2026. It depicts the documented staging prerequisites, not a resolution of the FAQ discrepancy noted above. [Editable Excalidraw](../assets/diagrams/chapter-16/walkthrough-staging-readiness.excalidraw) · [SVG](../assets/diagrams/chapter-16/walkthrough-staging-readiness.svg).*
+
 ### 5. Prepare and verify source tables
 
 Have the table owner run GoogleSQL in the selected project's BigQuery query editor, using the owner's approved table-update authority rather than adding it to the runtime identity when owner-side preparation was chosen. Replace the placeholders inside backticks and select the dataset's processing location.

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">A refreshed workbook needs a key diff, not just upserts</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">The Excel/CSV design pattern: comparison and durable state are additional publisher work, not conversion-helper features.</tspan>
+</text>
+<rect x="50" y="180" width="300" height="220" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="200.0" y="257.6" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="200.0" dy="0">Last published workbook</tspan>
+<tspan x="200.0" dy="25.2">K100: Ada</tspan>
+<tspan x="200.0" dy="25.2">K200: Grace</tspan>
+<tspan x="200.0" dy="25.2">K300: Linus</tspan>
+</text>
+<rect x="440" y="215" width="320" height="155" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="600.0" y="272.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="600.0" dy="0">Stable business keys</tspan>
+<tspan x="600.0" dy="25.2">Compare accepted versions</tspan>
+<tspan x="600.0" dy="25.2">Not row positions</tspan>
+</text>
+<rect x="850" y="180" width="300" height="220" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="1000.0" y="257.6" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="1000.0" dy="0">Current workbook</tspan>
+<tspan x="1000.0" dy="25.2">K100: Ada Lovelace</tspan>
+<tspan x="1000.0" dy="25.2">K300: Linus</tspan>
+<tspan x="1000.0" dy="25.2">K400: Katherine</tspan>
+</text>
+<rect x="120" y="525" width="420" height="170" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="330.0" y="588.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="330.0" dy="0">Current rows -&gt; marker 4</tspan>
+<tspan x="330.0" dy="28.0">K100, K300, K400</tspan>
+<tspan x="330.0" dy="28.0">Full-row upserts</tspan>
+</text>
+<rect x="660" y="525" width="420" height="170" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="870.0" y="590.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="870.0" dy="0">Old keys minus current keys</tspan>
+<tspan x="870.0" dy="25.2">K200 -&gt; marker 2</tspan>
+<tspan x="870.0" dy="25.2">Key-only delete, typed schema</tspan>
+</text>
+<polyline points="350,290 440,290" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="850,290 760,290" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="500,370 500,460 330,460 330,525" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="700,370 700,460 870,460 870,525" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="41" y="772.8" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="41" dy="0">Publish both sets before accepting the new workbook version.</tspan>
+<tspan x="41" dy="25.2">The conversion helper emits current rows; comparison, deletes and durable state are additional publisher work.</tspan>
+</text>
+</svg>

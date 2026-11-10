@@ -51,6 +51,11 @@ See the [Microsoft Learn architecture description](https://learn.microsoft.com/e
 
 The [gateway mode definitions](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-onprem#types-of-gateways) limit personal mode to Power BI. Native mirroring support here comes from the source articles above, not a generic Power Query, Copy Job, or VNet connector list. Fabric inbound Private Link and workspace outbound data connection rules are separate controls; neither grants source reachability.
 
+Use two separate acceptance tests: first prove the Fabric connection can reach SQL, then prove the logical server can publish to the OneLake landing zone. A successful gateway connection test does not certify the second direction.
+
+![Azure SQL Database network checks separating the Fabric-to-SQL connection from the server-identity publisher-to-OneLake path](../assets/diagrams/chapter-11/walkthrough-network-paths.png)
+*Figure 11.1a: Two independent network directions, including the logical server's Resource Instance Rule when OneLake inbound access is restricted. Original book diagram, not a Microsoft product screenshot; based on the [Azure SQL Database setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-tutorial) and [OneLake landing-zone FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-mirroring-faq#is-there-a-staging-or-landing-zone-for-azure-sql-database--if-so--is-it-outside-of-onelake--), reviewed 9 November 2026. [Editable Excalidraw](../assets/diagrams/chapter-11/walkthrough-network-paths.excalidraw) · [SVG](../assets/diagrams/chapter-11/walkthrough-network-paths.svg).*
+
 ---
 
 ## Setup Walkthrough

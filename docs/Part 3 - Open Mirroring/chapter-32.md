@@ -82,6 +82,11 @@ Once Fabric processes landing-zone data into Delta tables, Open Mirroring suppor
 - **OneLake Explorer**: Browse Delta table files directly.
 - **Cross-database queries**: Join mirrored tables with Warehouses and Lakehouse SQL analytics endpoints in the same workspace.
 
+Microsoft's overview illustrates the landing-zone-to-table boundary below. Its **CDC Processing** label describes Fabric applying the delivered changes; it does not mean Fabric captures changes from the application's source.
+
+![Figure 32.2: Microsoft's diagram of landing-zone changes being processed into managed tables](../assets/diagrams/chapter-32/microsoft-landing-zone-processing.png)
+*Figure 32.2: Landing-zone files become managed tables within the mirrored database item. Credit: Microsoft, [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*
+
 Consumers use the resulting tables rather than the publisher's file protocol. Data freshness still depends on source extraction, publication, Fabric processing, and the consuming experience; there is no fixed end-to-end latency guarantee.
 
 ### Security and Support Boundaries

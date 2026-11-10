@@ -53,6 +53,9 @@ The filesystem code discovers file progress, checks the expected next index and 
 
 An especially useful exercise is to fail the second file of a multi-file publication. On retry, require reconciliation of the already-published first file and its source batch. Detecting a sequence mismatch is valuable; choosing another sequence or resetting the table automatically is not a general recovery solution.
 
+![Figure 42.1: FabricBQSync Spark extraction and a second-file failure after partial publication](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.png)
+*Figure 42.1: With `MIRRORED_DATABASE` selected, Spark output is shaped and staged, then renamed file by file. One successful rename can survive a later failure; `max_watermark`, `mirror_file_index` and Fabric ingestion completion are different notions of progress. Explanatory illustration by this book, based on pinned [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py), [Mirror.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py), [FileSystem.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py#L560-L597), and [schedule telemetry](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756); not an official Microsoft diagram or a crash-safe transaction guarantee. [Editable Excalidraw source](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.excalidraw).*
+
 ## Operational Lessons
 
 Monitor BigQuery query volume, Spark execution, source progress, staged files, published sequence and destination freshness. Include keyed updates/deletes and change-history expiry in the evaluation, not just a large initial load.

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">AWS Glue: one connection identity, several read dependencies</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Permission dependency map, not a byte-level data path. A catalog listing alone does not prove a usable table.</tspan>
+</text>
+<rect x="365" y="170" width="470" height="175" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="600.0" y="237.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="600.0" dy="0">Dedicated IAM user's access key</tspan>
+<tspan x="600.0" dy="25.2">The same principal needs every</tspan>
+<tspan x="600.0" dy="25.2">applicable source permission</tspan>
+</text>
+<rect x="40" y="445" width="340" height="215" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="210.0" y="532.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="210.0" dy="0">Catalog discovery</tspan>
+<tspan x="210.0" dy="25.2">Glue metadata read actions</tspan>
+<tspan x="210.0" dy="25.2">Lake Formation read grants if used</tspan>
+</text>
+<rect x="430" y="445" width="340" height="215" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="600.0" y="532.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="600.0" dy="0">S3 storage reads</tspan>
+<tspan x="600.0" dy="25.2">List bucket + read objects</tspan>
+<tspan x="600.0" dy="25.2">Metadata, manifests and Parquet</tspan>
+</text>
+<rect x="820" y="445" width="340" height="215" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="990.0" y="532.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="990.0" dy="0">KMS, only for SSE-KMS</tspan>
+<tspan x="990.0" dy="25.2">kms:Decrypt on the actual keys</tspan>
+<tspan x="990.0" dy="25.2">Key policy must permit this reader</tspan>
+</text>
+<polyline points="465,345 465,390 210,390 210,445" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="600,345 600,445" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="735,345 735,390 990,390 990,445" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="46" y="705.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="46" dy="0">Public endpoints do not mean public buckets. Iceberg files remain in S3; Fabric consumer permissions are independent. This native</tspan>
+<tspan x="46" dy="25.2">catalog has no documented gateway path.</tspan>
+</text>
+</svg>

@@ -327,6 +327,10 @@ The linked extended-capabilities page still has no role-replication setup or com
 - **Fabric extensions**: Core replication compute is free, but view mirroring and optional Delta change data feed have usage-based Fabric charges. Review [extended-capability billing](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-billing) before enabling them.
 - **Gateway cost**: A VNet data gateway consumes the linked Fabric or Power BI Premium capacity at **4 CUs per running gateway member**, based on uptime. This is separate from free core replication compute. See [gateway capacity consumption](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-business-model).
 
+![Snowflake warehouse credit chart distinguishing blue compute credits from yellow cloud-services credits for Microsoft's example workload](../assets/setup/chapter-22/walkthrough-snowflake-credit-components.png)
+
+*Figure 22.6: Investigate both warehouse compute and cloud-services consumption; a quiet warehouse does not prove that mirroring has no source-side cost. Microsoft's dated example is illustrative, not a budget forecast or current price list. © Microsoft, from [Snowflake mirroring cost considerations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake#mirrored-snowflake-cost-considerations); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/snowflake/snowflake-costs-graph.png). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer).*
+
 ---
 
 ## Troubleshooting

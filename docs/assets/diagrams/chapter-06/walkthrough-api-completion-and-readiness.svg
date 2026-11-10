@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="850" viewBox="0 0 1240 850">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">An accepted API request is not a ready mirror</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Follow long-running operation headers, then check item and table readiness separately.</tspan>
+</text>
+<rect x="40" y="170" width="300" height="150" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="190.0" y="221.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="190.0" dy="0">Send supported request</tspan>
+<tspan x="190.0" dy="29.4">Retain operation and</tspan>
+<tspan x="190.0" dy="29.4">item identifiers</tspan>
+</text>
+<rect x="470" y="170" width="300" height="150" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="620.0" y="221.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="620.0" dy="0">202 Accepted</tspan>
+<tspan x="620.0" dy="29.4">Location + operation ID</tspan>
+<tspan x="620.0" dy="29.4">Retry-After</tspan>
+</text>
+<rect x="900" y="170" width="300" height="150" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="1050.0" y="221.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="1050.0" dy="0">Poll operation state</tspan>
+<tspan x="1050.0" dy="29.4">Wait as instructed</tspan>
+<tspan x="1050.0" dy="29.4">Bound retries / timeout</tspan>
+</text>
+<rect x="900" y="430" width="300" height="170" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="1050.0" y="493.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="1050.0" dy="0">Operation succeeded</tspan>
+<tspan x="1050.0" dy="28.0">Read the result if supplied</tspan>
+<tspan x="1050.0" dy="28.0">Retain the actual item ID</tspan>
+</text>
+<rect x="470" y="430" width="300" height="170" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="620.0" y="491.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="620.0" dy="0">Validate the mirror</tspan>
+<tspan x="620.0" dy="29.4">Start if required</tspan>
+<tspan x="620.0" dy="29.4">Check every table / data</tspan>
+</text>
+<rect x="40" y="430" width="300" height="170" rx="16" fill="#f1f5f9" stroke="#495057" stroke-width="2"/>
+<text x="190.0" y="491.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="190.0" dy="0">Failure or timeout</tspan>
+<tspan x="190.0" dy="29.4">Capture error / correlation</tspan>
+<tspan x="190.0" dy="29.4">Resolve before retrying</tspan>
+</text>
+<polyline points="340,245 470,245" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="770,245 900,245" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1050,320 1050,430" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="900,515 770,515" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1050,320 1050,375 190,375 190,430" fill="none" stroke="#495057" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="46" y="703.0" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="46" dy="0">Synchronous 200/201 responses can return immediately; use the documented result for that API. A successful provisioning</tspan>
+<tspan x="46" dy="28.0">operation does not prove that snapshotting has completed, that all tables are current, or that the SQL analytics endpoint has</tspan>
+<tspan x="46" dy="28.0">caught up.</tspan>
+</text>
+</svg>

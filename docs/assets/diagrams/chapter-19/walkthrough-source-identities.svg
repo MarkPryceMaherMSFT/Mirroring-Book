@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">MySQL: configure the publisher identity and SQL login separately</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">The source UAMI publishes to OneLake; Basic authentication connects Fabric to MySQL.</tspan>
+</text>
+<rect x="34" y="155" width="1132" height="250" rx="16" fill="none" stroke="#1864ab" stroke-width="2"/>
+<text x="52" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="52" dy="0">A Source enablement in Azure</tspan>
+</text>
+<rect x="65" y="235" width="310" height="130" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="220.0" y="279.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="220.0" dy="0">Azure enablement</tspan>
+<tspan x="220.0" dy="26.599999999999998">Enable Fabric Mirroring</tspan>
+<tspan x="220.0" dy="26.599999999999998">Choose UAMI + Save</tspan>
+</text>
+<rect x="465" y="235" width="310" height="130" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="620.0" y="279.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="620.0" dy="0">Source MySQL publisher</tspan>
+<tspan x="620.0" dy="26.599999999999998">Authenticates using the</tspan>
+<tspan x="620.0" dy="26.599999999999998">assigned UAMI</tspan>
+</text>
+<rect x="865" y="235" width="270" height="130" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="1000.0" y="279.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="1000.0" dy="0">OneLake landing zone</tspan>
+<tspan x="1000.0" dy="26.599999999999998">Publisher writes snapshot</tspan>
+<tspan x="1000.0" dy="26.599999999999998">and changes</tspan>
+</text>
+<rect x="34" y="445" width="1132" height="255" rx="16" fill="none" stroke="#0c8599" stroke-width="2"/>
+<text x="52" y="482.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="52" dy="0">B Fabric connection to MySQL</tspan>
+</text>
+<rect x="65" y="525" width="310" height="140" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="220.0" y="560.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="220.0" dy="0">Basic-authenticated</tspan>
+<tspan x="220.0" dy="26.599999999999998">connection</tspan>
+<tspan x="220.0" dy="26.599999999999998">Separate MySQL username /</tspan>
+<tspan x="220.0" dy="26.599999999999998">password</tspan>
+</text>
+<rect x="465" y="525" width="310" height="140" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="620.0" y="574.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="620.0" dy="0">Connection settings</tspan>
+<tspan x="620.0" dy="26.599999999999998">Data gateway: None</tspan>
+<tspan x="620.0" dy="26.599999999999998">TLS on; no VNet gateway</tspan>
+</text>
+<rect x="865" y="525" width="270" height="140" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="1000.0" y="574.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="1000.0" dy="0">MySQL login</tspan>
+<tspan x="1000.0" dy="26.599999999999998">Database + fabric_info</tspan>
+<tspan x="1000.0" dy="26.599999999999998">and mysql grants</tspan>
+</text>
+<polyline points="385,300 455,300" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="785,300 855,300" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="385,595 455,595" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="785,595 855,595" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="40" y="767.9" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Creating a SQL login does not configure the UAMI. Assigning a UAMI does not grant that login the documented SQL privileges.</tspan>
+</text>
+</svg>

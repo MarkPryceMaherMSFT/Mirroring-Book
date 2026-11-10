@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="910" viewBox="0 0 1200 910">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">Choose a failed-file repair or a table rebuild from evidence</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">These are different recovery procedures. Neither is permission to overwrite an already processed file.</tspan>
+</text>
+<rect x="25" y="155" width="550" height="690" rx="16" fill="none" stroke="#1864ab" stroke-width="2"/>
+<text x="43" y="191.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="43" dy="0">FAILED FILE: repair the rejected publication</tspan>
+</text>
+<rect x="625" y="155" width="550" height="690" rx="16" fill="none" stroke="#862e9c" stroke-width="2"/>
+<text x="643" y="191.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="643" dy="0">BREAKING SCHEMA / KEY: rebuild one table</tspan>
+</text>
+<rect x="55" y="220" width="490" height="165" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="300.0" y="282.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="300.0" dy="0">Evidence: invalid file rejected</tspan>
+<tspan x="300.0" dy="25.2">Sequential index 7 is blocked</tspan>
+<tspan x="300.0" dy="25.2">Later indexes 8 and 9 must wait</tspan>
+</text>
+<rect x="655" y="220" width="490" height="165" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="900.0" y="282.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="900.0" dy="0">Evidence: incompatible type or key</tspan>
+<tspan x="900.0" dy="25.2">Existing table cannot accept the change</tspan>
+<tspan x="900.0" dy="25.2">A complete reload is required</tspan>
+</text>
+<rect x="55" y="440" width="490" height="165" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="300.0" y="502.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="300.0" dy="0">Delete only the failed invalid file</tspan>
+<tspan x="300.0" dy="25.2">Validate a complete replacement</tspan>
+<tspan x="300.0" dy="25.2">Atomically republish at index 7</tspan>
+</text>
+<rect x="655" y="440" width="490" height="165" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="900.0" y="502.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="900.0" dy="0">Suspend this table's publisher</tspan>
+<tspan x="900.0" dy="25.2">Delete the full landing-zone folder</tspan>
+<tspan x="900.0" dy="25.2">Wait until the mirrored table disappears</tspan>
+</text>
+<rect x="55" y="675" width="490" height="155" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="300.0" y="732.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="300.0" dy="0">Continue the same stream</tspan>
+<tspan x="300.0" dy="25.2">Never replay a processed file</tspan>
+<tspan x="300.0" dy="25.2">Never skip the blocked sequence</tspan>
+</text>
+<rect x="655" y="675" width="490" height="155" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="900.0" y="732.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="900.0" dy="0">Recreate metadata + full initial load</tspan>
+<tspan x="900.0" dy="25.2">Wait until the table reappears</tspan>
+<tspan x="900.0" dy="25.2">Then resume incremental changes</tspan>
+</text>
+<polyline points="300,385 300,440" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="300,605 300,675" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="900,385 900,440" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="900,605 900,675" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="41" y="882.9" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="41" dy="0">Do not stop/start the database to repair one table. Index numbers are abbreviated; filenames still use 20 digits.</tspan>
+</text>
+</svg>

@@ -170,6 +170,10 @@ To enable it for **new mirrored databases**:
 2. Under **Warehouse settings**, turn on **New metadata sync**.
 3. Create the mirrored database after enabling the setting. Its newly created SQL analytics endpoint uses **MD Sync v2**.
 
+![Microsoft workspace settings showing the New metadata sync preview option](../assets/setup/chapter-04/workspace-new-metadata-sync.png)
+
+*Figure 4.2a: Where to enable the new metadata-sync implementation for subsequently created endpoints. This setting does not upgrade an existing endpoint. Microsoft screenshot, reproduced unchanged from [SQL analytics endpoint metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync#enable-new-metadata-sync); [original image](https://learn.microsoft.com/en-us/fabric/data-engineering/media/sql-analytics-endpoint-metadata-sync/workspace-settings-new-metadata-sync.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. The preview label is retained; follow the current feature restrictions, not a screenshot alone.*
+
 **The setting is not an in-place upgrade.** Existing mirrored databases and their SQL analytics endpoints remain on MD Sync v1. Turning on the workspace setting does not migrate them, and ordinary SQL freshness troubleshooting does not require deleting or recreating a mirror.
 
 At this review date, Microsoft still labels the feature **Public Preview**. The documented restrictions include inability to enable it with **workspace Private Link** and lack of support for deprecated Delta multi-part checkpoints. Check the [current feature limitations](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync#limitations-of-the-new-metadata-sync) before adopting it.
@@ -201,6 +205,10 @@ Omitting `tables` refreshes all tables in the endpoint. Keep `recreateTables` **
 If the API returns **`202 Accepted`**, the refresh is still running. Follow the returned `Location` and `Retry-After` headers using Fabric's [long-running-operation procedure](https://learn.microsoft.com/en-us/rest/api/fabric/articles/long-running-operation), then inspect the per-table results for failures before querying again. Even a completed HTTP request is not proof that every table refreshed successfully. Honour `Retry-After` if the API returns `429`; do not repeatedly restart the mirror or issue unbounded refresh requests.
 
 For an interactive check, **Refresh** in the SQL endpoint editor's **Explorer** toolbar also requests on-demand metadata synchronisation. This is different from refreshing the browser or a Power BI report. For v2 data-only, single-table refreshes, Microsoft recommends the T-SQL procedure; the REST API remains the documented item-level refresh path, including for existing endpoints.
+
+![Replication delivers changes to OneLake before SQL metadata sync exposes them, with an existing-endpoint refresh separate from enabling v2 for future endpoints](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.png)
+
+*Figure 4.2b: Diagnose the freshness boundary before changing the implementation. Dashed arrows show a refresh request or a future-creation setting, not another copy of the source data. Original explanatory diagram by this book, based on [SQL metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) and the [refreshMetadata API](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/refresh-sql-endpoint-metadata). [Editable Excalidraw source](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.excalidraw) · [SVG](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.svg).*
 
 ***
 

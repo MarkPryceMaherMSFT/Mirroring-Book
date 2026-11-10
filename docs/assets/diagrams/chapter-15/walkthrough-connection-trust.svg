@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">Azure Monitor: a reused connection is a security boundary</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">The mirrored item stores shortcut metadata; the connection's original source identity remains in use.</tspan>
+</text>
+<rect x="34" y="155" width="395" height="505" rx="16" fill="none" stroke="#1864ab" stroke-width="2"/>
+<text x="52" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="52" dy="0">Azure source permissions</tspan>
+</text>
+<rect x="465" y="155" width="700" height="505" rx="16" fill="none" stroke="#862e9c" stroke-width="2"/>
+<text x="483" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="483" dy="0">Fabric connection and consumer permissions</tspan>
+</text>
+<rect x="65" y="235" width="330" height="185" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="230.0" y="280.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="230.0" dy="0">Connection identity</tspan>
+<tspan x="230.0" dy="26.599999999999998">Workspace identity (same</tspan>
+<tspan x="230.0" dy="26.599999999999998">tenant)</tspan>
+<tspan x="230.0" dy="26.599999999999998">Service principal (cross tenant)</tspan>
+<tspan x="230.0" dy="26.599999999999998">OAuth account (pilot)</tspan>
+</text>
+<rect x="540" y="235" width="545" height="160" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="812.5" y="293.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="812.5" dy="0">Stored Azure Monitor connection</tspan>
+<tspan x="812.5" dy="28.0">Refresh tokens + enumerate tables</tspan>
+<tspan x="812.5" dy="28.0">Uses its original source identity</tspan>
+</text>
+<rect x="540" y="475" width="545" height="145" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="812.5" y="526.6" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="812.5" dy="0">Authorized Fabric users reuse the connection</tspan>
+<tspan x="812.5" dy="26.599999999999998">Create items for approved table subsets</tspan>
+<tspan x="812.5" dy="26.599999999999998">Their own Azure source role is not required</tspan>
+</text>
+<polyline points="400,315 530,315" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="812,405 812,465" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="71" y="515.2" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="71" dy="0">Grant the documented</tspan>
+<tspan x="71" dy="25.2">connection-creation role at the Log</tspan>
+<tspan x="71" dy="25.2">Analytics workspace; keep it assigned.</tspan>
+</text>
+<text x="836" y="427.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="836" dy="0">Govern reuse of this</tspan>
+<tspan x="836" dy="25.2">credential.</tspan>
+</text>
+<text x="40" y="725.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Table selection is not an access-control boundary. Apply OneLake security and test consumers separately; no CDC or export destination is</tspan>
+<tspan x="40" dy="25.2">created.</tspan>
+</text>
+</svg>

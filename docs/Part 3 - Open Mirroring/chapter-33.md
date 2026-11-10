@@ -36,6 +36,11 @@ From the mirrored database item page:
 1. Open the **Home** page and locate its details section.
 2. Copy the **Landing Zone URL**. This is the OneLake ADLS Gen2-compatible path where your application will write files.
 
+Microsoft's tutorial screenshot locates the item-level **Landing zone** link. It does not show a source connection or verify a publisher's change capture, delivery, or recovery behaviour.
+
+![Figure 33.2: The Landing zone link in the mirrored database Home page](../assets/setup/chapter-33/microsoft-landing-zone-url.png)
+*Figure 33.2: Locate the destination landing-zone URL, rather than a SQL endpoint or Lakehouse URL. Credit: Microsoft, [Open Mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring-tutorial/landing-zone-url.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*
+
 The URL format is:
 
 ```text

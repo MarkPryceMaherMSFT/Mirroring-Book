@@ -120,6 +120,9 @@ See the [ADLS access-control model](https://learn.microsoft.com/en-us/azure/stor
 
 **Checkpoint:** initial files and, where required, a delta must reach ADLS before proceeding. Do not hand-edit the generated files or delete the landing root to resolve a schema mismatch.
 
+![SAP Datasphere replication-flow Settings menu showing Initial and Delta, Initial Only, and Delta Only load-type choices](../assets/setup/chapter-20/datasphere-load-type.png)
+*Figure 20.2a: The upstream **Load Type** determines whether Datasphere continues delivering changes to ADLS. Although the source UI also displays **Delta Only**, Microsoft's mirroring tutorial documents **Initial and Delta** or **Initial Only** for this path; the visible menu is not an additional support statement. Microsoft documentation screenshot of SAP product UI, unchanged. © Microsoft. Source: [Set up a Datasphere replication flow](https://learn.microsoft.com/en-us/fabric/mirroring/sap-datasphere-tutorial#set-up-a-datasphere-replication-flow); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/sap-datasphere-tutorial/sap-datasphere-load-type.png). License: [MicrosoftDocs/fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Public article and repository license checked 9 November 2026.*
+
 ### Step 5: Create the Container-Level Shortcut
 
 1. In Fabric, create or open a Lakehouse in the intended workspace.

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="820" viewBox="0 0 1240 820">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">The mirrored-storage allowance belongs to the capacity</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Illustrative purchased F4 example: one shared 4 TB allowance, not 4 TB per mirrored database.</tspan>
+</text>
+<rect x="40" y="170" width="300" height="150" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="190.0" y="220.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#000000">
+<tspan x="190.0" dy="0">Mirrored database A</tspan>
+<tspan x="190.0" dy="30.799999999999997">2 TB of eligible</tspan>
+<tspan x="190.0" dy="30.799999999999997">replica storage</tspan>
+</text>
+<rect x="470" y="170" width="300" height="150" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="620.0" y="220.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#000000">
+<tspan x="620.0" dy="0">Mirrored database B</tspan>
+<tspan x="620.0" dy="30.799999999999997">1.5 TB of eligible</tspan>
+<tspan x="620.0" dy="30.799999999999997">replica storage</tspan>
+</text>
+<rect x="900" y="170" width="300" height="150" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="1050.0" y="221.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="1050.0" dy="0">Purchased F4 capacity</tspan>
+<tspan x="1050.0" dy="29.4">4 CUs x 1 TB per CU</tspan>
+<tspan x="1050.0" dy="29.4">4 TB shared allowance</tspan>
+</text>
+<rect x="40" y="440" width="515" height="150" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="297.5" y="490.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#000000">
+<tspan x="297.5" dy="0">Combined replica storage: 3.5 TB</tspan>
+<tspan x="297.5" dy="30.799999999999997">Within the shared 4 TB allowance</tspan>
+<tspan x="297.5" dy="30.799999999999997">0.5 TB of remaining allowance</tspan>
+</text>
+<rect x="685" y="440" width="515" height="150" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="942.5" y="491.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="942.5" dy="0">If combined replica storage grows to 4.5 TB</tspan>
+<tspan x="942.5" dy="29.4">0.5 TB exceeds the allowance</tspan>
+<tspan x="942.5" dy="29.4">Excess storage is chargeable</tspan>
+</text>
+<polyline points="190,320 190,380 295,380 295,440" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="620,320 620,380 295,380" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1050,320 1050,380 945,380 945,440" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="555,515 685,515" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="620.0" y="487.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="620.0" dy="0">Growth</tspan>
+</text>
+<text x="46" y="688.0" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="46" dy="0">No price or compression ratio is implied. Queries, gateways, source charges and optional capabilities are separate.</tspan>
+<tspan x="46" dy="28.0">Paused-capacity storage is billed; trial capacities and catalog/source-managed storage must not inherit the purchased replica</tspan>
+<tspan x="46" dy="28.0">allowance.</tspan>
+</text>
+</svg>

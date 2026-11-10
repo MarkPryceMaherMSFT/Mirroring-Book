@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="900" viewBox="0 0 1240 900">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">Source replication and SQL freshness are separate checks</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">A SQL metadata refresh does not restart the source publisher or change the endpoint's sync version.</tspan>
+</text>
+<rect x="40" y="170" width="300" height="150" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="190.0" y="221.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="190.0" dy="0">Source changes</tspan>
+<tspan x="190.0" dy="29.4">Snapshot and committed</tspan>
+<tspan x="190.0" dy="29.4">inserts / updates / deletes</tspan>
+</text>
+<rect x="470" y="170" width="300" height="150" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="620.0" y="223.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="620.0" dy="0">OneLake Delta tables</tspan>
+<tspan x="620.0" dy="28.0">Prove the replica is current</tspan>
+<tspan x="620.0" dy="28.0">using a Delta-aware reader</tspan>
+</text>
+<rect x="900" y="170" width="300" height="150" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="1050.0" y="221.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="1050.0" dy="0">SQL analytics endpoint</tspan>
+<tspan x="1050.0" dy="29.4">MD Sync updates the</tspan>
+<tspan x="1050.0" dy="29.4">SQL view of those tables</tspan>
+</text>
+<rect x="470" y="440" width="300" height="180" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="620.0" y="494.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="620.0" dy="0">Existing v1 endpoint is</tspan>
+<tspan x="620.0" dy="28.0">stale?</tspan>
+<tspan x="620.0" dy="28.0">Portal Refresh or</tspan>
+<tspan x="620.0" dy="28.0">refreshMetadata REST API</tspan>
+</text>
+<rect x="40" y="440" width="300" height="180" rx="16" fill="#f1f5f9" stroke="#495057" stroke-width="2"/>
+<text x="190.0" y="508.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="190.0" dy="0">New metadata sync setting</tspan>
+<tspan x="190.0" dy="28.0">Enable before creating</tspan>
+<tspan x="190.0" dy="28.0">new mirrored databases</tspan>
+</text>
+<rect x="900" y="440" width="300" height="180" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="1050.0" y="494.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="1050.0" dy="0">New v2 endpoint</tspan>
+<tspan x="1050.0" dy="28.0">Separate schema / data</tspan>
+<tspan x="1050.0" dy="28.0">sync</tspan>
+<tspan x="1050.0" dy="28.0">Preview restrictions apply</tspan>
+</text>
+<polyline points="340,245 470,245" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="405.0" y="213.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="405.0" dy="0">Replication</tspan>
+</text>
+<polyline points="770,245 900,245" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="835.0" y="213.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="835.0" dy="0">Metadata sync</tspan>
+</text>
+<polyline points="620,440 620,375 1050,375 1050,320" fill="none" stroke="#495057" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<polyline points="340,530 395,530 395,690 1050,690 1050,620" fill="none" stroke="#495057" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="46" y="775.5" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="46" dy="0">Follow the data first. If OneLake is stale, investigate replication. If OneLake is current but SQL is stale, investigate metadata</tspan>
+<tspan x="46" dy="28.0">sync. The workspace switch affects subsequently created endpoints; it does not upgrade existing ones, and an on-demand REST</tspan>
+<tspan x="46" dy="28.0">refresh does not require v2.</tspan>
+</text>
+</svg>

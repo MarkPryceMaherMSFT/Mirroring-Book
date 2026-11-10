@@ -87,6 +87,11 @@ This runbook follows the [Fabric tutorial](https://learn.microsoft.com/en-us/fab
 
 The [Azure preparation walkthrough](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring#prerequisites) includes screenshots of **Get Started**, database selection, and the ready state. Use that source-specific UI guide alongside these instructions. Do not manually set the internal mirroring-enabled flag or create your own publication/slot to imitate Azure's preparation workflow.
 
+Figure 18.1a separates server preparation from database registration and ownership checks. Complete both before treating Fabric item creation as a replication test.
+
+![PostgreSQL source preparation sequence showing primary SAMI and approved restart, logical WAL and preloaded azure_cdc, per-database registration and ownership, and source-side publication to OneLake](../assets/diagrams/chapter-18/walkthrough-source-preparation.png)
+*Figure 18.1a: Verify the server and each selected database separately; the source-side `azure_cdc` publisher uses the server's primary SAMI for OneLake uploads. Original book diagram, not a portal screenshot; based on the [Azure preparation and architecture guide](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring) and [Fabric connection tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-tutorial), reviewed 9 November 2026. [Editable Excalidraw](../assets/diagrams/chapter-18/walkthrough-source-preparation.excalidraw) · [SVG](../assets/diagrams/chapter-18/walkthrough-source-preparation.svg).*
+
 Run these read-only checks on the source after preparation:
 
 ```sql

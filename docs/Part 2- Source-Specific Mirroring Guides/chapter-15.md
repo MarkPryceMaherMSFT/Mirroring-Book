@@ -95,6 +95,11 @@ For workspace identity, follow the [identity administration guidance](https://le
 
 The connector pages provide no complete Azure Monitor Private Link, VNet gateway, or standard-mode on-premises gateway setup procedure. Where networking is restricted, verify the source service connection, managed-storage access, and Fabric consumer/outbound paths with the service team before onboarding. Do not substitute Databricks' VNet instructions, create an export destination, or make a workspace public to force a test through.
 
+Authorized connection reuse operates under the stored source identity, not each consumer's own Azure role. Review that delegation together with the approved table scope and downstream OneLake security.
+
+![Azure Monitor connection trust boundary linking source identity permissions to stored-connection refresh and authorized Fabric reuse, without a replication pipeline](../assets/diagrams/chapter-15/walkthrough-connection-trust.png)
+*Figure 15.1a: Connection ownership and reuse are separate from consumer authorization. Original book diagram, not a Microsoft product screenshot; based on [Azure Monitor security and permissions](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor#security-and-permissions) and the [authentication/setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor-tutorial), reviewed 9 November 2026. The item holds shortcut metadata; this diagram does not introduce CDC, a gateway, or customer export storage. [Editable Excalidraw](../assets/diagrams/chapter-15/walkthrough-connection-trust.excalidraw) · [SVG](../assets/diagrams/chapter-15/walkthrough-connection-trust.svg).*
+
 ### 3. Create the item and select actively ingesting tables
 
 1. In the target Fabric workspace, select **+ New item** → **Mirrored Azure Monitor**.

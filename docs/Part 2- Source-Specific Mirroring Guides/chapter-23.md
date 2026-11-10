@@ -303,6 +303,10 @@ For `.dacpac` deployments, the [SQL Server limitations](https://learn.microsoft.
 - **Gateway cost and lifecycle**: Budget for the standard gateway host if you manage one. VNet gateways consume their assigned capacity separately from core mirroring; use the shared [gateway comparison, cost, and release guidance](../appendix.md#gateway-support-by-source).
 - **Log and change-table retention**: Monitor capture lag, cleanup jobs, change-table storage, and transaction-log usage separately. Long-running transactions and capture problems can prevent log truncation.
 
+![SQL Server CDC flow from source tables to the transaction log, SQL Agent capture and cleanup, CDC change tables, and T-SQL readers](../assets/setup/chapter-23/walkthrough-sql-cdc-source-data-flow.png)
+
+*Figure 23.4: Source-side CDC dependencies: log capture, retained change tables and their readers are separate health checks. Fabric's documented 2016–2022 route reads the snapshot and CDC data through the gateway; this generic CDC diagram does not specify Fabric's internal query calls or a SQL Server 2025 publisher. © Microsoft, from [What is change data capture? — Data flow](https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/about-change-data-capture-sql-server?view=sql-server-ver16#data-flow); [original image](https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/media/change-data-sql-server-and-mi.png?view=sql-server-ver16). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([sql-docs LICENSE](https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE), including its warranty disclaimer).*
+
 ---
 
 ## Troubleshooting

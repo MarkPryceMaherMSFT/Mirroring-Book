@@ -306,6 +306,10 @@ The Dataverse and Business Central rows are application-managed routes, not extr
 [![Figure 3.6: Source groupings](../assets/diagrams/chapter-03/diagram-07.png)](../assets/diagrams/chapter-03/diagram-07.excalidraw.png)
 *Figure 3.6: Source groupings. The SQL Server 2025 gateway label represents the documented setup, not a claim that the engine's change-feed uploads traverse the gateway; see Chapter 24 for the public-route documentation difference.*
 
+![Separate connection and source-managed data-publishing paths, with gateway-hosted publisher and CDC exceptions identified](../assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.png)
+
+*Figure 3.7: A connection path and a publishing path can be different. Original explanatory diagram by this book, based on the [Azure SQL setup/security model](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-how-to-data-security), [SQL MI policy-specific gateway rules](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations#network-and-connectivity-security), and [Cosmos DB restricted-account traffic boundary](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-private-network#why-this-approach). This is not a universal connector topology or a Microsoft screenshot. [Editable Excalidraw source](../assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.excalidraw) · [SVG](../assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.svg).*
+
 ***
 
 ## Choosing the Right Method

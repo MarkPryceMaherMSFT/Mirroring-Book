@@ -135,6 +135,10 @@ For validation, use a sanctioned test company/table. Compare initial data, then 
 
 **Screenshots:** the linked Business Central setup article does not currently supply mirroring-wizard screenshots. Figure 31.1 is this book's explanatory architecture diagram, not a capture of a released Business Central setup screen.
 
+![Business Central publisher checkpoints from an empty Fabric Open Mirroring destination and approved company/table scope through connection setup, source synchronization, Fabric processing, and reader acceptance](../assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.png)
+
+*Figure 31.2: Separate connection preparation, source exports, Fabric processing and authorized query results. **Finish**, **Setup Complete**, **Export Enabled** and current table data are not interchangeable acceptance signals. Original illustration for this book, not a Microsoft screenshot or wizard mock-up; based on the [Business Central setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring#confirm-setup-and-start-synchronization) and [monitoring guide](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-monitor-fabric-export), reviewed 9 November 2026. This is a conceptual checkpoint sequence, not a replacement for the current identity/setup procedure. [Editable Excalidraw](../assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.excalidraw) · [SVG](../assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.svg).*
+
 ---
 
 ## Selecting Companies, Tables, and Configuration Packages

@@ -74,6 +74,10 @@ CDF is enabled **per mirrored database**, not per table.
 2. Select the **gear** icon to open the configuration dashboard.
 3. Under **Delta table management**, enable **Delta change data feed**.
 
+![Microsoft mirrored-database Delta table management settings with the Enable delta change data feed option highlighted](../assets/setup/chapter-09/enable-delta-change-data-feed.png)
+
+*Figure 9.1a: CDF is an explicit mirrored-database setting, separate from ordinary replication. Microsoft screenshot, reproduced unchanged from [Delta change data feed in Mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-delta-change-data-feed#enable-delta-change-data-feed-in-the-fabric-portal); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/mirroring-extended-capabilities/enable-change-data-feed.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. Microsoft's sample database and captured UI labels do not resolve source-specific support or billing questions; use the surrounding guidance.*
+
 **Via REST API:**
 
 Use the mirrored database REST API. See the [API documentation](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-rest-api#enable-delta-change-data-feed-for-a-mirrored-database) for the request format.

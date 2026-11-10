@@ -50,6 +50,10 @@ This is a conceptual architecture, not a verified deployment diagram. It deliber
 
 The wider sharing/federation family is the useful architectural comparison: access governed provider data instead of automatically maintaining another database replica. The precise Fabric implementation remains a documentation gap.
 
+![Two independently governed announced SAP BDC and OneLake sharing directions, with provider and consumer decisions around an explicitly unverified implementation boundary](../assets/diagrams/chapter-29/walkthrough-sharing-readiness-boundaries.png)
+
+*Figure 29.1: Two provider-to-consumer contracts, not transactional writeback. Dashed arrows show only the announced logical sharing; the Fabric-specific transport, identity, item type and endpoints remain deliberately unspecified. Original readiness illustration for this book, not a Microsoft or SAP screenshot; based on [Microsoft's SAP integration guidance][ms-sap-options] and [SAP's announcement][sap-announcement], read 9 November 2026. No released wizard or protocol is inferred from another partner's implementation. [Editable Excalidraw](../assets/diagrams/chapter-29/walkthrough-sharing-readiness-boundaries.excalidraw) · [SVG](../assets/diagrams/chapter-29/walkthrough-sharing-readiness-boundaries.svg).*
+
 ### Difference from Chapter 20
 
 | Concern | [Chapter 20: SAP via Datasphere](chapter-20.md) | This chapter: BDC Connect for Fabric |

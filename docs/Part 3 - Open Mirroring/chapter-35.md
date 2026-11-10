@@ -201,6 +201,9 @@ def excel_to_parquet(
 
 For the initial file, call with `incremental=False` and omit `__rowMarker__`. For later files, use upserts plus delete rows for keys present in the last published workbook but absent from the new one. An empty workbook still requires those deletes. Publish deletes with marker `2` and the old keys, preserving compatible Parquet types as described in Chapter 36.
 
+![Figure 35.2: Comparing stable workbook keys produces current-row upserts and missing-key deletes](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.png)
+*Figure 35.2: An upsert-only refresh leaves the removed key K200 behind; the publisher must compare accepted snapshots and emit its delete. Explanatory illustration by this book, based on this chapter's workbook pattern, the [row-operation contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes), and [durable publication guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram or a claim that `excel_to_parquet` implements comparison and checkpointing. [Editable Excalidraw source](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.excalidraw).*
+
 Persist the accepted workbook version or key set with the batch checkpoint only after publication succeeds. A repeated or out-of-order trigger must not reapply an older workbook over a newer one. This comparison and checkpoint logic is part of the publisher, not something the conversion helper or Fabric performs automatically.
 
 ---

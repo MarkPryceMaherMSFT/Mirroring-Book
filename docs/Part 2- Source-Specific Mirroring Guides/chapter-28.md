@@ -186,6 +186,10 @@ To replace an organizational credential with workspace identity, first prepare t
 - Finance and operations **kernel tables** use a daily initial refresh rather than continuous incremental sync; `InitialSyncInProgress` can be expected for those tables.
 - SQL endpoint **new metadata sync** remains preview and must be enabled on the selected workspace before linking under the documented preview procedure. Do not unlink a production environment solely to adopt a preview.
 
+![Power Apps Link to Fabric profile bearing the Low-latency mode flag, with historical Azure Synapse Link navigation still visible in Microsoft's capture](../assets/setup/chapter-28/walkthrough-low-latency-profile-flag.png)
+
+*Figure 28.4: Verify the profile's **Low-latency mode** flag rather than inferring migration from the GA announcement or Lakehouse name. The flag identifies the engine, not completed initial sync or current SQL metadata. Microsoft's historical capture still uses Azure Synapse Link navigation; follow the current **Link data → Fabric Links** procedure. © Microsoft, from [Configure your environment and link to Fabric — Low-latency sync](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform#low-latency-sync); [original image](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/media/fabric/low-latency-sync-page.png). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([powerapps-docs LICENSE](https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE), including its warranty disclaimer).*
+
 ### Plan an Existing-Link Migration
 
 Changing the connection credential is not an engine upgrade. For a profile that must move to low-latency sync:

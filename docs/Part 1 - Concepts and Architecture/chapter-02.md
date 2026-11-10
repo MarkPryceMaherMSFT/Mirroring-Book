@@ -188,6 +188,12 @@ Use this decision path to choose the right type. For an application-managed inte
 
 *Figure 2.1: Choosing a mirroring type*
 
+For the Open Mirroring branch of that decision, the important boundary is the **file-delivery contract**, not a particular source database. The publisher supplies valid change files; Fabric processes those files into its managed tables.
+
+![Microsoft diagram showing the Open Mirroring landing zone feeding CDC processing and managed tables](../assets/setup/chapter-02/open-mirroring-file-to-table-flow.png)
+
+*Figure 2.2: The destination-side Open Mirroring contract. The image's "CDC Processing" label describes applying the supplied changes; it does not prescribe SQL Server CDC for every source. Microsoft image, reproduced unchanged from [Open Mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring#why-use-open-mirroring-in-fabric); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer.*
+
 **Additional considerations:**
 
 * Choose **database mirroring** when you need the data physically present in OneLake.

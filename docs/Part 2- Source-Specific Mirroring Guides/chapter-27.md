@@ -144,6 +144,10 @@ Keep downstream OneLake **Pass-through** access unless a separately approved del
 
 Record the key owner/rotation date without recording the secret, Glue account/Region, IAM policy scope, Lake Formation grants, S3 locations and KMS keys, automatic-table policy, consumer roles, and validation results. When rotating, update the Fabric connection and verify both catalog discovery and object reads before disabling the old key. Permissions revoked in Glue, S3 or KMS can interrupt operation. AWS documents that [dropping and recreating a catalog object does not restore its Lake Formation grants](https://docs.aws.amazon.com/lake-formation/latest/dg/granting-catalog-permissions.html); revalidate permissions after such a change. Preserve AWS-side metadata/data retention and rollback procedures; deleting a Fabric shortcut is not deleting or purging the source Iceberg table.
 
+![IAM-user access key depending on Glue and applicable Lake Formation permissions, S3 object reads, and KMS decrypt permission when the actual objects use SSE-KMS](../assets/diagrams/chapter-27/walkthrough-iam-read-dependencies.png)
+
+*Figure 27.3: Source authorization is a set of dependencies, not a single “connected” state: catalog visibility, readable Iceberg files, and applicable key permissions must all agree. Original illustration for this book, not a Microsoft screenshot; based on the [Microsoft AWS Glue tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial#configure-aws-authentication) and [AWS SSE-KMS permissions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html), reviewed 9 November 2026. This is neither role-assumption authentication nor a replicated-data flow. [Editable Excalidraw](../assets/diagrams/chapter-27/walkthrough-iam-read-dependencies.excalidraw) · [SVG](../assets/diagrams/chapter-27/walkthrough-iam-read-dependencies.svg).*
+
 ---
 
 ## Nuances and Limitations

@@ -192,6 +192,9 @@ If TTL is business-critical, run a **separate** approved expiry test without cha
 
 Fabric's Cosmos DB Data Explorer reads the **source** and consumes RUs; it cannot insert, edit, or delete items. Its immediacy is not evidence that OneLake has caught up. The SQL analytics endpoint is a separate, read-only analytical copy.
 
+![Fabric Cosmos DB Source database explorer displaying source container documents, distinct from the mirrored SQL analytics endpoint](../assets/setup/chapter-13/cosmos-source-explorer-query.png)
+*Figure 13.4: The **Source database** view is a source-read tool, not proof of replica freshness. Queries here consume Cosmos DB RUs; validate replicated rows through the SQL analytics endpoint instead. Microsoft tutorial screenshot, unchanged. © Microsoft. Source: [Query the source database from Fabric](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-tutorial#query-the-source-database-from-fabric); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/azure-cosmos-db-tutorial/source-explorer-query.png). License: [MicrosoftDocs/fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Public article and repository license checked 9 November 2026.*
+
 ### 7. Hand over operations and security
 
 - Record the source account/database/container selection, Fabric item and connection IDs, connection owner, backup tier, target region, and initial/canary timings.

@@ -41,6 +41,10 @@ Fabric workspaces can be connected to a **Git repository** in Azure DevOps or Gi
 
 Only the mirrored database item is tracked. Its SQL analytics endpoint, SQL views, and other child items are not tracked in this Git representation. Manage any SQL objects you create separately.
 
+![Microsoft example of MirroredDatabase folders containing .platform and mirroring.json files in Git](../assets/setup/chapter-07/mirrored-item-git-representation.png)
+
+*Figure 7.1a: The item definition is versioned, not the mirrored data or connection secret. Microsoft screenshot, reproduced unchanged from [CI/CD for mirrored databases](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-cicd#mirrored-database-representation-in-git); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/mirrored-database-cicd/representation-in-git.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. The shown names are Microsoft's examples; they are not required deployment identifiers.*
+
 **Important:** Source credentials are **not** stored in Git. The connection reference, typically the Connection ID, is stored in the item definition, but the actual credentials remain in Fabric's connection store. When environments use different connections, substitute the correct connection IDs during promotion.
 
 ### Fabric Deployment Pipelines

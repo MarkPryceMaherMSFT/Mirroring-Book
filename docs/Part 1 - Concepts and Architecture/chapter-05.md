@@ -55,6 +55,10 @@ Status meanings:
 
 **Backoff is not a separate status value.** It is polling behaviour, described in Chapter 3, that can occur while a mirror still shows **Running** or **Running with warning**.
 
+![Microsoft mirrored-database monitor showing overall state, per-table status, rows replicated, and last completed times](../assets/setup/chapter-05/mirrored-database-monitor-panel.png)
+
+*Figure 5.1a: Read the table rows as well as the overall status. "Rows replicated" counts operations, not the current destination row count. Microsoft screenshot, reproduced unchanged from [Monitor mirrored database replication](https://learn.microsoft.com/en-us/fabric/mirroring/monitor#monitor-from-the-fabric-portal); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/monitor/monitor-mirrored-database.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. The Azure SQL example and historical UI labels are illustrative, not a new source-specific promise.*
+
 ### Table-Level Detail
 
 Use the table rows in the item-level replication status view to identify affected tables. For snapshot or incremental state, processed rows and bytes, latency, and table-level errors, use `getTablesMirroringStatus`. For individual replication operations, use Workspace Monitoring.
@@ -157,6 +161,10 @@ A successful connection test proves only that tested path. For example, Cosmos D
 ## Workspace Monitoring
 
 For historical operational monitoring across one or more mirrored databases, use **Workspace Monitoring**. This is the primary documented log-based monitoring path for Fabric Mirroring. See [Monitor mirrored database replication](https://learn.microsoft.com/en-us/fabric/mirroring/monitor#use-workspace-monitoring) for how to enable it.
+
+![Microsoft workspace Monitoring settings with Log workspace activity enabled and a Monitoring database link](../assets/setup/chapter-05/enable-workspace-monitoring.png)
+
+*Figure 5.1b: Workspace log enablement is a separate step from opening an item's replication monitor. Microsoft screenshot, reproduced unchanged from [the monitoring guide](https://learn.microsoft.com/en-us/fabric/mirroring/monitor#use-workspace-monitoring); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/monitor/enable-workspace-monitoring.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. Check the chapter's network and diagnostic availability restrictions before relying on this surface in a restricted workspace.*
 
 Workspace Monitoring stores telemetry in an **Eventhouse KQL database**, which is part of **Fabric Real-Time Intelligence**. For mirrored database activity, the main table is:
 

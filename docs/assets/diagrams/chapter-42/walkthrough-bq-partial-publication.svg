@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1010" viewBox="0 0 1200 1010">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">FabricBQSync: a multi-file publication can succeed only in part</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Inspected a8bf1f1: useful index and rename checks, not one transaction spanning every output file and the source query.</tspan>
+</text>
+<rect x="35" y="170" width="285" height="190" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="177.5" y="245.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="177.5" dy="0">BigQuery extraction</tspan>
+<tspan x="177.5" dy="25.2">CHANGES / APPENDS /</tspan>
+<tspan x="177.5" dy="25.2">Watermark predicates</tspan>
+</text>
+<rect x="425" y="170" width="350" height="190" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="600.0" y="245.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="600.0" dy="0">Fabric Spark DataFrame</tspan>
+<tspan x="600.0" dy="25.2">OpenMirror.save_to_landing_zone</tspan>
+<tspan x="600.0" dy="25.2">Row marker + JSON conversion</tspan>
+</text>
+<rect x="880" y="170" width="285" height="190" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="1022.5" y="245.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="1022.5" dy="0">_scratchPad per table</tspan>
+<tspan x="1022.5" dy="25.2">Spark part files</tspan>
+<tspan x="1022.5" dy="25.2">MIRRORED_DATABASE</tspan>
+</text>
+<rect x="65" y="465" width="445" height="165" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="287.5" y="527.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="287.5" dy="0">Part A -&gt; final index N</tspan>
+<tspan x="287.5" dy="25.2">Rename succeeds</tspan>
+<tspan x="287.5" dy="25.2">This file can be ingested independently</tspan>
+</text>
+<rect x="690" y="465" width="445" height="165" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="912.5" y="527.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="912.5" dy="0">Part B -&gt; final index N+1</tspan>
+<tspan x="912.5" dy="25.2">Rename fails</tspan>
+<tspan x="912.5" dy="25.2">stage_spark_output raises</tspan>
+</text>
+<rect x="65" y="725" width="445" height="170" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="287.5" y="790.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="287.5" dy="0">Separate telemetry notions</tspan>
+<tspan x="287.5" dy="25.2">max_watermark: source progress</tspan>
+<tspan x="287.5" dy="25.2">mirror_file_index: file progress</tspan>
+</text>
+<rect x="690" y="725" width="445" height="170" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="912.5" y="790.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="912.5" dy="0">Retry: reconcile part A and its batch</tspan>
+<tspan x="912.5" dy="25.2">Do not blindly allocate a new index</tspan>
+<tspan x="912.5" dy="25.2">Index checks are not a batch journal</tspan>
+</text>
+<polyline points="320,265 425,265" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="775,265 880,265" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1022,360 1022,435 287,435 287,465" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="510,547 690,547" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="605.0" y="514.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="605.0" dy="0">next file</tspan>
+</text>
+<polyline points="912,630 912,725" fill="none" stroke="#495057" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="41" y="404.8" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="41" dy="0">Inspected marker ordering needs correction against the public final-column requirement; this figure does not imply it is fixed.</tspan>
+</text>
+<text x="41" y="962.9" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="41" dy="0">Publication progress is not Fabric ingestion completion. Source extraction and all file renames are not one atomic batch.</tspan>
+</text>
+</svg>

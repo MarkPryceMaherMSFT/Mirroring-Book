@@ -111,6 +111,10 @@ For the downstream shortcut, keep the default **Pass-through** access unless a s
 
 Record project/catalog owner, reader-role grants, PAT expiry or organizational-account owner, approved namespaces, automatic-discovery policy, source-storage owner, and query/conversion checks. Rotate the connection credential and validate enumeration plus file reads before revoking the old one. Stop expanding selection near the 500-table ceiling. Coordinate source schema changes and table drops/recreation: reuse of a previously dropped table name is a documented limitation, not a reason to delete production storage. Remove only the pilot Fabric item/shortcuts at cleanup; manage source rows and retention in Dremio.
 
+![Four Dremio readiness checks separating catalog identity, vended storage credentials, Iceberg-to-Delta conversion, and independent Fabric reader permissions](../assets/diagrams/chapter-26/walkthrough-catalog-access-checkpoints.png)
+
+*Figure 26.3: Diagnose the first failing boundary instead of treating successful catalog discovery as proof of end-to-end access. Original illustration for this book, not a Microsoft screenshot; based on Microsoft's [Dremio authentication overview](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/dremio#connect-and-authenticate), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/dremio-tutorial) and [Iceberg conversion guidance](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#check-the-conversion-log), reviewed 9 November 2026. Data files remain in source storage. [Editable Excalidraw](../assets/diagrams/chapter-26/walkthrough-catalog-access-checkpoints.excalidraw) · [SVG](../assets/diagrams/chapter-26/walkthrough-catalog-access-checkpoints.svg).*
+
 ---
 
 ## Nuances and Limitations

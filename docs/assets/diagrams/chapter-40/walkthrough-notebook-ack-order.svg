@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="970" viewBox="0 0 1200 970">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">Notebook capture paths: publication is not source acknowledgement</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Inspected Toolbox revision b0183fb. Orange steps show progress moved or reset before a later upload.</tspan>
+</text>
+<rect x="35" y="175" width="240" height="165" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="155.0" y="225.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="155.0" dy="0">Excel / SharePoint</tspan>
+<tspan x="155.0" dy="25.2">Current sheet or</tspan>
+<tspan x="155.0" dy="25.2">returned Graph</tspan>
+<tspan x="155.0" dy="25.2">response</tspan>
+</text>
+<rect x="325" y="175" width="245" height="165" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="447.5" y="237.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="447.5" dy="0">Read current contents</tspan>
+<tspan x="447.5" dy="25.2">Workbook: positional IDs</tspan>
+<tspan x="447.5" dy="25.2">List: returned fields</tspan>
+</text>
+<rect x="620" y="175" width="245" height="165" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="742.5" y="250.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="742.5" dy="0">Write local Parquet</tspan>
+<tspan x="742.5" dy="25.2">Current rows only</tspan>
+</text>
+<rect x="915" y="175" width="250" height="165" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="1040.0" y="237.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="1040.0" dy="0">Upload current rows</tspan>
+<tspan x="1040.0" dy="25.2">Removed rows are not</tspan>
+<tspan x="1040.0" dy="25.2">automatically deleted</tspan>
+</text>
+<rect x="35" y="450" width="240" height="165" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="155.0" y="512.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="155.0" dy="0">MySQL triggers</tspan>
+<tspan x="155.0" dy="25.2">Populate a source</tspan>
+<tspan x="155.0" dy="25.2">change table</tspan>
+</text>
+<rect x="325" y="450" width="245" height="165" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="447.5" y="500.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="447.5" dy="0">export_cdc_to_parquet</tspan>
+<tspan x="447.5" dy="25.2">Select unmoved</tspan>
+<tspan x="447.5" dy="25.2">changes</tspan>
+<tspan x="447.5" dy="25.2">Write local Parquet</tspan>
+</text>
+<rect x="620" y="450" width="245" height="165" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="742.5" y="500.1" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="742.5" dy="0">UPDATE ... __moved =</tspan>
+<tspan x="742.5" dy="25.2">1</tspan>
+<tspan x="742.5" dy="25.2">COMMIT before delivery</tspan>
+<tspan x="742.5" dy="25.2">Broad unmoved-row set</tspan>
+</text>
+<rect x="915" y="450" width="250" height="165" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="1040.0" y="525.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="1040.0" dy="0">Later notebook cell</tspan>
+<tspan x="1040.0" dy="25.2">upload_data_file(...)</tspan>
+</text>
+<rect x="35" y="695" width="240" height="165" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="155.0" y="770.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="155.0" dy="0">Snowflake</tspan>
+<tspan x="155.0" dy="25.2">Snapshot + stream</tspan>
+</text>
+<rect x="325" y="695" width="245" height="165" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="447.5" y="770.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="447.5" dy="0">fetch_stream_changes</tspan>
+<tspan x="447.5" dy="25.2">Write local changes file</tspan>
+</text>
+<rect x="620" y="695" width="245" height="165" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="742.5" y="770.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="742.5" dy="0">CREATE OR REPLACE</tspan>
+<tspan x="742.5" dy="25.2">STREAM before delivery</tspan>
+</text>
+<rect x="915" y="695" width="250" height="165" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="1040.0" y="770.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="1040.0" dy="0">Later call</tspan>
+<tspan x="1040.0" dy="25.2">upload_data_file(...)</tspan>
+</text>
+<polyline points="275,257 325,257" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="570,257 620,257" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="865,257 915,257" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="275,532 325,532" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="570,532 620,532" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="865,532 915,532" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="275,777 325,777" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="570,777 620,777" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="865,777 915,777" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="41" y="395.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="41" dy="0">Current-state reads are not change streams: add stable keys, all Graph pages, snapshot comparison and durable deleted-key state.</tspan>
+</text>
+<text x="41" y="912.8" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="41" dy="0">Orange steps move/reset source progress before upload. A crash can leave exported changes undelivered.</tspan>
+<tspan x="41" dy="25.2">A hardened publisher journals a bounded set, publishes it, then acknowledges exactly that set.</tspan>
+</text>
+</svg>

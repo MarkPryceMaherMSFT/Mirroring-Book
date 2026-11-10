@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">Oracle: diagnose three different failure boundaries</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">The Mirror Publisher runs on the standard on-premises data gateway, not inside Oracle.</tspan>
+</text>
+<rect x="34" y="155" width="350" height="490" rx="16" fill="none" stroke="#1864ab" stroke-width="2"/>
+<text x="52" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="52" dy="0">1 Source database</tspan>
+</text>
+<rect x="425" y="155" width="350" height="490" rx="16" fill="none" stroke="#e67700" stroke-width="2"/>
+<text x="443" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="443" dy="0">2 Gateway host</tspan>
+</text>
+<rect x="815" y="155" width="350" height="490" rx="16" fill="none" stroke="#862e9c" stroke-width="2"/>
+<text x="833" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="833" dy="0">3 Fabric / OneLake</tspan>
+</text>
+<rect x="60" y="245" width="298" height="185" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="209.0" y="303.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="209.0" dy="0">Writable Oracle source</tspan>
+<tspan x="209.0" dy="26.599999999999998">ARCHIVELOG + LogMiner</tspan>
+<tspan x="209.0" dy="26.599999999999998">Database + per-table</tspan>
+<tspan x="209.0" dy="26.599999999999998">supplemental logging</tspan>
+</text>
+<rect x="450" y="245" width="300" height="185" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="600.0" y="303.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="600.0" dy="0">Standard-mode OPDG</tspan>
+<tspan x="600.0" dy="26.599999999999998">Oracle Mirror Publisher</tspan>
+<tspan x="600.0" dy="26.599999999999998">64-bit Oracle client</tspan>
+<tspan x="600.0" dy="26.599999999999998">Source listener reachability</tspan>
+</text>
+<rect x="840" y="245" width="300" height="185" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="990.0" y="303.3" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="990.0" dy="0">Publisher outbound path</tspan>
+<tspan x="990.0" dy="26.599999999999998">OneLake landing zone</tspan>
+<tspan x="990.0" dy="26.599999999999998">Fabric applies changes to</tspan>
+<tspan x="990.0" dy="26.599999999999998">Delta tables</tspan>
+</text>
+<polyline points="365,330 440,330" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="760,330 830,330" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="66" y="520.2" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="66" dy="0">Missing or purged redo? Check</tspan>
+<tspan x="66" dy="25.2">archive availability before resetting</tspan>
+<tspan x="66" dy="25.2">a mirror.</tspan>
+</text>
+<text x="456" y="520.2" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="456" dy="0">Oracle client errors and publisher</tspan>
+<tspan x="456" dy="25.2">memory pressure belong on this</tspan>
+<tspan x="456" dy="25.2">host.</tspan>
+</text>
+<text x="846" y="532.8" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="846" dy="0">Test outbound service connectivity</tspan>
+<tspan x="846" dy="25.2">separately from the Oracle login.</tspan>
+</text>
+<text x="40" y="720.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">A VNet gateway is not an Oracle mirroring substitute. A successful gateway service test does not prove source logging, client health, or</tspan>
+<tspan x="40" dy="25.2">publication.</tspan>
+</text>
+</svg>

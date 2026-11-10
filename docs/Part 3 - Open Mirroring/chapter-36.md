@@ -118,6 +118,9 @@ The column must:
 
 Rows are applied from top to bottom within a file. If a key value changes, send a delete for the old key followed by an insert for the new key.
 
+![Figure 36.2: Ordered deletion of an old key followed by insertion of the new key](../assets/diagrams/chapter-36/walkthrough-key-change-operations.png)
+*Figure 36.2: A key change needs two ordered operations, not just a row containing the new key. The mixed-file illustration retains a nullable non-key field for the delete and places the marker last. Explanatory illustration by this book, based on the [public incremental-change examples](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes) and [publication best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-36/walkthrough-key-change-operations.excalidraw).*
+
 ### Initial Load
 
 For the default Parquet contract, omit `__rowMarker__` from initial snapshot files. Without a default-upsert override, a marker-free file is treated as inserts. As soon as a marker-bearing file is encountered, Fabric treats the changes as incremental. Do not describe later marker-free files as a new snapshot or a table reset.

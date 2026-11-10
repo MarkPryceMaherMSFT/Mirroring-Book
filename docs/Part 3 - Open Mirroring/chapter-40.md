@@ -58,6 +58,9 @@ Replacing a stream and publishing a OneLake file are not one transaction. Preser
 
 The notebook also defines its helper class after earlier cells that use it, so a clean top-to-bottom execution needs attention. This is precisely why source inspection is more useful than simply listing a notebook link.
 
+![Figure 40.1: Notebook snapshot, MySQL trigger and Snowflake stream paths with acknowledgement-before-upload hazards](../assets/diagrams/chapter-40/walkthrough-notebook-ack-order.png)
+*Figure 40.1: Snapshot refreshes need explicit deletion reconciliation; the inspected MySQL and Snowflake paths move or reset source progress before later delivery. Orange steps show the existing hazard, not a recommended implementation. Explanatory illustration by this book, based on the pinned [Excel notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Excel%20Mirroring/excelmirroring.ipynb), [MySQL notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/mysql%20Mirroring/mysqlmirroring.ipynb), [Snowflake notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Snowflake%20Mirroring/snowflakeMirroring.ipynb), and SharePoint sources in the source map; not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-40/walkthrough-notebook-ack-order.excalidraw).*
+
 ## Lessons and Acceptance Exercises
 
 Interrupt each notebook between export and upload, and again between upload and progress persistence. Test source changes during the initial scan, pagination, deletions, key changes and a schema change. Reconcile the resulting rows, not just the presence of a file.

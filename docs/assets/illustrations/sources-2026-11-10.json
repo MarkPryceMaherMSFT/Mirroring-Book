@@ -1,0 +1,771 @@
+{
+  "title": "Chapter 1-42 illustration additions and source credits",
+  "review_date": "2026-11-10",
+  "baseline_source_commit": "b42fed054feaaca781f435ffcc0d24964d6f92a8",
+  "scope": "New illustrations added across Chapters 1-42, reviewed 9-10 November 2026. Existing images and sources are retained; Chapter 1's two captions were reordered with the requested platform introduction.",
+  "rights": "Microsoft documentation images retain their originating licences and are excluded from the book's all-rights-reserved claim. Source links do not imply endorsement.",
+  "figures": [
+    {
+      "chapter": 1,
+      "figure": "1.1",
+      "local_image": "docs/assets/setup/chapter-01/microsoft-fabric-platform-architecture.png",
+      "sha256": "b5377791d01a320d88e54d55061359d84be71fd199d400a37a3b47ec3e98da7b",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/microsoft-fabric-overview#microsoft-fabric-architecture"
+      ],
+      "caption": "*Figure 1.1: Microsoft Fabric's workloads and shared platform. Microsoft documentation image, reproduced unchanged. Source: [What is Microsoft Fabric?](https://learn.microsoft.com/en-us/fabric/fundamentals/microsoft-fabric-overview#microsoft-fabric-architecture); [original image](https://learn.microsoft.com/en-us/fabric/fundamentals/media/microsoft-fabric-overview/fabric-architecture.png#lightbox). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/media/microsoft-fabric-overview/fabric-architecture.png#lightbox"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 2,
+      "figure": "2.2",
+      "local_image": "docs/assets/setup/chapter-02/open-mirroring-file-to-table-flow.png",
+      "sha256": "e2c310707635830d9cdbe4cc1170ac1a9b37d0f3ee67586d2d7fb65832d65cfb",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring#why-use-open-mirroring-in-fabric"
+      ],
+      "caption": "*Figure 2.2: The destination-side Open Mirroring contract. The image's \"CDC Processing\" label describes applying the supplied changes; it does not prescribe SQL Server CDC for every source. Microsoft image, reproduced unchanged from [Open Mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring#why-use-open-mirroring-in-fabric); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 3,
+      "figure": "3.7",
+      "local_image": "docs/assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.png",
+      "sha256": "b45c0584493c2951093e6af3b7fcf18a683168f6e5d575601d97af47ee1dcfd5",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-how-to-data-security",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations#network-and-connectivity-security",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-private-network#why-this-approach"
+      ],
+      "caption": "*Figure 3.7: A connection path and a publishing path can be different. Original explanatory diagram by this book, based on the [Azure SQL setup/security model](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-how-to-data-security), [SQL MI policy-specific gateway rules](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations#network-and-connectivity-security), and [Cosmos DB restricted-account traffic boundary](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-private-network#why-this-approach). This is not a universal connector topology or a Microsoft screenshot. [Editable Excalidraw source](../assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.excalidraw) · [SVG](../assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.svg"
+    },
+    {
+      "chapter": 4,
+      "figure": "4.2a",
+      "local_image": "docs/assets/setup/chapter-04/workspace-new-metadata-sync.png",
+      "sha256": "1437fcecb51bfbcb3e3d62e38f5ed9e4d22025133294d21d7076ea0b63d7b650",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync#enable-new-metadata-sync"
+      ],
+      "caption": "*Figure 4.2a: Where to enable the new metadata-sync implementation for subsequently created endpoints. This setting does not upgrade an existing endpoint. Microsoft screenshot, reproduced unchanged from [SQL analytics endpoint metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync#enable-new-metadata-sync); [original image](https://learn.microsoft.com/en-us/fabric/data-engineering/media/sql-analytics-endpoint-metadata-sync/workspace-settings-new-metadata-sync.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. The preview label is retained; follow the current feature restrictions, not a screenshot alone.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/data-engineering/media/sql-analytics-endpoint-metadata-sync/workspace-settings-new-metadata-sync.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 4,
+      "figure": "4.2b",
+      "local_image": "docs/assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.png",
+      "sha256": "9edea4309d4ed93c06f5cf063af42d60596f91a140b020bd930b52722e5607d9",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync",
+        "https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/refresh-sql-endpoint-metadata"
+      ],
+      "caption": "*Figure 4.2b: Diagnose the freshness boundary before changing the implementation. Dashed arrows show a refresh request or a future-creation setting, not another copy of the source data. Original explanatory diagram by this book, based on [SQL metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) and the [refreshMetadata API](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/refresh-sql-endpoint-metadata). [Editable Excalidraw source](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.excalidraw) · [SVG](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.svg"
+    },
+    {
+      "chapter": 5,
+      "figure": "5.1a",
+      "local_image": "docs/assets/setup/chapter-05/mirrored-database-monitor-panel.png",
+      "sha256": "93c2c5c569f81e80b0ac08e9a4a531700d86c5e7b88ce781a311322f34cb2260",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/monitor#monitor-from-the-fabric-portal"
+      ],
+      "caption": "*Figure 5.1a: Read the table rows as well as the overall status. \"Rows replicated\" counts operations, not the current destination row count. Microsoft screenshot, reproduced unchanged from [Monitor mirrored database replication](https://learn.microsoft.com/en-us/fabric/mirroring/monitor#monitor-from-the-fabric-portal); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/monitor/monitor-mirrored-database.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. The Azure SQL example and historical UI labels are illustrative, not a new source-specific promise.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/monitor/monitor-mirrored-database.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 5,
+      "figure": "5.1b",
+      "local_image": "docs/assets/setup/chapter-05/enable-workspace-monitoring.png",
+      "sha256": "ebe9abef5ed54aef2d6f241b9c92ee6355d6703c6276c785d77b1baccd4d0e5a",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/monitor#use-workspace-monitoring"
+      ],
+      "caption": "*Figure 5.1b: Workspace log enablement is a separate step from opening an item's replication monitor. Microsoft screenshot, reproduced unchanged from [the monitoring guide](https://learn.microsoft.com/en-us/fabric/mirroring/monitor#use-workspace-monitoring); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/monitor/enable-workspace-monitoring.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. Check the chapter's network and diagnostic availability restrictions before relying on this surface in a restricted workspace.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/monitor/enable-workspace-monitoring.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 6,
+      "figure": "6.3",
+      "local_image": "docs/assets/diagrams/chapter-06/walkthrough-api-completion-and-readiness.png",
+      "sha256": "fa31f376ae75c34db19ff028a27f5467169de391bed75cfb691b5a3f352e5f46",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/rest/api/fabric/articles/long-running-operation",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-rest-api"
+      ],
+      "caption": "*Figure 6.3: Provisioning completion and data readiness are different gates. Original explanatory diagram by this book, based on [Fabric long-running operations](https://learn.microsoft.com/en-us/rest/api/fabric/articles/long-running-operation) and [the Mirroring REST lifecycle](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-rest-api). The failed-operation branch is not an instruction to repeat create/start blindly; inspect the error and current state first. [Editable Excalidraw source](../assets/diagrams/chapter-06/walkthrough-api-completion-and-readiness.excalidraw) · [SVG](../assets/diagrams/chapter-06/walkthrough-api-completion-and-readiness.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-06/walkthrough-api-completion-and-readiness.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-06/walkthrough-api-completion-and-readiness.svg"
+    },
+    {
+      "chapter": 7,
+      "figure": "7.1a",
+      "local_image": "docs/assets/setup/chapter-07/mirrored-item-git-representation.png",
+      "sha256": "7914bf81accd51fcc1c208c971c7ecd0ac1a2b7253fdae48dd41599630ab2a20",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-cicd#mirrored-database-representation-in-git"
+      ],
+      "caption": "*Figure 7.1a: The item definition is versioned, not the mirrored data or connection secret. Microsoft screenshot, reproduced unchanged from [CI/CD for mirrored databases](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-cicd#mirrored-database-representation-in-git); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/mirrored-database-cicd/representation-in-git.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. The shown names are Microsoft's examples; they are not required deployment identifiers.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/mirrored-database-cicd/representation-in-git.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 8,
+      "figure": "8.1a",
+      "local_image": "docs/assets/setup/chapter-08/mirrored-shortcut-open-notebook.png",
+      "sha256": "347ccd1e10dda92664e79ddecae3b6a13bc029fd440c524e4eff95f5dfb4df55",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/explore-onelake-shortcut#create-a-shortcut"
+      ],
+      "caption": "*Figure 8.1a: Inspect mirrored Delta data through a Lakehouse shortcut and notebook when separating OneLake freshness from SQL metadata lag. The shortcut reads the replica, not the operational source. Microsoft screenshot, reproduced unchanged from [Explore mirrored data with notebooks](https://learn.microsoft.com/en-us/fabric/mirroring/explore-onelake-shortcut#create-a-shortcut); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/explore-onelake-shortcut/create-notebook-lakehouse-spark-query.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/explore-onelake-shortcut/create-notebook-lakehouse-spark-query.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 9,
+      "figure": "9.1a",
+      "local_image": "docs/assets/setup/chapter-09/enable-delta-change-data-feed.png",
+      "sha256": "68246f78adcd4aa36ac2c4ed55f017d5124de343c943159a6078887de70f6895",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-delta-change-data-feed#enable-delta-change-data-feed-in-the-fabric-portal"
+      ],
+      "caption": "*Figure 9.1a: CDF is an explicit mirrored-database setting, separate from ordinary replication. Microsoft screenshot, reproduced unchanged from [Delta change data feed in Mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/extended-capabilities-delta-change-data-feed#enable-delta-change-data-feed-in-the-fabric-portal); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/mirroring-extended-capabilities/enable-change-data-feed.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. Microsoft's sample database and captured UI labels do not resolve source-specific support or billing questions; use the surrounding guidance.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/mirroring-extended-capabilities/enable-change-data-feed.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 10,
+      "figure": "10.2",
+      "local_image": "docs/assets/diagrams/chapter-10/walkthrough-shared-replica-allowance.png",
+      "sha256": "ec1bc146e5c30ddfd07cad3badc7992e305eb8368e1610fad538542745785d83",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/overview#cost-of-mirroring",
+        "https://azure.microsoft.com/en-us/pricing/details/microsoft-fabric/"
+      ],
+      "caption": "*Figure 10.2: Add eligible replica storage across the capacity before comparing it with the allowance. Original illustrative calculation by this book, based on [Cost of mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/overview#cost-of-mirroring) and [Fabric pricing](https://azure.microsoft.com/en-us/pricing/details/microsoft-fabric/). The 2 TB and 1.5 TB examples are hypothetical, not measured compression estimates or a price quote. [Editable Excalidraw source](../assets/diagrams/chapter-10/walkthrough-shared-replica-allowance.excalidraw) · [SVG](../assets/diagrams/chapter-10/walkthrough-shared-replica-allowance.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-10/walkthrough-shared-replica-allowance.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-10/walkthrough-shared-replica-allowance.svg"
+    },
+    {
+      "chapter": 11,
+      "figure": "11.1a",
+      "local_image": "docs/assets/diagrams/chapter-11/walkthrough-network-paths.png",
+      "sha256": "2645e6d0ed3275646a863555546a4e5b84bae2b5ca7e0c4fc888b62060d013aa",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-tutorial",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-mirroring-faq#is-there-a-staging-or-landing-zone-for-azure-sql-database--if-so--is-it-outside-of-onelake--"
+      ],
+      "caption": "*Figure 11.1a: Two independent network directions, including the logical server's Resource Instance Rule when OneLake inbound access is restricted. Original book diagram, not a Microsoft product screenshot; based on the [Azure SQL Database setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-tutorial) and [OneLake landing-zone FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-mirroring-faq#is-there-a-staging-or-landing-zone-for-azure-sql-database--if-so--is-it-outside-of-onelake--), reviewed 9 November 2026. [Editable Excalidraw](../assets/diagrams/chapter-11/walkthrough-network-paths.excalidraw) · [SVG](../assets/diagrams/chapter-11/walkthrough-network-paths.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-11/walkthrough-network-paths.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-11/walkthrough-network-paths.svg"
+    },
+    {
+      "chapter": 12,
+      "figure": "12.1a",
+      "local_image": "docs/assets/setup/chapter-12/mi-update-policy-existing-instance.png",
+      "sha256": "81b35257a90ef5269058bc2ce526b4a4c3ea28eac94b9acdb9bdae1e34598285",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/update-policy#existing-instances"
+      ],
+      "caption": "*Figure 12.1a: Where to inspect the instance update policy. Microsoft's published screenshot shows the older two-choice UI, not the complete current policy list; the live value and the branch table above determine CDC versus change feed. Microsoft screenshot, unchanged. © Microsoft. Source: [Update policy — existing instances](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/update-policy#existing-instances); [original image](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/media/update-policy/update-policy-existing-instance.png?view=azuresql). License: [MicrosoftDocs/sql-docs LICENSE](https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Public article and repository license checked 9 November 2026.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/media/update-policy/update-policy-existing-instance.png?view=azuresql"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 13,
+      "figure": "13.4",
+      "local_image": "docs/assets/setup/chapter-13/cosmos-source-explorer-query.png",
+      "sha256": "f56845315deb71be01ef5a2ed74db4f00c326a15fa26429239185dd13f59ec48",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-tutorial#query-the-source-database-from-fabric"
+      ],
+      "caption": "*Figure 13.4: The **Source database** view is a source-read tool, not proof of replica freshness. Queries here consume Cosmos DB RUs; validate replicated rows through the SQL analytics endpoint instead. Microsoft tutorial screenshot, unchanged. © Microsoft. Source: [Query the source database from Fabric](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-tutorial#query-the-source-database-from-fabric); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/azure-cosmos-db-tutorial/source-explorer-query.png). License: [MicrosoftDocs/fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Public article and repository license checked 9 November 2026.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/azure-cosmos-db-tutorial/source-explorer-query.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 14,
+      "figure": "14.1a",
+      "local_image": "docs/assets/diagrams/chapter-14/walkthrough-separate-private-paths.png",
+      "sha256": "9496df9bbc309393e8ca471cd0495da6be3b8ba9545f432742fd39f657f4c563",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-private-endpoint",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial#enable-network-security-access-for-your-azure-data-lake-storage-gen2-account"
+      ],
+      "caption": "*Figure 14.1a: Private catalog connectivity does not establish the Delta-file read path. Original book diagram, not a Microsoft product screenshot; based on the [Databricks private-endpoint guide](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-private-endpoint) and [separate ADLS network-security procedure](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial#enable-network-security-access-for-your-azure-data-lake-storage-gen2-account), reviewed 9 November 2026. The storage qualification below the diagram is part of the design, not an all-storage private-endpoint guarantee. [Editable Excalidraw](../assets/diagrams/chapter-14/walkthrough-separate-private-paths.excalidraw) · [SVG](../assets/diagrams/chapter-14/walkthrough-separate-private-paths.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-14/walkthrough-separate-private-paths.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-14/walkthrough-separate-private-paths.svg"
+    },
+    {
+      "chapter": 15,
+      "figure": "15.1a",
+      "local_image": "docs/assets/diagrams/chapter-15/walkthrough-connection-trust.png",
+      "sha256": "94d12eeecab232f9c2c463dc9cc4826a30cb6b1238e71f87ee36c87647799e47",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor#security-and-permissions",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor-tutorial"
+      ],
+      "caption": "*Figure 15.1a: Connection ownership and reuse are separate from consumer authorization. Original book diagram, not a Microsoft product screenshot; based on [Azure Monitor security and permissions](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor#security-and-permissions) and the [authentication/setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/azure-monitor-tutorial), reviewed 9 November 2026. The item holds shortcut metadata; this diagram does not introduce CDC, a gateway, or customer export storage. [Editable Excalidraw](../assets/diagrams/chapter-15/walkthrough-connection-trust.excalidraw) · [SVG](../assets/diagrams/chapter-15/walkthrough-connection-trust.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-15/walkthrough-connection-trust.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-15/walkthrough-connection-trust.svg"
+    },
+    {
+      "chapter": 16,
+      "figure": "16.1a",
+      "local_image": "docs/assets/diagrams/chapter-16/walkthrough-staging-readiness.png",
+      "sha256": "72e5395ef9c4d508ecdd9ac25517952642f9bb59241b61da6e3601c884049fab",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-tutorial",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-security"
+      ],
+      "caption": "*Figure 16.1a: Source-table readiness and export-staging readiness require different permissions. Original book diagram, not a Microsoft product screenshot; based on the [BigQuery setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-tutorial) and [source security requirements](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-security), reviewed 9 November 2026. It depicts the documented staging prerequisites, not a resolution of the FAQ discrepancy noted above. [Editable Excalidraw](../assets/diagrams/chapter-16/walkthrough-staging-readiness.excalidraw) · [SVG](../assets/diagrams/chapter-16/walkthrough-staging-readiness.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-16/walkthrough-staging-readiness.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-16/walkthrough-staging-readiness.svg"
+    },
+    {
+      "chapter": 17,
+      "figure": "17.1a",
+      "local_image": "docs/assets/diagrams/chapter-17/walkthrough-runtime-boundaries.png",
+      "sha256": "46d36729d7fea6e8238d5619ec0641b8a6d7c2ac5d1ab5a9bf831ee72c7676d2",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/oracle-tutorial",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations"
+      ],
+      "caption": "*Figure 17.1a: Fault isolation for the Oracle gateway-hosted runtime. Original book diagram, not a Microsoft product screenshot; based on the [Oracle setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-tutorial) and [runtime, log-retention, and client requirements](https://learn.microsoft.com/en-us/fabric/mirroring/oracle-limitations), reviewed 9 November 2026. A VNet gateway is not a substitute, and source listener success is not a publisher-egress test. [Editable Excalidraw](../assets/diagrams/chapter-17/walkthrough-runtime-boundaries.excalidraw) · [SVG](../assets/diagrams/chapter-17/walkthrough-runtime-boundaries.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-17/walkthrough-runtime-boundaries.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-17/walkthrough-runtime-boundaries.svg"
+    },
+    {
+      "chapter": 18,
+      "figure": "18.1a",
+      "local_image": "docs/assets/diagrams/chapter-18/walkthrough-source-preparation.png",
+      "sha256": "50c3ba40ae15860fc21e39590b0b978397de472a9d42dc3b9db1becfeb0846ec",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-tutorial"
+      ],
+      "caption": "*Figure 18.1a: Verify the server and each selected database separately; the source-side `azure_cdc` publisher uses the server's primary SAMI for OneLake uploads. Original book diagram, not a portal screenshot; based on the [Azure preparation and architecture guide](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring) and [Fabric connection tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-tutorial), reviewed 9 November 2026. [Editable Excalidraw](../assets/diagrams/chapter-18/walkthrough-source-preparation.excalidraw) · [SVG](../assets/diagrams/chapter-18/walkthrough-source-preparation.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-18/walkthrough-source-preparation.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-18/walkthrough-source-preparation.svg"
+    },
+    {
+      "chapter": 19,
+      "figure": "19.1a",
+      "local_image": "docs/assets/diagrams/chapter-19/walkthrough-source-identities.png",
+      "sha256": "c0463b7b21534881f2e6b9b349adea822860771f69877e26cb17abaa1834b748",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-tutorial#connect-to-your-azure-database-for-mysql-and-start-mirroring"
+      ],
+      "caption": "*Figure 19.1a: Independent preparation of the publisher identity and SQL connection account. Original book diagram, not a portal screenshot; based on the [Azure source-enablement guide](https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql) and [Fabric connection tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-tutorial#connect-to-your-azure-database-for-mysql-and-start-mirroring), reviewed 9 November 2026. **None** is the documented gateway selection; the diagram does not imply support for VNet gateways or VNet-integrated source servers. [Editable Excalidraw](../assets/diagrams/chapter-19/walkthrough-source-identities.excalidraw) · [SVG](../assets/diagrams/chapter-19/walkthrough-source-identities.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-19/walkthrough-source-identities.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-19/walkthrough-source-identities.svg"
+    },
+    {
+      "chapter": 20,
+      "figure": "20.2a",
+      "local_image": "docs/assets/setup/chapter-20/datasphere-load-type.png",
+      "sha256": "ec2f8ecf42c93bf9d4f83653fc511128ebc519eedde55a312fd44d1782419ccd",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/sap-datasphere-tutorial#set-up-a-datasphere-replication-flow"
+      ],
+      "caption": "*Figure 20.2a: The upstream **Load Type** determines whether Datasphere continues delivering changes to ADLS. Although the source UI also displays **Delta Only**, Microsoft's mirroring tutorial documents **Initial and Delta** or **Initial Only** for this path; the visible menu is not an additional support statement. Microsoft documentation screenshot of SAP product UI, unchanged. © Microsoft. Source: [Set up a Datasphere replication flow](https://learn.microsoft.com/en-us/fabric/mirroring/sap-datasphere-tutorial#set-up-a-datasphere-replication-flow); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/sap-datasphere-tutorial/sap-datasphere-load-type.png). License: [MicrosoftDocs/fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Public article and repository license checked 9 November 2026.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/sap-datasphere-tutorial/sap-datasphere-load-type.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 21,
+      "figure": "21.4",
+      "local_image": "docs/assets/setup/chapter-21/walkthrough-native-source-picker.png",
+      "sha256": "0d18052b52b6eb0749ee25691f1e48c68509c2335bf0854c7ea086e5bbce0519",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/sharepoint-list-tutorial#create-a-mirrored-database"
+      ],
+      "caption": "*Figure 21.4: The connection-source picker is a separate step from the New item menu and the site-credential form: choose **SharePoint Online list** under **New sources**, or verify an existing connection's site and identity. © Microsoft, from [Set up SharePoint List mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/sharepoint-list-tutorial#create-a-mirrored-database); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/sharepoint-list-tutorial/select-new-sharepoint-online-list.png). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer). The listed example connections are not the selection of lists to mirror.*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/sharepoint-list-tutorial/select-new-sharepoint-online-list.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 22,
+      "figure": "22.6",
+      "local_image": "docs/assets/setup/chapter-22/walkthrough-snowflake-credit-components.png",
+      "sha256": "567cca745ac75fb6391f4ce77571849f68f8c57f541efe6a1a545eb6929dc43d",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/snowflake#mirrored-snowflake-cost-considerations"
+      ],
+      "caption": "*Figure 22.6: Investigate both warehouse compute and cloud-services consumption; a quiet warehouse does not prove that mirroring has no source-side cost. Microsoft's dated example is illustrative, not a budget forecast or current price list. © Microsoft, from [Snowflake mirroring cost considerations](https://learn.microsoft.com/en-us/fabric/mirroring/snowflake#mirrored-snowflake-cost-considerations); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/snowflake/snowflake-costs-graph.png). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer).*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/snowflake/snowflake-costs-graph.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 23,
+      "figure": "23.4",
+      "local_image": "docs/assets/setup/chapter-23/walkthrough-sql-cdc-source-data-flow.png",
+      "sha256": "6a4b54e10fcae93e2d33ebf9b49c4880b5de97ece3d647e3c6acd6049fbddae5",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/about-change-data-capture-sql-server?view=sql-server-ver16#data-flow"
+      ],
+      "caption": "*Figure 23.4: Source-side CDC dependencies: log capture, retained change tables and their readers are separate health checks. Fabric's documented 2016–2022 route reads the snapshot and CDC data through the gateway; this generic CDC diagram does not specify Fabric's internal query calls or a SQL Server 2025 publisher. © Microsoft, from [What is change data capture? — Data flow](https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/about-change-data-capture-sql-server?view=sql-server-ver16#data-flow); [original image](https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/media/change-data-sql-server-and-mi.png?view=sql-server-ver16). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([sql-docs LICENSE](https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE), including its warranty disclaimer).*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/track-changes/media/change-data-sql-server-and-mi.png?view=sql-server-ver16"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 24,
+      "figure": "24.6",
+      "local_image": "docs/assets/setup/chapter-24/walkthrough-arc-primary-managed-identity.png",
+      "sha256": "decb4bd6a0380e9a1b62f61a85da58991313bbaf46bcf5ba30511757d6eb439e",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/sql/sql-server/azure-arc/microsoft-entra-authentication-with-managed-identity?view=sql-server-ver17#enable-the-primary-managed-identity"
+      ],
+      "caption": "*Figure 24.6: Reference for step 3's primary-identity check: associate the Arc-enabled machine's system-assigned identity with the SQL instance. This is not a gateway credential or proof of OneLake reachability; verify the DMV, item grants and source publishing path separately. © Microsoft, from [Set up managed identity — Enable the primary managed identity](https://learn.microsoft.com/en-us/sql/sql-server/azure-arc/microsoft-entra-authentication-with-managed-identity?view=sql-server-ver17#enable-the-primary-managed-identity); [original image](https://learn.microsoft.com/en-us/sql/sql-server/azure-arc/media/managed-identity/entra-portal.png?view=sql-server-ver17). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([sql-docs LICENSE](https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE), including its warranty disclaimer).*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/sql/sql-server/azure-arc/media/managed-identity/entra-portal.png?view=sql-server-ver17"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 25,
+      "figure": "25.6",
+      "local_image": "docs/assets/setup/chapter-25/walkthrough-database-role-membership.png",
+      "sha256": "148cc1888d0b833e304d08d8620b022d76b84c885ac28639e19d39077d30ed81",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/database/sql/configure-sql-access-controls#manage-sql-database-level-roles-from-fabric-portal"
+      ],
+      "caption": "*Figure 25.6: SQL role membership alone does not grant Fabric item connection access. The **Share database** action addresses that separate Read permission; review its choices rather than granting broad data access by default. This is transactional database security, not automatic policy replication to the SQL analytics endpoint or OneLake. © Microsoft, from [Configure granular access control — Manage SQL database-level roles](https://learn.microsoft.com/en-us/fabric/database/sql/configure-sql-access-controls#manage-sql-database-level-roles-from-fabric-portal); [original image](https://learn.microsoft.com/en-us/fabric/database/sql/media/configure-sql-access-controls/add-role-members.png). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer).*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/database/sql/media/configure-sql-access-controls/add-role-members.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 26,
+      "figure": "26.3",
+      "local_image": "docs/assets/diagrams/chapter-26/walkthrough-catalog-access-checkpoints.png",
+      "sha256": "513f97944bdb457a4df0ed248629014af0a4cd5d23b65bf7652fd940a68b1084",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/dremio#connect-and-authenticate",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/dremio-tutorial",
+        "https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#check-the-conversion-log"
+      ],
+      "caption": "*Figure 26.3: Diagnose the first failing boundary instead of treating successful catalog discovery as proof of end-to-end access. Original illustration for this book, not a Microsoft screenshot; based on Microsoft's [Dremio authentication overview](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/dremio#connect-and-authenticate), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/dremio-tutorial) and [Iceberg conversion guidance](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#check-the-conversion-log), reviewed 9 November 2026. Data files remain in source storage. [Editable Excalidraw](../assets/diagrams/chapter-26/walkthrough-catalog-access-checkpoints.excalidraw) · [SVG](../assets/diagrams/chapter-26/walkthrough-catalog-access-checkpoints.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-26/walkthrough-catalog-access-checkpoints.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-26/walkthrough-catalog-access-checkpoints.svg"
+    },
+    {
+      "chapter": 27,
+      "figure": "27.3",
+      "local_image": "docs/assets/diagrams/chapter-27/walkthrough-iam-read-dependencies.png",
+      "sha256": "588eb5d695037a2a2edbd7ab4f7dc8f6c98f2a01f927c78d7c0f591fe50dfdc4",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial#configure-aws-authentication",
+        "https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html"
+      ],
+      "caption": "*Figure 27.3: Source authorization is a set of dependencies, not a single “connected” state: catalog visibility, readable Iceberg files, and applicable key permissions must all agree. Original illustration for this book, not a Microsoft screenshot; based on the [Microsoft AWS Glue tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial#configure-aws-authentication) and [AWS SSE-KMS permissions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html), reviewed 9 November 2026. This is neither role-assumption authentication nor a replicated-data flow. [Editable Excalidraw](../assets/diagrams/chapter-27/walkthrough-iam-read-dependencies.excalidraw) · [SVG](../assets/diagrams/chapter-27/walkthrough-iam-read-dependencies.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-27/walkthrough-iam-read-dependencies.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-27/walkthrough-iam-read-dependencies.svg"
+    },
+    {
+      "chapter": 28,
+      "figure": "28.4",
+      "local_image": "docs/assets/setup/chapter-28/walkthrough-low-latency-profile-flag.png",
+      "sha256": "f8758d48413967f7e7e08fa3546b81cecaf9eba0215c9b6aefdb0e6bb271b372",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform#low-latency-sync"
+      ],
+      "caption": "*Figure 28.4: Verify the profile's **Low-latency mode** flag rather than inferring migration from the GA announcement or Lakehouse name. The flag identifies the engine, not completed initial sync or current SQL metadata. Microsoft's historical capture still uses Azure Synapse Link navigation; follow the current **Link data → Fabric Links** procedure. © Microsoft, from [Configure your environment and link to Fabric — Low-latency sync](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/fabric-link-to-data-platform#low-latency-sync); [original image](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/media/fabric/low-latency-sync-page.png). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([powerapps-docs LICENSE](https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE), including its warranty disclaimer).*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/power-apps/maker/data-platform/media/fabric/low-latency-sync-page.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/powerapps-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 29,
+      "figure": "29.1",
+      "local_image": "docs/assets/diagrams/chapter-29/walkthrough-sharing-readiness-boundaries.png",
+      "sha256": "56195c3eb79bd463bd301c3456a9c1520f1863d57987e4d7a2a691f86e6decf2",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/azure/data-factory/sap-change-data-capture-introduction-architecture",
+        "https://news.sap.com/2025/11/sap-bdc-connect-for-microsoft-fabric-business-insights-ai-innovation/"
+      ],
+      "caption": "*Figure 29.1: Two provider-to-consumer contracts, not transactional writeback. Dashed arrows show only the announced logical sharing; the Fabric-specific transport, identity, item type and endpoints remain deliberately unspecified. Original readiness illustration for this book, not a Microsoft or SAP screenshot; based on [Microsoft's SAP integration guidance][ms-sap-options] and [SAP's announcement][sap-announcement], read 9 November 2026. No released wizard or protocol is inferred from another partner's implementation. [Editable Excalidraw](../assets/diagrams/chapter-29/walkthrough-sharing-readiness-boundaries.excalidraw) · [SVG](../assets/diagrams/chapter-29/walkthrough-sharing-readiness-boundaries.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-29/walkthrough-sharing-readiness-boundaries.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-29/walkthrough-sharing-readiness-boundaries.svg"
+    },
+    {
+      "chapter": 30,
+      "figure": "30.3",
+      "local_image": "docs/assets/diagrams/chapter-30/walkthrough-federation-storage-modes.png",
+      "sha256": "a1be2e8237d07362ae6374d3a66d8fc12a06de17322fd26058cef323f69bc365",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial#configure-google-cloud-workload-identity-federation",
+        "https://docs.cloud.google.com/lakehouse/docs/set-up-lakehouse-iceberg-rest-catalog"
+      ],
+      "caption": "*Figure 30.3: Establish the federated subject and catalog grants, then authorize storage using the catalog's actual mode: its service account for credential vending, or the federated principal for end-user credentials. Original illustration for this book, not a Microsoft screenshot; based on the [Microsoft Google catalog tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial#configure-google-cloud-workload-identity-federation) and [Google's catalog credential-mode guidance](https://docs.cloud.google.com/lakehouse/docs/set-up-lakehouse-iceberg-rest-catalog), reviewed 9 November 2026. This is metadata-only access to GCS, not BigQuery replication. [Editable Excalidraw](../assets/diagrams/chapter-30/walkthrough-federation-storage-modes.excalidraw) · [SVG](../assets/diagrams/chapter-30/walkthrough-federation-storage-modes.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-30/walkthrough-federation-storage-modes.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-30/walkthrough-federation-storage-modes.svg"
+    },
+    {
+      "chapter": 31,
+      "figure": "31.2",
+      "local_image": "docs/assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.png",
+      "sha256": "c8eb17cd625a5d7a2c257a6d4c990e6b1e5c5b16a65be565344aebf9a69e28a7",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring#confirm-setup-and-start-synchronization",
+        "https://learn.microsoft.com/en-us/dynamics365/business-central/admin-monitor-fabric-export"
+      ],
+      "caption": "*Figure 31.2: Separate connection preparation, source exports, Fabric processing and authorized query results. **Finish**, **Setup Complete**, **Export Enabled** and current table data are not interchangeable acceptance signals. Original illustration for this book, not a Microsoft screenshot or wizard mock-up; based on the [Business Central setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring#confirm-setup-and-start-synchronization) and [monitoring guide](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-monitor-fabric-export), reviewed 9 November 2026. This is a conceptual checkpoint sequence, not a replacement for the current identity/setup procedure. [Editable Excalidraw](../assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.excalidraw) · [SVG](../assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.svg).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.svg"
+    },
+    {
+      "chapter": 32,
+      "figure": "32.2",
+      "local_image": "docs/assets/diagrams/chapter-32/microsoft-landing-zone-processing.png",
+      "sha256": "e2c310707635830d9cdbe4cc1170ac1a9b37d0f3ee67586d2d7fb65832d65cfb",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring"
+      ],
+      "caption": "*Figure 32.2: Landing-zone files become managed tables within the mirrored database item. Credit: Microsoft, [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 33,
+      "figure": "33.2",
+      "local_image": "docs/assets/setup/chapter-33/microsoft-landing-zone-url.png",
+      "sha256": "189330d5ba3c2db3e8f620a5577e2a01c3cf2d1a170ec3625d9c899e3539ba47",
+      "kind": "Microsoft-copy",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial"
+      ],
+      "caption": "*Figure 33.2: Locate the destination landing-zone URL, rather than a SQL endpoint or Lakehouse URL. Credit: Microsoft, [Open Mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring-tutorial/landing-zone-url.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*\n\n",
+      "credit": "Microsoft",
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring-tutorial/landing-zone-url.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+    },
+    {
+      "chapter": 34,
+      "figure": "34.2",
+      "local_image": "docs/assets/diagrams/chapter-34/walkthrough-item-versus-table.png",
+      "sha256": "d5aafd1721f94d8011b22ce0d17b428be7544815b156c31a5a1a68df24994d01",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition",
+        "https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api",
+        "https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py"
+      ],
+      "caption": "*Figure 34.2: Item definitions, table metadata, token audiences and publishing helpers occupy different parts of the toolchain. Explanatory illustration by this book, based on the [mirrored-database item definition](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition), [OneLake API access](https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api), and [pinned SDK implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-34/walkthrough-item-versus-table.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-34/walkthrough-item-versus-table.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-34/walkthrough-item-versus-table.svg"
+    },
+    {
+      "chapter": 35,
+      "figure": "35.2",
+      "local_image": "docs/assets/diagrams/chapter-35/walkthrough-workbook-key-diff.png",
+      "sha256": "65e19c1a7eae1717324e006bd3321d6df84244b8a6e727bbe5cac1a8b6bd7b9b",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically"
+      ],
+      "caption": "*Figure 35.2: An upsert-only refresh leaves the removed key K200 behind; the publisher must compare accepted snapshots and emit its delete. Explanatory illustration by this book, based on this chapter's workbook pattern, the [row-operation contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes), and [durable publication guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram or a claim that `excel_to_parquet` implements comparison and checkpointing. [Editable Excalidraw source](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-35/walkthrough-workbook-key-diff.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-35/walkthrough-workbook-key-diff.svg"
+    },
+    {
+      "chapter": 36,
+      "figure": "36.2",
+      "local_image": "docs/assets/diagrams/chapter-36/walkthrough-key-change-operations.png",
+      "sha256": "04cfe4008f8cdde76089b1ea26e7603524dcb9af74ce125d8da87b9709d99d09",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically"
+      ],
+      "caption": "*Figure 36.2: A key change needs two ordered operations, not just a row containing the new key. The mixed-file illustration retains a nullable non-key field for the delete and places the marker last. Explanatory illustration by this book, based on the [public incremental-change examples](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes) and [publication best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-36/walkthrough-key-change-operations.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-36/walkthrough-key-change-operations.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-36/walkthrough-key-change-operations.svg"
+    },
+    {
+      "chapter": 37,
+      "figure": "37.2",
+      "local_image": "docs/assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.png",
+      "sha256": "fb4f0ec52c2e2fa877f15c56f20efd941183736ea7bb4db9e7096ac6a522c0e2",
+      "kind": "original",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery",
+        "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#coordinate-source-schema-changes"
+      ],
+      "caption": "*Figure 37.2: Repair a rejected invalid file at its original sequence; rebuild a table only when the evidence and reload plan require it. Explanatory illustration by this book, based on Microsoft's [recovery procedure](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery) and [schema-change guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#coordinate-source-schema-changes); not an official Microsoft diagram. The example index numbers are abbreviated, not literal filenames. [Editable Excalidraw source](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.svg"
+    },
+    {
+      "chapter": 38,
+      "figure": "38.1",
+      "local_image": "docs/assets/diagrams/chapter-38/walkthrough-sdk-boundaries.png",
+      "sha256": "c0da377aee5013d9e1e80c1d143b887990bca3ea221e9389397ed4a4400c8a91",
+      "kind": "original",
+      "source_links": [
+        "https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py",
+        "https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/README.md"
+      ],
+      "caption": "*Figure 38.1: The SDK creates metadata, discovers a filename, uploads and renames a file; it does not supply CDC, Parquet generation or a durable batch journal. The rename-error branch prevents treating method completion as a delivery acknowledgement. Explanatory illustration by this book, based on the [pinned `OpenMirroringClient` implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py) and [SDK README](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/README.md); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-38/walkthrough-sdk-boundaries.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-38/walkthrough-sdk-boundaries.svg"
+    },
+    {
+      "chapter": 39,
+      "figure": "39.1",
+      "local_image": "docs/assets/diagrams/chapter-39/walkthrough-generic-adapters.png",
+      "sha256": "d50132ac70e747377512335479d0d6312cf8b08e17de01339f69602347acbd08",
+      "kind": "original",
+      "source_links": [
+        "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Program.cs",
+        "https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources",
+        "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs"
+      ],
+      "caption": "*Figure 39.1: Implemented source branches converge on local Parquet and configured destinations, but stable file-source keys, missing-key deletes and verified per-destination acknowledgement remain hardening work. Explanatory illustration by this book, based on [Program.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Program.cs), [source adapters](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources), and [Upload.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs); not an official Microsoft diagram or a production-reliability claim. [Editable Excalidraw source](../assets/diagrams/chapter-39/walkthrough-generic-adapters.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-39/walkthrough-generic-adapters.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-39/walkthrough-generic-adapters.svg"
+    },
+    {
+      "chapter": 40,
+      "figure": "40.1",
+      "local_image": "docs/assets/diagrams/chapter-40/walkthrough-notebook-ack-order.png",
+      "sha256": "51653d4fca9fee6c5bbb37d6b137d5680422cab5620b63325b2dd4b1626dade8",
+      "kind": "original",
+      "source_links": [
+        "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Excel%20Mirroring/excelmirroring.ipynb",
+        "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/mysql%20Mirroring/mysqlmirroring.ipynb",
+        "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Snowflake%20Mirroring/snowflakeMirroring.ipynb"
+      ],
+      "caption": "*Figure 40.1: Snapshot refreshes need explicit deletion reconciliation; the inspected MySQL and Snowflake paths move or reset source progress before later delivery. Orange steps show the existing hazard, not a recommended implementation. Explanatory illustration by this book, based on the pinned [Excel notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Excel%20Mirroring/excelmirroring.ipynb), [MySQL notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/mysql%20Mirroring/mysqlmirroring.ipynb), [Snowflake notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Snowflake%20Mirroring/snowflakeMirroring.ipynb), and SharePoint sources in the source map; not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-40/walkthrough-notebook-ack-order.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-40/walkthrough-notebook-ack-order.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-40/walkthrough-notebook-ack-order.svg"
+    },
+    {
+      "chapter": 41,
+      "figure": "41.1",
+      "local_image": "docs/assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.png",
+      "sha256": "80e816ff44c1ab5f25b5601f0ccfd458d38578026dcfc4d9e0d5ade65bd1b41f",
+      "kind": "original",
+      "source_links": [
+        "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/README.md",
+        "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py#L1400-L1529"
+      ],
+      "caption": "*Figure 41.1: Capture, local output, remote publication and persisted source progress are separate states. A capped flush can leave RAM-only rows behind an offset subsequently saved to disk. Explanatory illustration by this book, based on the pinned [sample README](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/README.md), [consumer loop](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py#L1400-L1529), and [MaxScale 24.02 licence](https://github.com/mariadb-corporation/MaxScale/blob/844ab7ab5033a54c934757cefea05173ce50934e/licenses/LICENSE2402.TXT); not an official Microsoft diagram, proof of exactly-once delivery or a licence grant for the entire stack. [Editable Excalidraw source](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.svg"
+    },
+    {
+      "chapter": 42,
+      "figure": "42.1",
+      "local_image": "docs/assets/diagrams/chapter-42/walkthrough-bq-partial-publication.png",
+      "sha256": "240cecf7c46bd929f2609174f49699237e789766de6415556141f724714bbe98",
+      "kind": "original",
+      "source_links": [
+        "https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py",
+        "https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py",
+        "https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py#L560-L597",
+        "https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756"
+      ],
+      "caption": "*Figure 42.1: With `MIRRORED_DATABASE` selected, Spark output is shaped and staged, then renamed file by file. One successful rename can survive a later failure; `max_watermark`, `mirror_file_index` and Fabric ingestion completion are different notions of progress. Explanatory illustration by this book, based on pinned [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py), [Mirror.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py), [FileSystem.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py#L560-L597), and [schedule telemetry](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756); not an official Microsoft diagram or a crash-safe transaction guarantee. [Editable Excalidraw source](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.excalidraw).*\n\n",
+      "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
+      "editable_source": "docs/assets/diagrams/chapter-42/walkthrough-bq-partial-publication.excalidraw",
+      "vector_source": "docs/assets/diagrams/chapter-42/walkthrough-bq-partial-publication.svg"
+    }
+  ]
+}

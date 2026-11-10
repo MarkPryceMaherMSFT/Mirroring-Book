@@ -65,6 +65,11 @@ Have the Azure SQL administrator inspect the instance's **Update policy** in Azu
 | Always-up-to-date or SQL Server 2025 | **Mirrored Azure SQL Managed Instance**, change feed | Steps 2–8 below |
 | SQL Server 2022 | **Mirrored SQL Server database**, CDC, mandatory data gateway | The explicit CDC branch below and [Chapter 23](chapter-23.md#setup-walkthrough) |
 
+The Azure policy page is a source-selection checkpoint, not a recommendation to upgrade the instance. Record the live setting before choosing the Fabric item; do not apply a policy change as a connectivity test.
+
+![Azure portal Maintenance and updates page showing the Update policy control for an existing SQL managed instance](../assets/setup/chapter-12/mi-update-policy-existing-instance.png)
+*Figure 12.1a: Where to inspect the instance update policy. Microsoft's published screenshot shows the older two-choice UI, not the complete current policy list; the live value and the branch table above determine CDC versus change feed. Microsoft screenshot, unchanged. © Microsoft. Source: [Update policy — existing instances](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/update-policy#existing-instances); [original image](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/media/update-policy/update-policy-existing-instance.png?view=azuresql). License: [MicrosoftDocs/sql-docs LICENSE](https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Public article and repository license checked 9 November 2026.*
+
 All vCore service tiers, including instance pools, are supported. The source DBA must confirm a writable primary and check the policy-specific limitations; a readable Managed Instance Link replica and the documented geo-disaster-recovery configurations are not supported change-feed sources.
 
 Agree the owners up front:

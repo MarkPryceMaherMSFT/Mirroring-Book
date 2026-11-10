@@ -4,6 +4,20 @@ This page records documentation reviews, product-status changes, and material co
 
 Microsoft Learn remains the authoritative source for current product availability, limits, and licensing.
 
+## 10 November 2026 (Chapter 1: What Is Microsoft Fabric?)
+
+Expanded [Section 1.1](Part%201%20-%20Concepts%20and%20Architecture/chapter-01.md#11-what-is-microsoft-fabric) using Microsoft's [Fabric overview](https://learn.microsoft.com/en-us/fabric/fundamentals/microsoft-fabric-overview). The introduction now explains the SaaS model, workload groups, OneLake and workspace organisation, Copilot, OneLake Catalog/Purview governance, and Mirroring's role within the wider platform. It distinguishes shared data access from a claim that no replicas exist and preserves the separate responsibilities for security, capacity, and query freshness.
+
+Moved the requested [Microsoft architecture image](https://learn.microsoft.com/en-us/fabric/fundamentals/media/microsoft-fabric-overview/fabric-architecture.png#lightbox) beside the platform explanation. The locally saved PNG was verified byte-for-byte against the public original and retains its Microsoft, article, image, and CC BY 4.0/repository-licence credits. The platform image is now **Figure 1.1**, followed by the existing database-mirroring diagram as **Figure 1.2**, in reading order. Both assets are preserved.
+
+## 10 November 2026 (Additional Illustrations in Chapters 1-42)
+
+Added **44 illustrations across Chapters 1-42**, with at least one new figure in every chapter. The additions include **19 unchanged images copied from public Microsoft documentation** and **25 original explanatory diagrams**, each supplied as PNG, SVG, and editable Excalidraw source. Existing figures and image files are retained; lettered figure suffixes keep inserted material in reading order without renumbering earlier captions, apart from the Chapter 1 reordering described above.
+
+The new visuals explain platform context, connection versus publishing paths, SQL metadata freshness, monitoring, API completion, source identity/network preparation, catalog and storage authorisation, application-managed publishing, and Open Mirroring delivery/recovery boundaries. The previously unillustrated SAP BDC readiness chapter and SDK/project chapters now have diagrams that distinguish announced contracts or inspected implementation behaviour from released product architecture and production guarantees.
+
+Every Microsoft image has a local copy and an adjacent caption identifying Microsoft, the source article, original media URL, originating repository licence, CC BY 4.0, and unchanged status. Fabric, SQL, and Power Apps documentation licences were checked separately; no licence was inferred for another repository or a vendor news image. The [illustration source-credit register](assets/illustrations/sources-2026-11-10.json) records the new figures' local paths, hashes, source links, and editable assets. Source material was reviewed on 9-10 November 2026; screenshots retain their original labels, with relevant limitations explained in their captions.
+
 ## 5 November 2026 (MD Sync v1, v2, and On-Demand SQL Refresh)
 
 Expanded [Section 4.4](Part%201%20-%20Concepts%20and%20Architecture/chapter-04.md#44-sql-analytics-endpoint) into separate **MD Sync v1** and **MD Sync v2** explanations, distinguishing source-to-OneLake replication from SQL query visibility. Added the **Workspace settings > Warehouse settings > New metadata sync** steps: mirrored databases created afterwards receive v2 SQL analytics endpoints, while existing endpoints retain v1. Preserved the current Public Preview, workspace Private Link, and Delta-checkpoint limitations.

@@ -132,6 +132,11 @@ Record the effective retention behavior, accelerated-logs status, storage alarm 
 
 The [Azure enablement walkthrough](https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql#enable-fabric-mirroring-in-the-azure-portal) shows the Settings entry, prerequisite view, and identity/save screen. Its identity is the publishing identity, separate from Basic authentication in the next step.
 
+Keep the two credentials in separate operational records: the source UAMI authorizes OneLake publication, while the MySQL login supplies the Fabric connection's database privileges. Successful configuration of either one does not configure the other.
+
+![MySQL setup separating Azure publisher enablement and its UAMI from the Basic-authenticated SQL connection with gateway None, TLS, and documented database grants](../assets/diagrams/chapter-19/walkthrough-source-identities.png)
+*Figure 19.1a: Independent preparation of the publisher identity and SQL connection account. Original book diagram, not a portal screenshot; based on the [Azure source-enablement guide](https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql) and [Fabric connection tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-mysql-tutorial#connect-to-your-azure-database-for-mysql-and-start-mirroring), reviewed 9 November 2026. **None** is the documented gateway selection; the diagram does not imply support for VNet gateways or VNet-integrated source servers. [Editable Excalidraw](../assets/diagrams/chapter-19/walkthrough-source-identities.excalidraw) · [SVG](../assets/diagrams/chapter-19/walkthrough-source-identities.svg).*
+
 ### 4. Provision the MySQL connection account with the documented grants
 
 After source enablement, connect as the source server administrator and create or reconcile a dedicated connection account. The following preserves the Azure guide's grant scopes, with example names replaced:

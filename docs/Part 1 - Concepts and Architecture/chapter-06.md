@@ -264,6 +264,10 @@ Be careful with automated stop/start steps for database mirroring sources, becau
 - **State-aware operations**: check status before repeating start or stop requests. Do not assume retrying a stop/start sequence is harmless; it can trigger full re-replication.
 - **Token expiry**: refresh tokens using the expiry returned by your authentication library rather than assuming a fixed lifetime.
 
+![A supported API request returns an accepted operation, which is polled to completion before separate item and table readiness checks](../assets/diagrams/chapter-06/walkthrough-api-completion-and-readiness.png)
+
+*Figure 6.3: Provisioning completion and data readiness are different gates. Original explanatory diagram by this book, based on [Fabric long-running operations](https://learn.microsoft.com/en-us/rest/api/fabric/articles/long-running-operation) and [the Mirroring REST lifecycle](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-rest-api). The failed-operation branch is not an instruction to repeat create/start blindly; inspect the error and current state first. [Editable Excalidraw source](../assets/diagrams/chapter-06/walkthrough-api-completion-and-readiness.excalidraw) · [SVG](../assets/diagrams/chapter-06/walkthrough-api-completion-and-readiness.svg).*
+
 ## September 2026: Discovery and Automation Interfaces
 
 These [FabCon announcements](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825) complement the mirroring lifecycle API; they do not replace its permissions or source-specific setup.

@@ -91,6 +91,10 @@ The source-side work here is **site access and a supported connection**, not ena
 
 *Figure 21.3: Connection settings. Source: Microsoft, [SharePoint List mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/sharepoint-list-tutorial); [original image](https://raw.githubusercontent.com/MicrosoftDocs/fabric-docs/main/docs/mirroring/media/sharepoint-list-tutorial/new-sharepoint-source.png), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), unchanged.*
 
+![Native mirrored SharePoint Online List connection picker, with SharePoint Online list under New sources and existing connections in the OneLake catalog](../assets/setup/chapter-21/walkthrough-native-source-picker.png)
+
+*Figure 21.4: The connection-source picker is a separate step from the New item menu and the site-credential form: choose **SharePoint Online list** under **New sources**, or verify an existing connection's site and identity. © Microsoft, from [Set up SharePoint List mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/sharepoint-list-tutorial#create-a-mirrored-database); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/sharepoint-list-tutorial/select-new-sharepoint-online-list.png). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer). The listed example connections are not the selection of lists to mirror.*
+
 ### Step 3: Confirm the Selection and Start
 
 1. Inspect the list/library choices and creation prompts that your tenant exposes. Confirm the actual site and selected objects against the inventory before completing creation; do not assume every list or library is automatically in scope.

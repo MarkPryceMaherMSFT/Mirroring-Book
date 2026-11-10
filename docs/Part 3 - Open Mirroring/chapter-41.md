@@ -47,6 +47,9 @@ File collision handling and counters are also not a complete source-batch journa
 
 The consumer manually assigns one partition. Do not infer distributed ownership or failover from Kafka's presence. The destination-validation path can select local-only operation, so monitoring must distinguish local exports from actual Fabric delivery.
 
+![Figure 41.1: MariaDB binlog-to-Kafka capture, optional OneLake delivery and saved-offset buffer hazard](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.png)
+*Figure 41.1: Capture, local output, remote publication and persisted source progress are separate states. A capped flush can leave RAM-only rows behind an offset subsequently saved to disk. Explanatory illustration by this book, based on the pinned [sample README](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/README.md), [consumer loop](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py#L1400-L1529), and [MaxScale 24.02 licence](https://github.com/mariadb-corporation/MaxScale/blob/844ab7ab5033a54c934757cefea05173ce50934e/licenses/LICENSE2402.TXT); not an official Microsoft diagram, proof of exactly-once delivery or a licence grant for the entire stack. [Editable Excalidraw source](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.excalidraw).*
+
 ## What to Measure and Test
 
 Track binlog/GTID progress, Kafka lag, durable pending batches, destination publication and Fabric table freshness separately. Test a crash with more than one flush worth of buffered rows, destination unavailability, retained Kafka history expiry, and several events for one key.

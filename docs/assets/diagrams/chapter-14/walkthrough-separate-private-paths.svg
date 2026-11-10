@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">Databricks: catalog access and storage access are separate</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Test metadata discovery and a real table read independently; neither substitutes for the other.</tspan>
+</text>
+<rect x="34" y="155" width="545" height="535" rx="16" fill="none" stroke="#1864ab" stroke-width="2"/>
+<text x="52" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="52" dy="0">A Catalog / Unity Catalog path</tspan>
+</text>
+<rect x="620" y="155" width="545" height="535" rx="16" fill="none" stroke="#0c8599" stroke-width="2"/>
+<text x="638" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="638" dy="0">B Delta-file / ADLS path</tspan>
+</text>
+<rect x="70" y="225" width="470" height="125" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="305.0" y="279.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="305.0" dy="0">Fabric catalog connection</tspan>
+<tspan x="305.0" dy="28.0">Organizational account or service principal</tspan>
+</text>
+<rect x="70" y="435" width="470" height="130" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="305.0" y="478.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="305.0" dy="0">Private Databricks workspace</tspan>
+<tspan x="305.0" dy="28.0">VNet data gateway + workspace private</tspan>
+<tspan x="305.0" dy="28.0">endpoint</tspan>
+</text>
+<rect x="655" y="225" width="475" height="125" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="892.5" y="279.5" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="892.5" dy="0">Fabric table shortcut / query</tspan>
+<tspan x="892.5" dy="28.0">Read the existing Delta files; no data copy</tspan>
+</text>
+<rect x="655" y="425" width="475" height="145" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="892.5" y="476.6" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="892.5" dy="0">Eligible ADLS table storage</tspan>
+<tspan x="892.5" dy="26.599999999999998">Firewall: workspace identity + trusted access</tspan>
+<tspan x="892.5" dy="26.599999999999998">Data authorization: RBAC / ACLs</tspan>
+</text>
+<polyline points="520,355 520,425" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1105,355 1105,415" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="81" y="385.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="81" dy="0">Precreate the VNet connection in Manage</tspan>
+<tspan x="81" dy="25.2">connections and gateways.</tspan>
+</text>
+<text x="666" y="380.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="666" dy="0">Validate this read path even when catalog</tspan>
+<tspan x="666" dy="25.2">discovery succeeds.</tspan>
+</text>
+<text x="76" y="617.8" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="76" dy="0">On-premises gateways are unsupported for the catalog</tspan>
+<tspan x="76" dy="25.2">connection.</tspan>
+</text>
+<text x="661" y="617.8" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="661" dy="0">Catalog grants and gateway reachability do not authorize</tspan>
+<tspan x="661" dy="25.2">ADLS file reads.</tspan>
+</text>
+<text x="40" y="752.9" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Check the tutorial's one-storage-account-per-catalog rule and its exclusion for firewall-protected Databricks workspace storage.</tspan>
+</text>
+</svg>

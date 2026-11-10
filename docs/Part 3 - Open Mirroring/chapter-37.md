@@ -54,6 +54,9 @@ The [Open Mirroring recovery guidance](https://learn.microsoft.com/en-us/fabric/
 
 Deleting a table folder drops the mirrored table. Do not use this procedure without a reload plan. Do not stop and restart the entire mirrored database to repair just one table.
 
+![Figure 37.2: Failed-file replacement and table rebuild are separate recovery paths](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.png)
+*Figure 37.2: Repair a rejected invalid file at its original sequence; rebuild a table only when the evidence and reload plan require it. Explanatory illustration by this book, based on Microsoft's [recovery procedure](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery) and [schema-change guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#coordinate-source-schema-changes); not an official Microsoft diagram. The example index numbers are abbreviated, not literal filenames. [Editable Excalidraw source](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.excalidraw).*
+
 ---
 
 ## Source Watermark and File Ordering Issues

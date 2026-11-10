@@ -115,6 +115,10 @@ The shortcut then appears as a Lakehouse table that Spark and the Lakehouse SQL 
 
 ### Use Cases for Shortcuts
 
+![Microsoft Lakehouse table menu showing a mirrored-table shortcut and the New notebook action](../assets/setup/chapter-08/mirrored-shortcut-open-notebook.png)
+
+*Figure 8.1a: Inspect mirrored Delta data through a Lakehouse shortcut and notebook when separating OneLake freshness from SQL metadata lag. The shortcut reads the replica, not the operational source. Microsoft screenshot, reproduced unchanged from [Explore mirrored data with notebooks](https://learn.microsoft.com/en-us/fabric/mirroring/explore-onelake-shortcut#create-a-shortcut); [original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/explore-onelake-shortcut/create-notebook-lakehouse-spark-query.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer.*
+
 * Reading mirrored data in Spark notebooks
 * Combining mirrored tables with Lakehouse-managed tables
 * Preparing downstream transformations without duplicating storage

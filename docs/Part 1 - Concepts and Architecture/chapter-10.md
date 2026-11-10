@@ -53,6 +53,10 @@ For database mirroring and open mirroring, core replication compute is free and 
 
 See [Cost of mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/overview#cost-of-mirroring) for the current official description of what is included.
 
+![Two mirrored databases share a purchased F4 capacity's 4 TB replica allowance, with an example of storage growth beyond that total](../assets/diagrams/chapter-10/walkthrough-shared-replica-allowance.png)
+
+*Figure 10.2: Add eligible replica storage across the capacity before comparing it with the allowance. Original illustrative calculation by this book, based on [Cost of mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/overview#cost-of-mirroring) and [Fabric pricing](https://azure.microsoft.com/en-us/pricing/details/microsoft-fabric/). The 2 TB and 1.5 TB examples are hypothetical, not measured compression estimates or a price quote. [Editable Excalidraw source](../assets/diagrams/chapter-10/walkthrough-shared-replica-allowance.excalidraw) · [SVG](../assets/diagrams/chapter-10/walkthrough-shared-replica-allowance.svg).*
+
 **Do not transfer this allowance to every linked source.** [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-28.md) consumes additional Dataverse database storage for its optimized replica and Fabric resources for consumers. [SAP BDC Connect](../Part%202-%20Source-Specific%20Mirroring%20Guides/chapter-29.md) has separate SAP/Fabric sharing and commercial requirements. Zero-copy consumption is not a promise of free source storage, data-product preparation, network traffic, or analytical compute.
 
 ***

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">BigQuery: table readiness and export staging are separate</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">The documented setup requires both change-history access and a same-location Cloud Storage staging bucket.</tspan>
+</text>
+<rect x="34" y="155" width="540" height="475" rx="16" fill="none" stroke="#1864ab" stroke-width="2"/>
+<text x="52" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="52" dy="0">BigQuery dataset / approved location</tspan>
+</text>
+<rect x="625" y="155" width="540" height="475" rx="16" fill="none" stroke="#862e9c" stroke-width="2"/>
+<text x="643" y="192.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="643" dy="0">Cloud Storage staging / same location</tspan>
+</text>
+<rect x="70" y="245" width="470" height="130" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="305.0" y="288.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="305.0" dy="0">Approved source table</tspan>
+<tspan x="305.0" dy="28.0">Primary key or composite key</tspan>
+<tspan x="305.0" dy="28.0">Change history enabled</tspan>
+</text>
+<rect x="70" y="470" width="470" height="110" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="305.0" y="517.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="305.0" dy="0">Incremental work</tspan>
+<tspan x="305.0" dy="28.0">Poll CHANGES for source mutations</tspan>
+</text>
+<rect x="660" y="235" width="470" height="150" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="895.0" y="274.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="895.0" dy="0">Required staging bucket</tspan>
+<tspan x="895.0" dy="28.0">&lt;project-id&gt;_fabric_staging_bucket</tspan>
+<tspan x="895.0" dy="28.0">Use lowercase project ID; match dataset</tspan>
+<tspan x="895.0" dy="28.0">location</tspan>
+</text>
+<rect x="660" y="470" width="470" height="110" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="895.0" y="517.4" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#000000">
+<tspan x="895.0" dy="0">Snapshot export work</tspan>
+<tspan x="895.0" dy="26.599999999999998">Export + create/list objects + signBlob</tspan>
+</text>
+<polyline points="545,310 650,310" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="600.5" y="274.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="600.5" dy="0">Exports</tspan>
+</text>
+<polyline points="520,385 520,460" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1110,460 1110,395" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="81" y="415.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="81" dy="0">Change-history access is a separate permission</tspan>
+<tspan x="81" dy="25.2">check.</tspan>
+</text>
+<text x="671" y="415.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="671" dy="0">Export and object access are required even for</tspan>
+<tspan x="671" dy="25.2">smaller tables.</tspan>
+</text>
+<text x="40" y="710.3" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Passing a BigQuery login test does not prove export or bucket permissions. Preserve the chapter's FAQ staging discrepancy; do not promise</tspan>
+<tspan x="40" dy="25.2">a no-staging route.</tspan>
+</text>
+</svg>

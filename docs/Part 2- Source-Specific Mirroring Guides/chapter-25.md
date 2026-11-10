@@ -220,6 +220,10 @@ There is no external gateway to restart or SQL password to rotate for this inter
 
 Before adding consumers, apply equivalent RLS, column permissions, and masking on the analytical surface and assess **ReadAll/direct OneLake** access separately. The [authorization model](https://learn.microsoft.com/en-us/fabric/database/sql/authorization) distinguishes Read (connect), ReadData, ReadAll, and Write. Do not give broad workspace roles to work around a granular access problem.
 
+![Transactional database Manage SQL security role-membership dialog warning that some role members also need the database's Fabric Read item permission](../assets/setup/chapter-25/walkthrough-database-role-membership.png)
+
+*Figure 25.6: SQL role membership alone does not grant Fabric item connection access. The **Share database** action addresses that separate Read permission; review its choices rather than granting broad data access by default. This is transactional database security, not automatic policy replication to the SQL analytics endpoint or OneLake. © Microsoft, from [Configure granular access control — Manage SQL database-level roles](https://learn.microsoft.com/en-us/fabric/database/sql/configure-sql-access-controls#manage-sql-database-level-roles-from-fabric-portal); [original image](https://learn.microsoft.com/en-us/fabric/database/sql/media/configure-sql-access-controls/add-role-members.png). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([fabric-docs LICENSE](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer).*
+
 Record database and endpoint identifiers, owners, capacity/region, expected mirrored tables and documented eligibility exclusions, freshness baseline, and approved test-table retention. Review schema deployments: DDL can reseed the affected table, and changing a key/partition or adding unsupported features can fail or change mirroring eligibility.
 
 **Maintenance is not initial setup:** the [SQL database start/stop REST API guide](https://learn.microsoft.com/en-us/fabric/database/sql/start-stop-mirroring-api) documents:

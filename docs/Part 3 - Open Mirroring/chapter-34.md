@@ -100,6 +100,9 @@ All paths below are relative to `https://api.fabric.microsoft.com/v1/workspaces/
 
 Open Mirroring uses `GenericMirror` as its source type and does not require a source connection ID. Its `mirroring.json` item definition is distinct from the per-table `_metadata.json` files in OneLake. See the [item definition](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition).
 
+![Figure 34.2: Separate control-plane item definitions from data-plane table metadata](../assets/diagrams/chapter-34/walkthrough-item-versus-table.png)
+*Figure 34.2: Item definitions, table metadata, token audiences and publishing helpers occupy different parts of the toolchain. Explanatory illustration by this book, based on the [mirrored-database item definition](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition), [OneLake API access](https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api), and [pinned SDK implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-34/walkthrough-item-versus-table.excalidraw).*
+
 For example, the decoded `mirroring.json` payload for an Open Mirrored Database can be:
 
 ```json

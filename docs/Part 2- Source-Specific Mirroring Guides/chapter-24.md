@@ -287,6 +287,10 @@ If deployments use `.dacpac`, the [SQL Server limitations](https://learn.microso
 - **Log growth and autoreseed**: Unreplicated changes can hold transaction-log truncation. SQL Server 2025 autoreseed is **disabled by default**. Review the [automatic reseed guide](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-configure-automatic-reseed) and test the full-snapshot impact before enabling it.
 - **Workload controls**: SQL Server 2025 supports the documented change-feed dynamic scan settings and Resource Governor groups. Use the [performance guide](https://learn.microsoft.com/en-us/fabric/mirroring/sql-server-performance) rather than CDC-job tuning advice intended for earlier versions.
 
+![SQL Server enabled by Azure Arc resource showing Microsoft Entra ID and Purview, Use a primary managed identity, and its system-assigned identity](../assets/setup/chapter-24/walkthrough-arc-primary-managed-identity.png)
+
+*Figure 24.6: Reference for step 3's primary-identity check: associate the Arc-enabled machine's system-assigned identity with the SQL instance. This is not a gateway credential or proof of OneLake reachability; verify the DMV, item grants and source publishing path separately. © Microsoft, from [Set up managed identity — Enable the primary managed identity](https://learn.microsoft.com/en-us/sql/sql-server/azure-arc/microsoft-entra-authentication-with-managed-identity?view=sql-server-ver17#enable-the-primary-managed-identity); [original image](https://learn.microsoft.com/en-us/sql/sql-server/azure-arc/media/managed-identity/entra-portal.png?view=sql-server-ver17). Reproduced unchanged, with no crop or conversion, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) ([sql-docs LICENSE](https://github.com/MicrosoftDocs/sql-docs/blob/live/LICENSE), including its warranty disclaimer).*
+
 ---
 
 ## Troubleshooting

@@ -103,6 +103,9 @@ The marker is the final column. The delete retains the original typed schema, wi
 | `get_table_status(schema_name=None, table_name=None)` | Reads and prints `Monitoring/tables.json`; filtering expects both schema and table |
 | `remove_table(schema_name=None, table_name="", remove_schema_folder=False)` | Deletes a table folder; the optional schema-folder deletion can affect other tables |
 
+![Figure 38.1: Actual SDK table-creation and file-publication path, with its failure and application boundaries](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.png)
+*Figure 38.1: The SDK creates metadata, discovers a filename, uploads and renames a file; it does not supply CDC, Parquet generation or a durable batch journal. The rename-error branch prevents treating method completion as a delivery acknowledgement. Explanatory illustration by this book, based on the [pinned `OpenMirroringClient` implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py) and [SDK README](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/README.md); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.excalidraw).*
+
 Use keyword arguments: a positional table name could accidentally be interpreted as `schema_name`. Status methods do not return dictionaries. Do not build code around an invented success result from upload, either.
 
 ## Limitations That Matter

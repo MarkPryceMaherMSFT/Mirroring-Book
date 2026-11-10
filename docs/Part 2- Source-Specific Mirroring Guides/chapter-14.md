@@ -84,6 +84,11 @@ Use the [Microsoft tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/
 
 The tutorial additionally requires **Storage Blob Delegator** if that ADLS connection will be used **outside** the mirrored Databricks catalog scenario. Do not add this role to every mirroring identity by default; have the storage owner approve the separate use and its scope.
 
+Treat catalog discovery and file access as separate checkpoints. The VNet gateway can satisfy the private catalog connection without granting the storage permissions or trusted access required for a real table read.
+
+![Separate Azure Databricks catalog and ADLS storage paths, with a VNet gateway for the private workspace and independent storage firewall and data permissions](../assets/diagrams/chapter-14/walkthrough-separate-private-paths.png)
+*Figure 14.1a: Private catalog connectivity does not establish the Delta-file read path. Original book diagram, not a Microsoft product screenshot; based on the [Databricks private-endpoint guide](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-private-endpoint) and [separate ADLS network-security procedure](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial#enable-network-security-access-for-your-azure-data-lake-storage-gen2-account), reviewed 9 November 2026. The storage qualification below the diagram is part of the design, not an all-storage private-endpoint guarantee. [Editable Excalidraw](../assets/diagrams/chapter-14/walkthrough-separate-private-paths.excalidraw) · [SVG](../assets/diagrams/chapter-14/walkthrough-separate-private-paths.svg).*
+
 ### 3. Create and scope the Fabric item
 
 1. Open the intended Fabric workspace → **New item** → **Mirrored Azure Databricks catalog**.

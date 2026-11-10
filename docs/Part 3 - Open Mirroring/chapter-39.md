@@ -42,6 +42,9 @@ Prepare the Fabric item and identity using [Chapter 33](chapter-33.md), protect 
 | Access | Read tables/views through OLE DB | Positional identity and whole-result extraction, not a source change stream |
 | SharePoint Lists | Graph request and returned field extraction | Inspected extraction does not traverse continuation pages or a delta cursor |
 
+![Figure 39.1: GenericMirroring source adapters, local conversion and unverified publication boundary](../assets/diagrams/chapter-39/walkthrough-generic-adapters.png)
+*Figure 39.1: Implemented source branches converge on local Parquet and configured destinations, but stable file-source keys, missing-key deletes and verified per-destination acknowledgement remain hardening work. Explanatory illustration by this book, based on [Program.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Program.cs), [source adapters](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources), and [Upload.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs); not an official Microsoft diagram or a production-reliability claim. [Editable Excalidraw source](../assets/diagrams/chapter-39/walkthrough-generic-adapters.excalidraw).*
+
 The adapter implementations are under [sources](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources). Test nulls, dates, decimals and large integers through [Parquet.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Parquet.cs), not just string-only demonstration data.
 
 ## Checkpoints, Publication and Restarts

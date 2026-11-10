@@ -18,11 +18,44 @@ This book also covers application-managed integrations whose documentation sits 
 
 ## 1.1 What Is Microsoft Fabric?
 
-Microsoft Fabric is a Software as a Service analytics platform that combines data integration, engineering, warehousing, real-time analytics, data science, and business intelligence in one product.
+**Microsoft Fabric** is a **Software as a Service (SaaS)** platform for working with data from ingestion through to analysis and reporting. Rather than assembling a separate service for every stage, teams use integrated workloads for data movement, engineering, warehousing, operational databases, real-time processing, data science, and business intelligence.
 
-Fabric is built around **OneLake**, the tenant-wide storage layer used by Fabric workloads. OneLake stores data in open formats and provides a common location for lakehouses, warehouses, shortcuts, and mirrored data.
+Microsoft manages the underlying service infrastructure. Your organisation still needs to choose capacity, configure access and networking, prepare source systems, and operate its data solutions. SaaS reduces infrastructure management; it does not remove architecture, governance, or cost decisions.
 
-Mirroring is one of Fabric's data integration options. Its role is to make source data available for analytics, either as a managed replica or through a supported metadata and shortcut integration.
+### One Platform, Several Workloads
+
+Microsoft's architecture diagram places the workloads above a shared platform layer. Different tools and engines serve different jobs, but they can work with data through **OneLake** rather than requiring an independently exported copy for each consumer.
+
+[![Microsoft Fabric architecture showing Data Factory, Analytics, Databases, Real-Time Intelligence, IQ, and Power BI above shared Copilot, OneLake, and governance services](../assets/setup/chapter-01/microsoft-fabric-platform-architecture.png)](../assets/setup/chapter-01/microsoft-fabric-platform-architecture.png)
+
+*Figure 1.1: Microsoft Fabric's workloads and shared platform. Microsoft documentation image, reproduced unchanged. Source: [What is Microsoft Fabric?](https://learn.microsoft.com/en-us/fabric/fundamentals/microsoft-fabric-overview#microsoft-fabric-architecture); [original image](https://learn.microsoft.com/en-us/fabric/fundamentals/media/microsoft-fabric-overview/fabric-architecture.png#lightbox). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer.*
+
+| Workload or group in the diagram | What it provides |
+|---|---|
+| **Data Factory** | Ingestion, transformation, and orchestration through tools such as pipelines and Power Query. |
+| **Analytics** | Data Engineering for Spark and notebooks, Data Science for analytical and machine-learning work, and Data Warehouse for SQL-based analytics. |
+| **Databases** | Transactional database experiences and Mirroring integrations that bring existing source data into the Fabric analytical environment. |
+| **Real-Time Intelligence** | Ingestion, exploration, analysis, and actions over event and streaming data, including logs and telemetry. |
+| **Fabric IQ (Preview)** | Capabilities for connecting data with business meaning and relationships, so applications and analytical tools can use a shared business context. |
+| **Power BI** | Semantic models, interactive reports, dashboards, and business-facing analysis. |
+
+These are complementary capabilities, not a requirement to use every workload. A SQL-focused team can begin with mirrored data and the SQL analytics endpoint, while another team uses notebooks or Power BI over the same analytical data.
+
+### OneLake and the Shared Platform
+
+**OneLake** is Fabric's tenant-wide logical data lake, built on Azure Data Lake Storage Gen2. It provides a common storage namespace and access layer for Fabric data. A **workspace** groups related items such as lakehouses, warehouses, mirrored databases, notebooks, and reports; it is not a separate product installation.
+
+Open formats allow compatible engines to work with the same underlying data. **Shortcuts** can also reference eligible data in another location without first copying all its files into a new Fabric item. This is different from database mirroring, which deliberately maintains an analytical replica in OneLake. A shared data foundation does not mean that no copies exist anywhere or that every query has identical freshness.
+
+The other platform services in Figure 1.1 support that shared environment. **Copilot** provides AI assistance within supported workloads, subject to the applicable permissions and feature requirements. **Governance** includes administration, discovery, security, and auditing: **OneLake Catalog** helps users find, explore, and govern Fabric items, while **Microsoft Purview** supplies supported information-protection and compliance capabilities. Source permissions do not automatically become equivalent analytical permissions simply because the data is in Fabric.
+
+### Where Mirroring Fits
+
+Mirroring is one way of making existing data available to those workloads. With **database mirroring**, a supported source is replicated into managed Delta tables in OneLake. **Metadata mirroring** instead exposes eligible source data through catalog integration and shortcuts. **Open Mirroring** lets a custom or partner publisher deliver changes for Fabric to process.
+
+For example, after a supported database has been mirrored, an engineer can explore its analytical replica with Spark, an analyst can query it through the SQL analytics endpoint, and a report author can build a Power BI model. These consumers share access to the analytical data rather than each building a separate extraction pipeline against the operational system. Transformations, authorisation, SQL metadata synchronisation, and report/model freshness still need their own design.
+
+**Documentation reviewed: 10 November 2026.** This introduction follows Microsoft's [What is Microsoft Fabric? overview](https://learn.microsoft.com/en-us/fabric/fundamentals/microsoft-fabric-overview), including its workload, OneLake, and shared-platform descriptions. The image is a platform overview, not a Mirroring transport diagram or a feature-availability guarantee.
 
 ## 1.2 Release History
 
@@ -74,7 +107,7 @@ For database mirroring, the broad pattern is an initial snapshot followed by cha
 
 [![chapter-01 diagram 1](../assets/diagrams/chapter-01/diagram-01.png)](../assets/diagrams/chapter-01/diagram-01.excalidraw.png)
 
-*Figure 1.1: Database mirroring architecture*
+*Figure 1.2: Database mirroring architecture*
 
 **Key components:**
 

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">Dremio: four independent checks before a table is ready</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">Metadata-only catalog mirroring. Catalog authentication is not the same as storage authorization.</tspan>
+</text>
+<rect x="50" y="170" width="450" height="200" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="275.0" y="250.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="275.0" dy="0">1 Catalog identity</tspan>
+<tspan x="275.0" dy="25.2">PAT or Organizational account</tspan>
+<tspan x="275.0" dy="25.2">Approved project / namespace scope</tspan>
+</text>
+<rect x="700" y="170" width="450" height="200" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="925.0" y="250.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="925.0" dy="0">2 Storage authorization</tspan>
+<tspan x="925.0" dy="25.2">Dremio vends short-lived credentials</tspan>
+<tspan x="925.0" dy="25.2">Read Iceberg metadata + Parquet files</tspan>
+</text>
+<rect x="700" y="460" width="450" height="200" rx="16" fill="#dcfce7" stroke="#2f9e44" stroke-width="2"/>
+<text x="925.0" y="540.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="925.0" dy="0">3 Format conversion</tspan>
+<tspan x="925.0" dy="25.2">OneLake creates virtual Delta metadata</tspan>
+<tspan x="925.0" dy="25.2">Check latest_conversion_log.txt</tspan>
+</text>
+<rect x="50" y="460" width="450" height="200" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="275.0" y="540.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="275.0" dy="0">4 Fabric consumer access</tspan>
+<tspan x="275.0" dy="25.2">Validate SQL / Spark / Power BI readers</tspan>
+<tspan x="275.0" dy="25.2">Source roles are not copied as policy</tspan>
+</text>
+<polyline points="500,270 700,270" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="600.0" y="233.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="600.0" dy="0">Discovery succeeds?</tspan>
+</text>
+<polyline points="925,370 925,460" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="1055.0" y="417.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="1055.0" dy="0">File reads succeed?</tspan>
+</text>
+<polyline points="700,560 500,560" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="600.0" y="615.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="600.0" dy="0">Current conversion?</tspan>
+</text>
+<text x="41" y="712.8" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="41" dy="0">A catalog listing does not prove file access, format compatibility or consumer authorization. Both catalog and source storage must be</tspan>
+<tspan x="41" dy="25.2">publicly reachable, but authenticated.</tspan>
+</text>
+</svg>

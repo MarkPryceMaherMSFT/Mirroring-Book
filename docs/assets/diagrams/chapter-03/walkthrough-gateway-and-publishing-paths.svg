@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="800" viewBox="0 0 1240 800">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">Connection traffic is not always replication traffic</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">A source-specific example: separate the SQL connection from source-managed publishing.</tspan>
+</text>
+<rect x="40" y="170" width="300" height="170" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="190.0" y="231.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="190.0" dy="0">Fabric connection</tspan>
+<tspan x="190.0" dy="29.4">Setup, discovery and</tspan>
+<tspan x="190.0" dy="29.4">connection checks</tspan>
+</text>
+<rect x="470" y="170" width="300" height="170" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="620.0" y="231.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="620.0" dy="0">Supported gateway</tspan>
+<tspan x="620.0" dy="29.4">Only where the source</tspan>
+<tspan x="620.0" dy="29.4">procedure permits it</tspan>
+</text>
+<rect x="900" y="170" width="300" height="170" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="1050.0" y="231.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="1050.0" dy="0">Source database</tspan>
+<tspan x="1050.0" dy="29.4">Connection identity and</tspan>
+<tspan x="1050.0" dy="29.4">SQL permissions</tspan>
+</text>
+<rect x="900" y="440" width="300" height="180" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="1050.0" y="506.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="1050.0" dy="0">Source-side publisher</tspan>
+<tspan x="1050.0" dy="29.4">Snapshot / change feed</tspan>
+<tspan x="1050.0" dy="29.4">Publishing identity</tspan>
+</text>
+<rect x="470" y="440" width="300" height="180" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="620.0" y="506.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="620.0" dy="0">OneLake landing zone</tspan>
+<tspan x="620.0" dy="29.4">Independent upload path</tspan>
+<tspan x="620.0" dy="29.4">Fabric applies changes</tspan>
+</text>
+<rect x="40" y="440" width="300" height="180" rx="16" fill="#f1f5f9" stroke="#495057" stroke-width="2"/>
+<text x="190.0" y="506.9" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#000000">
+<tspan x="190.0" dy="0">Other source designs</tspan>
+<tspan x="190.0" dy="29.4">CDC reads or a publisher</tspan>
+<tspan x="190.0" dy="29.4">can run on the gateway</tspan>
+</text>
+<polyline points="340,255 470,255" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="405.0" y="226.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="405.0" dy="0">Connection</tspan>
+</text>
+<polyline points="770,255 900,255" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="835.0" y="226.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="835.0" dy="0">Source access</tspan>
+</text>
+<polyline points="1050,340 1050,440" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="900,530 770,530" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="835.0" y="498.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="835.0" dy="0">Data files</tspan>
+</text>
+<text x="46" y="707.0" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#000000">
+<tspan x="46" dy="0">This is a conceptual source-managed pattern, not a universal transport diagram. SQL MI's 2022-policy CDC and Oracle Mirror</tspan>
+<tspan x="46" dy="28.0">Publisher have different gateway roles; Cosmos DB's restricted-account gateway does not carry its ongoing replication stream.</tspan>
+</text>
+</svg>

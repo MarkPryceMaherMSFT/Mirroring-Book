@@ -141,6 +141,10 @@ Have the catalog owner identify its credential mode before changing bucket permi
 6. **Security:** define and test Fabric/OneLake consumer access independently. Google row/column restrictions are not enforced on the mirrored item.
 7. **Handoff:** record pool/provider IDs, subject bindings, credential mode, bucket principals, approved table scope, and owners. Revalidate after IAM changes or recreation of an Entra identity with a new object ID.
 
+![Entra OIDC trust and Google catalog roles followed by separate storage authorization for credential vending or end-user credentials, while Iceberg files stay in GCS](../assets/diagrams/chapter-30/walkthrough-federation-storage-modes.png)
+
+*Figure 30.3: Establish the federated subject and catalog grants, then authorize storage using the catalog's actual mode: its service account for credential vending, or the federated principal for end-user credentials. Original illustration for this book, not a Microsoft screenshot; based on the [Microsoft Google catalog tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial#configure-google-cloud-workload-identity-federation) and [Google's catalog credential-mode guidance](https://docs.cloud.google.com/lakehouse/docs/set-up-lakehouse-iceberg-rest-catalog), reviewed 9 November 2026. This is metadata-only access to GCS, not BigQuery replication. [Editable Excalidraw](../assets/diagrams/chapter-30/walkthrough-federation-storage-modes.excalidraw) · [SVG](../assets/diagrams/chapter-30/walkthrough-federation-storage-modes.svg).*
+
 ---
 
 ## Nuances and Limitations

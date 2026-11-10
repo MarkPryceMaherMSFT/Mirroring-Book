@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1010" viewBox="0 0 1200 1010">
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 6 L1 11" fill="none" stroke="#495057" stroke-width="2"/></marker></defs>
+<text x="40" y="60.400000000000006" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">
+<tspan x="40" dy="0">MariaDB: capture, transport, optional delivery and a buffer hazard</tspan>
+</text>
+<text x="40" y="118.4" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="40" dy="0">The inspected consumer has state machinery, but its saved offsets can run ahead of rows durably published.</tspan>
+</text>
+<rect x="35" y="185" width="230" height="180" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="150.0" y="267.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="150.0" dy="0">MariaDB</tspan>
+<tspan x="150.0" dy="25.2">Binlog + GTID</tspan>
+</text>
+<rect x="335" y="185" width="230" height="180" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="450.0" y="255.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="450.0" dy="0">MaxScale KafkaCDC</tspan>
+<tspan x="450.0" dy="25.2">Separate runtime</tspan>
+<tspan x="450.0" dy="25.2">licence</tspan>
+</text>
+<rect x="635" y="185" width="230" height="180" rx="16" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+<text x="750.0" y="255.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="750.0" dy="0">Kafka topic</tspan>
+<tspan x="750.0" dy="25.2">Manually assigned</tspan>
+<tspan x="750.0" dy="25.2">partition</tspan>
+</text>
+<rect x="935" y="185" width="230" height="180" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="1050.0" y="255.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="1050.0" dy="0">Python consumer</tspan>
+<tspan x="1050.0" dy="25.2">normalize_row()</tspan>
+<tspan x="1050.0" dy="25.2">RAM table buffers</tspan>
+</text>
+<rect x="40" y="480" width="310" height="175" rx="16" fill="#dbeafe" stroke="#1864ab" stroke-width="2"/>
+<text x="195.0" y="547.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="195.0" dy="0">flush_table_rows()</tspan>
+<tspan x="195.0" dy="25.2">Capped prefix -&gt; Parquet</tspan>
+<tspan x="195.0" dy="25.2">Local output first</tspan>
+</text>
+<rect x="445" y="480" width="310" height="175" rx="16" fill="#cffafe" stroke="#0c8599" stroke-width="2"/>
+<text x="600.0" y="547.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="600.0" dy="0">Optional OneLake upload</tspan>
+<tspan x="600.0" dy="25.2">localOnly can skip it</tspan>
+<tspan x="600.0" dy="25.2">Check actual destination</tspan>
+</text>
+<rect x="850" y="480" width="310" height="175" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="1005.0" y="547.7" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="1005.0" dy="0">save_state()</tspan>
+<tspan x="1005.0" dy="25.2">Offsets + file counters</tspan>
+<tspan x="1005.0" dy="25.2">Remaining RAM is not journaled</tspan>
+</text>
+<rect x="40" y="720" width="1120" height="180" rx="16" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+<text x="600.0" y="790.2" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#000000">
+<tspan x="600.0" dy="0">Offset advanced in RAM -&gt; capped flush -&gt; state saved</tspan>
+<tspan x="600.0" dy="25.2">When rows remain buffered, a crash can lose unpublished events already covered by the saved offset.</tspan>
+<tspan x="600.0" dy="25.2">Persist pending rows or checkpoint only the contiguous published prefix.</tspan>
+</text>
+<polyline points="265,275 335,275" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="565,275 635,275" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="865,275 935,275" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="1050,365 1050,415 195,415 195,480" fill="none" stroke="#495057" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="350,567 445,567" fill="none" stroke="#495057" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<polyline points="755,567 850,567" fill="none" stroke="#495057" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<polyline points="1005,655 1005,720" fill="none" stroke="#495057" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="41" y="953.6" text-anchor="start" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#000000">
+<tspan x="41" dy="0">Runtime licence boundary: the Toolbox publisher is MIT; MaxScale 24.02 is BSL 1.1 before its version-specific conversion.</tspan>
+<tspan x="41" dy="22.4">Compose uses maxscale:latest, so review the actual pinned runtime. Local export does not prove Fabric delivery.</tspan>
+</text>
+</svg>
