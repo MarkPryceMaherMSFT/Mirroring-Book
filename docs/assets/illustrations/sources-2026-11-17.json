@@ -1,0 +1,28 @@
+{
+  "title": "OneLake security illustration and source credit",
+  "review_date": "2026-11-17",
+  "scope": "Figure added to Chapter 4 with the OneLake and SQL security expansion. Earlier illustration registers and assets are unchanged.",
+  "rights": "The Microsoft documentation image retains its originating licence and is excluded from the book's all-rights-reserved claim. Source links do not imply endorsement.",
+  "figures": [
+    {
+      "chapter": 4,
+      "figure": "4.3a",
+      "local_image": "docs/assets/setup/chapter-04/sql-endpoint-user-identity-mode.png",
+      "kind": "Microsoft-copy",
+      "sha256": "f5ee3e9b85674eb799d0f949425062e67c7352f328b9e125b8b588d2262c0d32",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/onelake/security/sql-analytics-endpoint-onelake-security#change-the-onelake-access-mode"
+      ],
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/onelake/security/media/sql-analytics-endpoint-onelake-security/use-onelake-security.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "license": "CC BY 4.0, including the originating licence's warranty disclaimer",
+      "credit": "Microsoft",
+      "modifications": "None: original PNG bytes retained; no crop or conversion.",
+      "caption_note": "The screenshot's captured labels may differ from the current portal. The chapter retains separate current procedure and mode-change warnings."
+    }
+  ]
+}

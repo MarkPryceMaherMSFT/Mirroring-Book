@@ -1,0 +1,330 @@
+# Chapter 3: Methods of Mirroring: Push, Pull or Polling, and Shortcuts
+
+> **Part 1: Concepts and Architecture**
+>
+> **Purpose:** This chapter helps you identify how each mirrored source moves or exposes data so you can plan connectivity, latency, storage, and operations before you configure a mirror.
+
+**Part index:** [Chapters in Part 1](readme.md)
+
+***
+
+## Overview
+
+In this chapter, **push**, **pull or polling**, and **shortcuts** are terms used to compare how Fabric mirroring behaves across sources. They are **not** an official Microsoft product taxonomy. The connector for each source determines the method. You do not choose it during setup.
+
+> You don't *need* to read this chapter, but if you really want to understand Mirroring, the concept of how data is moved from the source system to the landing zone is really important.
+
+These three methods answer practical questions:
+
+* Who initiates the movement or exposure of data?
+* Is data copied into OneLake, or read in place?
+* What level of latency should you plan for?
+* What connectivity and operational model does the source require?
+
+| Method                    | What happens                                                | Data copied into OneLake? | Main replication concern                                |
+| ------------------------- | ----------------------------------------------------------- | ------------------------: | ------------------------------------------------------- |
+| **Push-based**            | The source-side mechanism sends changes towards Fabric.     |                       Yes | Source connectivity and source-side change capture      |
+| **Pull or polling-based** | The connector reads source changes or staged files.         |                       Yes | Capture behaviour, connectivity, and replication lag    |
+| **Shortcuts**             | Fabric exposes source data through OneLake shortcuts.       |                        No | Query path, source storage access, and metadata refresh |
+
+> A connector can combine methods. For example, Snowflake mirroring polls for changes before exporting a batch to OneLake. A gateway requirement cannot be inferred from these labels alone.
+
+Some managed integrations do not publish enough transport detail to assign a push/pull contract. This chapter keeps those cases explicit rather than forcing every source or application into one of the three buckets.
+
+**Gateway support is source-specific.** A VNet data gateway is a Microsoft-managed service injected into an Azure subnet; an on-premises data gateway is a customer-managed Windows service in **standard mode**. Neither is the Azure VPN Gateway or an Azure Data Factory self-hosted integration runtime. A connector available through a gateway for Power Query, Copy Job, or a pipeline is not automatically supported through that gateway for native Mirroring. Use the [gateway support matrix](../appendix.md#gateway-support-by-source), reviewed **4 November 2026**, before choosing a connection.
+
+Separate **connection/setup/metadata traffic** from **snapshot and incremental data traffic**. Depending on the source, the gateway can carry ongoing reads, host a publisher, or only validate/administer the connection while the source publishes directly to OneLake. Gateway capacity and availability are not universal measures of replication throughput.
+
+[![Figure 3.1: The three methods overview](../assets/diagrams/chapter-03/diagram-01.png)](../assets/diagrams/chapter-03/diagram-01.excalidraw.png)
+*Figure 3.1: The three methods overview*
+
+***
+
+## Push-Based Mirroring
+
+In the replication models used in this book, **push-based** mirroring means the source-side technology captures changes and sends them towards Fabric without Fabric repeatedly polling for each batch of changed rows.
+
+This avoids repeated queries for changed rows, but it is not a guarantee of lower latency or lower source load. Log capture, source resource limits, network throughput, and target processing still matter.
+
+Push-based mirroring does not mean gateway-free mirroring. SQL Server 2025 requires Azure Arc and its documented walkthrough uses a supported data gateway. Private source access requires a gateway; the public-endpoint prerequisite wording and walkthrough are not fully aligned, as [Chapter 24](../Part%202-%20Source-Specific%20Mirroring%20Guides/24%20-%20SQL%20Server%202025.md) records. Read each source's network section for both the connection path and the independent outbound path to OneLake.
+
+For Fabric database mirroring, the underlying mechanism depends on the source:
+
+* **Azure SQL Database** uses the **change feed**.
+* **Azure SQL Managed Instance** on the **Always-up-to-date** or **SQL Server 2025** update policy uses the **change feed**.
+* **SQL Server 2025** uses the **change feed**, requires **[Azure Arc](https://learn.microsoft.com/en-us/azure/azure-arc/overview)**, and follows a gateway-backed documented setup. Gateway connection traffic is separate from engine publishing.
+* **Fabric SQL Database** uses the **change feed**, auto-configured inside Fabric.
+* **Azure Database for PostgreSQL** uses logical replication to capture changes, then a source-side component publishes Parquet batches to OneLake. See the [PostgreSQL mirroring architecture](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring#architecture).
+* **Azure Database for MySQL** captures binlog changes and publishes them from the source to OneLake using its managed identity. See the [MySQL mirroring architecture](https://learn.microsoft.com/en-us/azure/mysql/integration/fabric-mirroring-mysql#architecture).
+
+[![Figure 3.2: Push-based sequence](../assets/diagrams/chapter-03/diagram-02.png)](../assets/diagrams/chapter-03/diagram-02.excalidraw.png)
+*Figure 3.2: Push-based sequence*
+
+### How It Works
+
+1. A source-side mechanism captures committed changes.
+2. The source or its paired component sends those changes to the Fabric landing zone.
+3. Fabric detects the new landing zone files.
+4. Fabric applies the change batches into Delta tables in OneLake.
+5. Fabric manages offset tracking so it knows the last processed change position.
+
+### Characteristics
+
+| Attribute                 | Detail                                                                                          |
+| ------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Change initiator**      | Source-side mechanism                                                                           |
+| **Latency**               | Source- and workload-dependent; not a guaranteed interval |
+| **Agent required**        | Depends on source. Some paths are native to the platform; i.e. Azure Arc components             |
+| **Outbound connectivity** | Usually required from the source-side path towards Fabric                                       |
+| **Offset tracking**       | Managed by Fabric                                                                               |
+| **Data movement**         | Full physical copy into OneLake                                                                 |
+
+> SQL Server mirroring includes resource controls that reduce capture activity under pressure. These protect the source workload but can increase replication lag; they do not make capture cost-free. See [SQL Server mirroring performance](https://learn.microsoft.com/en-us/fabric/mirrroring/sql-server-performance#resource-governor-for-sql-server-mirroring).
+
+### Push-Based Sources
+
+| Source                                                                                         | Mechanism               | Chapter |
+| ---------------------------------------------------------------------------------------------- | ----------------------- | ------: |
+| **Azure SQL Database**                                                                         | Change feed             |      11 |
+| **Azure SQL Managed Instance** with **Always-up-to-date** or **SQL Server 2025** update policy | Change feed             |      12 |
+| **SQL Server 2025**                                                                            | Change feed + Azure Arc |      24 |
+| Fabric SQL Database                                                                            | Change feed             |      25 |
+| Azure Database for PostgreSQL | Source-side logical replication capture and publishing | 18 |
+| Azure Database for MySQL | Source-side binlog capture and publishing | 19 |
+
+### When You See Push
+
+You will usually see this pattern when the source platform has a dedicated mirroring integration or a source-side publishing component. In this book it includes Azure SQL Database, the newer Azure SQL Managed Instance policies, SQL Server 2025, PostgreSQL, and MySQL. SQL Server 2016-2022 uses a different, CDC-based path.
+
+Source-driven capture can still batch changes, wait for resources, or retry after failures. Avoid treating "push" as a promise of immediate delivery or an absence of backoff.
+
+***
+
+## Pull or Polling-Based Mirroring
+
+In the replication model used in this book, **pull or polling-based** mirroring groups connectors that read changes from a source API, change table, log stream, or staging store. A source's use of logs does not by itself make its connector pull-based: PostgreSQL and MySQL use source-side publishers and belong in the preceding group.
+
+Where the source-specific connector supports it, a publicly reachable source can use a cloud connection without a gateway. Other connectors still require a gateway. A private source can use an [on-premises or VNet data gateway](https://learn.microsoft.com/en-us/data-integration/gateway/) only when that Mirroring integration explicitly supports it; a public-only catalog does not gain private access just because a generic connector has a gateway option. Gateways add operational requirements and can constrain the traffic they handle, but they do not necessarily carry every part of the replication data path.
+
+Repeated checks can add source load and, for services such as Snowflake, compute charges even when few rows change. Adaptive polling reduces unnecessary work.
+
+### Backoff and Polling Cadence
+
+Fabric documents backoff that reduces overhead when source activity is low. The exact algorithm and timing are source-specific; the following cycle is a conceptual explanation, not a published contract shared by all connectors. See [How database mirroring works](https://learn.microsoft.com/en-us/fabric/mirroring/overview#how-does-database-mirroring-work) and [BigQuery performance limitations](https://learn.microsoft.com/en-us/fabric/mirroring/google-bigquery-limitations#performance-limitations).
+
+Backoff matters when investigating latency: a delayed batch does not by itself mean mirroring has failed. Check source activity, replication status, and the query layer before deciding where the delay occurs.
+
+There is no common user-controlled polling interval across all connectors. Splitting tables across mirrored databases is not a documented way to double throughput or defeat backoff, and it can increase source load. Likewise, stopping and restarting replication can trigger a full reseed; it is not a routine refresh mechanism.
+
+A conceptual cycle is:
+
+1. Fabric polls the source for changes.
+2. If changes are found, Fabric ingests them and continues with the normal cadence.
+3. If no changes are found, Fabric can lengthen the polling interval.
+4. If transient errors occur, Fabric backs off further before retrying.
+5. When work resumes or the source becomes healthy again, Fabric returns to a shorter interval.
+
+> Backoff is not a separate replication status. Use the available status, batch-latency, and source diagnostics rather than assuming a particular backoff state from an unchanged table.
+
+[![Figure 3.3: Pull-based sequence](../assets/diagrams/chapter-03/diagram-03.png)](../assets/diagrams/chapter-03/diagram-03.excalidraw.png)
+*Figure 3.3: Pull-based sequence*
+
+### How It Works
+
+1. Fabric stores source connectivity details in a Fabric connection.
+2. The replicator queries (pulls) the source for new changes since the last successful watermark, offset, or source-native checkpoint.
+3. Fabric writes the returned changes to the landing zone in OneLake.
+4. Fabric processes the landing zone files into Delta tables.
+5. Fabric manages retries, backoff, and offset tracking.
+
+### Characteristics
+
+| Attribute            | Detail                                                                                          |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| **Change initiator** | Fabric replicator                                                                               |
+| **Latency**          | Depends on source protocol, polling cadence where applicable, workload, and load |
+| **Agent required**   | Source-dependent; a gateway or source replication component may be required |
+| **Connectivity**     | Fabric must be able to reach the source through the supported connection path                   |
+| **Offset tracking**  | Managed by Fabric                                                                               |
+| **Data movement**    | Full physical copy into OneLake                                                                 |
+| **Backoff process**  | Differs by source                                                                               |
+
+### Pull or Polling-Based Sources
+
+| Source                                                                | Mechanism                                                                                    | Chapter |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------: |
+| **Google BigQuery**                                                   | Google Cloud Storage initial export + BigQuery `CHANGES` TVF                                 |      16 |
+| **Oracle**                                                            | Oracle log-based change capture path                                                         |      17 |
+| **SAP**                                                               | SAP Datasphere replication flow to ADLS Gen2                                                 |      20 |
+| **Snowflake**                                                         | Fabric polls and reads Snowflake stream changes                                              |      22 |
+| **SQL Server 2016-2022**                                              | CDC                                                                                          |      23 |
+| **Azure SQL Managed Instance** with **SQL Server 2022** update policy | CDC                                                                                          |      12 |
+
+### Snowflake: Polling Snowflake Streams
+
+Snowflake is an interesting mix of push and polling. The replicator polls the Snowflake warehouse for changes, and if there is a change, it is written (or pushed) directly to OneLake.
+
+Snowflake uses a polling sequence:
+
+* Fabric checks the Snowflake stream for available changes.
+* The Fabric Replication Engine reads the change set.
+* Fabric writes and processes those changes into Delta tables in OneLake.
+
+[![Figure 3.3a: Snowflake polling sequence](../assets/diagrams/chapter-03/diagram-04.png)](../assets/diagrams/chapter-03/diagram-04.excalidraw.png)
+*Figure 3.3a: Snowflake polling sequence*
+
+Fabric controls the polling schedule, but Snowflake writes the change batch directly into the OneLake landing zone once a change is found.
+
+> It's really interesting watching the Snowflake query history, as you can see all the queries that Mirroring executes against Snowflake.
+
+### SAP: Two-Step Architecture
+
+For the **SAP Datasphere replication path in Chapter 20**, Fabric does not poll the operational SAP tables directly in the same way it polls a database transaction log. Instead, **SAP Datasphere replication flow** first moves the relevant data towards **ADLS Gen2**, and Fabric then mirrors through that supported path. Plan this route as a two-step architecture; it is not the [SAP BDC Connect sharing route in Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md).
+
+Check SAP Datasphere licensing and replication-flow requirements as well as Fabric prerequisites. Do not assume that the Fabric storage allowance covers the SAP side.
+
+### SharePoint List: A Hybrid Case
+
+SharePoint List mirroring does not fit neatly into a single method. Fabric manages replication of list row data into Delta tables, but the public source guide does not specify a polling algorithm or refresh cadence. Document Library content is surfaced through **OneLake shortcuts** rather than copied. Plan for both behaviours: replicated list rows and document content read through shortcuts. [Chapter 21](../Part%202-%20Source-Specific%20Mirroring%20Guides/21%20-%20SharePoint%20List.md) covers setup and the current documentation gaps.
+
+### Cosmos DB: Initial Backup and Live Incremental Changes
+
+The October-updated [Cosmos DB FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-faq) distinguishes an initial backfill from the latest available **continuous backup**, followed by incremental inserts, updates, and deletes read from the **live container**. Continuous Backup remains required, but its 7-day/30-day retention is a PITR setting, not a refresh interval.
+
+The documentation does not name a general internal push/pull transport contract for those live changes. Cosmos DB is therefore a **managed continuous-replication case** in this book, not proof that Continuous Backup alone publishes all ongoing changes or that Cosmos DB Change Feed is used. [Chapter 13](../Part%202-%20Source-Specific%20Mirroring%20Guides/13%20-%20Azure%20Cosmos%20DB.md) covers backup freshness, write-region selection, and recovery.
+
+***
+
+## Shortcuts/Metadata Mirroring
+
+In the replication model used in this book, **shortcuts** means Fabric synchronises metadata and creates OneLake shortcuts to data that stays in its original storage location.
+
+This is different from both push and pull or polling methods because the main data files **are not copied** into the mirrored database's Delta storage layer.
+
+There is no separate row-copy backlog, but query freshness still depends on source commits, catalog or table metadata refresh, shortcut caching where enabled, and SQL analytics endpoint metadata sync. "No copy" does not mean "no delay".
+
+[![Figure 3.4: Shortcuts sequence](../assets/diagrams/chapter-03/diagram-05.png)](../assets/diagrams/chapter-03/diagram-05.excalidraw.png)
+*Figure 3.4: Shortcuts sequence*
+
+### How It Works
+
+For catalog-based mirroring:
+
+1. Fabric connects to the source catalog layer.
+2. Fabric discovers table definitions, storage locations, and related metadata.
+3. Fabric creates OneLake shortcuts that point to the source data.
+4. Queries run through Fabric, but the underlying files remain in the source location.
+5. Metadata refresh keeps the Fabric view aligned with the source catalog.
+
+Azure Monitor is a connection-based exception: it exposes Log Analytics storage through supported Eventhouse and shortcut paths rather than an Iceberg catalog.
+
+### Characteristics
+
+| Attribute            | Detail                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| **Change initiator** | Fabric metadata sync                                                                         |
+| **Latency**          | Metadata refresh timing depends on the connector; data freshness depends on the source files |
+| **Agent required**   | No                                                                                           |
+| **Connectivity**     | Fabric must be able to read the source storage and metadata endpoints                        |
+| **Offset tracking**  | Not a change-feed pattern; Fabric tracks metadata refresh state instead                      |
+| **Data movement**    | None for the data files                                                                      |
+
+### Shortcut-Based Sources
+
+| Source               | Mechanism                                                              | Chapter |
+| -------------------- | ---------------------------------------------------------------------- | ------- |
+| **Azure Databricks** | Unity Catalog metadata + OneLake shortcuts                             | 14      |
+| **Azure Monitor**    | Log Analytics Delta Parquet storage + OneLake shortcuts and Eventhouse | 15      |
+| **Dremio**           | Dremio metadata + OneLake shortcuts                                    | 26      |
+| **AWS Glue**         | AWS Glue Iceberg catalog metadata + OneLake shortcuts                  | 27      |
+| **Google Lakehouse Runtime Catalog** | Iceberg REST catalog + shortcuts to Google Cloud Storage | [30](../Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) |
+| **Snowflake Iceberg tables** | Supported shortcut access to Iceberg data | 22 |
+
+Azure Monitor, Dremio, AWS Glue, and Google Lakehouse Runtime Catalog mirroring are in **Public Preview**. Snowflake's replicated tables and shortcut-backed Iceberg tables use different paths; check Chapter 22 before choosing one.
+
+### Related Source-Managed Links and Sharing
+
+The same consumer-side reasoning applies to [Dataverse Link to Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md): Dataverse maintains the Delta replica and manages table shortcuts in a Fabric Lakehouse. There is no additional native Mirroring row-copy backlog on that consumer leg, but the **Dataverse analytical replica can still lag the operational tables**. A visible shortcut proves neither a completed initial synchronization nor a fresh SQL endpoint.
+
+[SAP BDC Connect](../Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md) is a separately announced data-product sharing integration whose Fabric-specific implementation was not verified in the reviewed public guidance. The relevant questions are who prepares and updates the shared product, how the consumer is authorized, and which supported query path reads it. Do not substitute Chapter 20's Parquet landing-file pipeline or describe bidirectional sharing as transaction-level write-back.
+
+These are related access patterns, not additions to the native mirroring connector list. Source-side analytical materialization, product preparation, consumer queries, and optional caching can still incur storage and compute costs even where sharing is described as zero-copy.
+
+### Fabric SQL Database Note
+
+**Fabric SQL Database** is a special case inside Fabric. Its analytical replica is configured automatically, but source rows are still copied into Delta tables in OneLake. It is database mirroring, not metadata-only access.
+
+***
+
+## How the Three Methods Compare
+
+[![Figure 3.5: Comparison](../assets/diagrams/chapter-03/diagram-06.png)](../assets/diagrams/chapter-03/diagram-06.excalidraw.png)
+*Figure 3.5: Comparison*
+
+| Attribute                          | Push-based                           | Pull or polling-based             | Shortcuts                                        |
+| ---------------------------------- | ------------------------------------ | --------------------------------- | ------------------------------------------------ |
+| **Initiator**                      | Source-side mechanism                | Fabric replicator                 | Fabric metadata sync                             |
+| **Data copied into OneLake**       | Yes                                  | Yes                               | No                                               |
+| **Operational rhythm**             | Change-driven                        | Polling-driven                    | Metadata refresh-driven                          |
+| **Source dependency**              | Source-side integration required     | Source reachable to Fabric        | Source catalog and storage reachable to Fabric   |
+| **Typical query path after setup** | Local Delta tables                   | Local Delta tables                | In-place reads through shortcut                  |
+| **Primary replication concern**    | Connectivity and source capture path | Polling cadence, lag, and retries | Query path, storage access, and metadata refresh |
+
+***
+
+## Complete Source-to-Method Reference
+
+The table below brings the source list together using the replication model in this chapter. Application routes are included explicitly rather than presented as additional native Mirroring connectors.
+
+| Source                                                                                         | Method in this book                                  | Data moved to OneLake? | Main mechanism                                                           | Chapter |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------: | ------------------------------------------------------------------------ | ------- |
+| **Azure SQL Database**                                                                         | Push-based                                           |                    Yes | Change feed                                                              | 11      |
+| **Azure SQL Managed Instance** with **Always-up-to-date** or **SQL Server 2025** update policy | Push-based                                           |                    Yes | Change feed                                                              | 12      |
+| **Azure SQL Managed Instance** with **SQL Server 2022** update policy                          | Pull or polling-based                                |                    Yes | SQL Server CDC via data gateway                                          | 12      |
+| **Azure Cosmos DB** | Managed continuous replication; transport not specified | Yes | Continuous-backup initial load, then live-container incremental changes | 13 |
+| **Azure Databricks**                                                                           | Shortcuts                                            |                     No | Unity Catalog metadata + OneLake shortcuts                               | 14      |
+| **Azure Monitor**                                                                              | Shortcuts                                            |                     No | Log Analytics Delta Parquet storage + OneLake shortcuts and Eventhouse   | 15      |
+| **Google BigQuery**                                                                            | Pull or polling-based                                |                    Yes | Google Cloud Storage initial export + BigQuery `CHANGES` TVF             | 16      |
+| **Oracle**                                                                                     | Pull or polling-based                                |                    Yes | Oracle log-based change capture path                                     | 17      |
+| **PostgreSQL** | Push-based | Yes | Source-side logical replication capture and OneLake publishing | 18 |
+| **MySQL** | Push-based | Yes | Source-side binlog capture and OneLake publishing | 19 |
+| **SAP**                                                                                        | Pull or polling-based                                |                    Yes | SAP Datasphere replication flow to ADLS Gen2                             | 20      |
+| **Snowflake**                                                                                  | Pull or polling-based                                |                    Yes | Fabric polls and creates Snowflake Streams                               | 22      |
+| **SharePoint List** | Hybrid: replicated rows and document shortcuts | Partial | Managed list-row replication; OneLake shortcuts for Document Library content | 21 |
+| **SQL Server 2016–2022**                                                                       | Pull or polling-based                                |                    Yes | SQL Server CDC via data gateway                                          | 23      |
+| **SQL Server 2025**                                                                            | Push-based                                           |                    Yes | Change feed + Azure Arc; documented gateway-backed setup                 | 24      |
+| **Fabric SQL Database**                                                                        | Push-based                                           |         Yes, automatic | Auto-configured inside Fabric                                            | 25      |
+| **Dremio**                                                                                     | Shortcuts                                            |                     No | Dremio metadata + OneLake shortcuts                                      | 26      |
+| **AWS Glue**                                                                                   | Shortcuts                                            |                     No | AWS Glue Iceberg catalog metadata + OneLake shortcuts                    | 27      |
+| **Google Lakehouse Runtime Catalog** | Shortcuts | No | Iceberg REST catalog + Google Cloud Storage shortcuts | [30](../Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) |
+| **Snowflake Iceberg tables** | Shortcuts | No | Shortcut access rather than Snowflake Streams replication | 22 |
+| **Business Central online v29+ (prerelease)** | Application-managed Open Mirroring publisher | Yes | Source initial/incremental runs publish to an open mirrored database | [31](../Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md) |
+| **Dataverse Link to Fabric** | Managed analytics replication plus shortcuts | Dataverse-managed replica; no second full Fabric copy | Low-latency database-to-Delta sync, consumed through lakehouse shortcuts | [28](../Part%202-%20Source-Specific%20Mirroring%20Guides/28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md) |
+
+The Dataverse and Business Central rows are application-managed routes, not extra native connectors. Their chapters identify which platform owns synchronization and how the consumer reaches the data. [SAP BDC Connect, Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md) covers a separately announced data-product sharing integration and readiness checks, not a verified released setup or the Chapter 20 Datasphere pipeline.
+
+[![Figure 3.6: Source groupings](../assets/diagrams/chapter-03/diagram-07.png)](../assets/diagrams/chapter-03/diagram-07.excalidraw.png)
+*Figure 3.6: Source groupings. The SQL Server 2025 gateway label represents the documented setup, not a claim that the engine's change-feed uploads traverse the gateway; see Chapter 24 for the public-route documentation difference.*
+
+![Separate connection and source-managed data-publishing paths, with gateway-hosted publisher and CDC exceptions identified](../assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.png)
+
+*Figure 3.7: A connection path and a publishing path can be different. Original explanatory diagram by this book, based on the [Azure SQL setup/security model](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-how-to-data-security), [SQL MI policy-specific gateway rules](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-managed-instance-limitations#network-and-connectivity-security), and [Cosmos DB restricted-account traffic boundary](https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-private-network#why-this-approach). This is not a universal connector topology or a Microsoft screenshot. [Editable Excalidraw source](../assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.excalidraw) · [SVG](../assets/diagrams/chapter-03/walkthrough-gateway-and-publishing-paths.svg).*
+
+***
+
+## Choosing the Right Method
+
+You do not choose the method directly, but you do need to plan around it.
+
+* **Connectivity:** Push-based sources need a supported source-side path towards Fabric. Pull or polling-based sources need Fabric to reach the source. Shortcuts need Fabric to reach the source catalog and storage path at query time.
+* **Latency expectations:** Measure the chosen connector and query path. Source-driven capture, polling, metadata propagation, and workload pressure each affect freshness; no method label guarantees a particular latency.
+* **Storage impact:** Push-based and pull or polling-based methods create a physical copy in OneLake. Shortcuts do not.
+* **Operations:** Push-based issues often centre on source integration and connectivity. Pull or polling-based issues often centre on polling, throttling, and retries. Shortcut issues often centre on metadata alignment and query access to source storage.
+
+***
+
+## Summary
+
+This chapter uses a simple replication model with three methods: push-based, pull or polling-based, and shortcuts, while keeping managed/hybrid exceptions explicit. These are book terms, not an official Microsoft taxonomy. The model helps you predict connectivity, data placement, and sources of lag without inventing transport guarantees. The detailed source chapters run from Azure SQL Database in Chapter 11 through AWS Glue in Chapter 27, followed by Dataverse Link in Chapter 28, the SAP BDC Connect announcement/readiness guide in Chapter 29, Google Lakehouse Runtime Catalog in Chapter 30, and prerelease Business Central Mirroring in Chapter 31.
+
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 2: Types of Mirroring in Fabric](02%20-%20Types%20of%20Mirroring%20in%20Fabric.md) | **Next:** [Chapter 4: The Anatomy of a Mirrored Database](04%20-%20The%20Anatomy%20of%20a%20Mirrored%20Database.md)
