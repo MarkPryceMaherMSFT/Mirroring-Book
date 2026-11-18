@@ -1,4 +1,4 @@
-# Chapter 48: Choosing a Solution, Shared Lessons, and Further Reading
+# Chapter 49: Choosing a Solution, Shared Lessons, and Further Reading
 
 > **Part 3: Open Mirroring**
 >
@@ -18,20 +18,20 @@ The project chapters pin inspected revisions where available and distinguish sou
 
 | Source or need | Public implementation | Capture or role | Main qualification | Chapter |
 |---|---|---|---|---|
-| Build your own publisher | [Microsoft SDK](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK) | OneLake table/file helper | MIT; no source CDC or durable delivery journal | [38](38%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md) |
-| SQL Server 2008-2022 target stated by sample | [GenericMirroring](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/GenericMirroring) | Change Tracking polling | MIT POC; version coverage is a project claim, not a tested matrix | [39](39%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md) |
-| Excel, CSV, Access, SharePoint Lists | [GenericMirroring adapters](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/GenericMirroring/sources) | File/current-state extraction | Stable keys, paging and missing-row deletes need work; EPPlus licensing applies to Excel | [39](39%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md) |
-| Excel and SharePoint | [Toolbox notebooks](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring) | Workbook/list snapshots | MIT POCs; not a complete delta/reconciliation protocol | [40](40%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md) |
-| MySQL | [MySQL notebook](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/mysql%20Mirroring) | Triggers and change table | MIT POC; acknowledgement ordering needs hardening | [40](40%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md) |
-| Snowflake | [Snowflake notebook](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/Snowflake%20Mirroring) | Source streams | MIT POC; stream replacement/publication boundary matters | [40](40%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md) |
-| MariaDB | [MariaDBMirroring](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/MariaDBMirroring) | Binlog, MaxScale and Kafka | MIT publisher; MaxScale runtime separately BSL-licensed | [41](41%20-%20MariaDB%20Through%20MaxScale%20and%20Kafka.md) |
-| BigQuery | [FabricBQSync](https://github.com/microsoft/FabricBQSync) | Spark-based configurable extraction | MIT; choose mirrored target, assess source strategy and partial publication | [42](42%20-%20BigQuery%20with%20FabricBQSync.md) |
-| MongoDB | [MongoDB_Fabric_Mirroring](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring) | Initial scan and change streams | Apache-2.0 publisher; handoff, resume and schema policy need evaluation | [43](43%20-%20MongoDB%20Through%20Change%20Streams.md) |
-| PostgreSQL CDC | [mirror_postgres](https://github.com/DaSenf1860/mirror_postgres) | Debezium and Kafka | MIT lab; destructive startup and offset acknowledgement need changes | [44](44%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md) |
-| PostgreSQL polling | [impulse_sync](https://github.com/srutz/impulse_sync) | Full, timestamp or increasing-key queries | MIT; no delete detection or WAL capture | [45](45%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md) |
-| Synapse dedicated SQL pool | [fabric-mirroring-synapse](https://github.com/MarkPryceMaherMSFT/fabric-mirroring-synapse) | Snapshot/diff or append-only watermark | Author-confirmed open source/customer use; named licence not stated in inspected tree | [46](46%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) |
-| Interactive workbook ingestion | [Fabric-OpenMirroring-for-files](https://github.com/nikunj11itdhm/Fabric-OpenMirroring-for-files) | Streamlit/Parquet publisher | MIT; positional keys and missing-row reconciliation need attention | [47](47%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md) |
-| Synthetic data and sink tests | [Faker](https://github.com/lmoloney/OpenMirroringFaker), [Shape](https://github.com/sqllocks/shape), [benchmark](https://github.com/mdrakiburrahman/fabric-open-mirroring-benchmark) | Test tooling | MIT projects, not operational database connectors | [47](47%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md) |
+| Build your own publisher | [Microsoft SDK](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK) | OneLake table/file helper | MIT; no source CDC or durable delivery journal | [39](39%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md) |
+| SQL Server 2008-2022 target stated by sample | [GenericMirroring](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/GenericMirroring) | Change Tracking polling | MIT POC; version coverage is a project claim, not a tested matrix | [40](40%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md) |
+| Excel, CSV, Access, SharePoint Lists | [GenericMirroring adapters](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/GenericMirroring/sources) | File/current-state extraction | Stable keys, paging and missing-row deletes need work; EPPlus licensing applies to Excel | [40](40%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md) |
+| Excel and SharePoint | [Toolbox notebooks](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring) | Workbook/list snapshots | MIT POCs; not a complete delta/reconciliation protocol | [41](41%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md) |
+| MySQL | [MySQL notebook](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/mysql%20Mirroring) | Triggers and change table | MIT POC; acknowledgement ordering needs hardening | [41](41%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md) |
+| Snowflake | [Snowflake notebook](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/Snowflake%20Mirroring) | Source streams | MIT POC; stream replacement/publication boundary matters | [41](41%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md) |
+| MariaDB | [MariaDBMirroring](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring/MariaDBMirroring) | Binlog, MaxScale and Kafka | MIT publisher; MaxScale runtime separately BSL-licensed | [42](42%20-%20MariaDB%20Through%20MaxScale%20and%20Kafka.md) |
+| BigQuery | [FabricBQSync](https://github.com/microsoft/FabricBQSync) | Spark-based configurable extraction | MIT; choose mirrored target, assess source strategy and partial publication | [43](43%20-%20BigQuery%20with%20FabricBQSync.md) |
+| MongoDB | [MongoDB_Fabric_Mirroring](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring) | Initial scan and change streams | Apache-2.0 publisher; handoff, resume and schema policy need evaluation | [44](44%20-%20MongoDB%20Through%20Change%20Streams.md) |
+| PostgreSQL CDC | [mirror_postgres](https://github.com/DaSenf1860/mirror_postgres) | Debezium and Kafka | MIT lab; destructive startup and offset acknowledgement need changes | [45](45%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md) |
+| PostgreSQL polling | [impulse_sync](https://github.com/srutz/impulse_sync) | Full, timestamp or increasing-key queries | MIT; no delete detection or WAL capture | [46](46%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md) |
+| Synapse dedicated SQL pool | [fabric-mirroring-synapse](https://github.com/MarkPryceMaherMSFT/fabric-mirroring-synapse) | Snapshot/diff or append-only watermark | Author-confirmed open source/customer use; named licence not stated in inspected tree | [47](47%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) |
+| Interactive workbook ingestion | [Fabric-OpenMirroring-for-files](https://github.com/nikunj11itdhm/Fabric-OpenMirroring-for-files) | Streamlit/Parquet publisher | MIT; positional keys and missing-row reconciliation need attention | [48](48%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md) |
+| Synthetic data and sink tests | [Faker](https://github.com/lmoloney/OpenMirroringFaker), [Shape](https://github.com/sqllocks/shape), [benchmark](https://github.com/mdrakiburrahman/fabric-open-mirroring-benchmark) | Test tooling | MIT projects, not operational database connectors | [48](48%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md) |
 
 The licensing caveats are part of the recommendation, not small print. Check publisher code, dependencies/runtime, source-system rights and hosting costs separately. In particular, do not turn the Toolbox MIT licence into a claim that every dependency is free for commercial use.
 
@@ -55,7 +55,7 @@ Finally, evaluate the precise version and your failure cases. A well-explained d
 
 **Full rereads need deletion reconciliation.** A workbook that becomes shorter or a polled table with hard deletes requires explicit removal records or a deliberate reload. Row positions are not durable identities.
 
-**Source code can lag the current contract.** Some projects put the marker first, publish directly to final names or recreate tables without waiting for disappearance. Keep [Chapter 36](36%20-%20Metadata%20and%20Change%20Files.md) and the [current best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices) as the shared reference, while documenting differences honestly.
+**Source code can lag the current contract.** Some projects put the marker first, publish directly to final names or recreate tables without waiting for disappearance. Keep [Chapter 37](37%20-%20Metadata%20and%20Change%20Files.md) and the [current best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices) as the shared reference, while documenting differences honestly.
 
 ## Acceptance Exercises
 
@@ -86,7 +86,7 @@ These are useful reading, but an explicit applicable licence was not verified in
 | [fabric-open-mirroring-sample](https://github.com/cmaneu/fabric-open-mirroring-sample) | .NET/SQLite example | README's MIT link did not resolve to a licence file during inspection |
 | [session-open-mirroring](https://github.com/metxito/session-open-mirroring) | SQL Server CDC and control-table examples | No applicable licence found in inspected tree |
 
-The Synapse project is not in this list: its author explicitly confirmed customer reuse and requested its inclusion; [Chapter 46](46%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) records that basis.
+The Synapse project is not in this list: its author explicitly confirmed customer reuse and requested its inclusion; [Chapter 47](47%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) records that basis.
 
 An additional [MIT-licensed Event Hubs bridge](https://github.com/lmoloney/debezium-fabric-mirror) is useful as a recovery case study. Its [consumer](https://github.com/lmoloney/debezium-fabric-mirror/blob/main/src/open_mirroring_debezium/consumer.py) drains table buffers and can advance a shared checkpoint when only some publication succeeds. Do not repeat an at-least-once claim without assessing that control flow. Its inspected Oracle-shaped events do not establish compatibility with every Debezium source.
 
@@ -111,4 +111,4 @@ All "not found" statements are bounded to this research. Reclassify an article w
 
 Choose by source semantics, licence, operational ownership and demonstrated recovery, not by connector count. The SDK and sample projects make Open Mirroring accessible; the shared contract remains the standard against which each publisher must be evaluated.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 47: File Publishing and Open Mirroring Test Tools](47%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md) | **Next:** [Appendix: Supported Sources, Mirroring Types, and Reference Tables](../appendix.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 48: File Publishing and Open Mirroring Test Tools](48%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md) | **Next:** [Appendix: Supported Sources, Mirroring Types, and Reference Tables](../appendix.md)

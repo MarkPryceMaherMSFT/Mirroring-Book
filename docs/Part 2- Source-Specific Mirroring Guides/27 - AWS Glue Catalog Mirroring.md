@@ -10,7 +10,9 @@
 
 ## Overview of the Source System
 
-**AWS Glue Data Catalog** is Amazon's managed metadata catalog for data stored in Amazon S3, commonly used to catalog **Apache Iceberg** tables. Fabric's **AWS Glue catalog mirroring** connector, currently in **Public Preview**, integrates data cataloged in AWS Glue with the rest of your data in Fabric.
+**AWS Glue Data Catalog** is Amazon's managed metadata catalog for data stored in Amazon S3, commonly used to catalog **Apache Iceberg** tables. Fabric's **AWS Glue catalog mirroring** connector integrates data cataloged in AWS Glue with the rest of your data in Fabric.
+
+**Lifecycle snapshot, 18 November 2026:** the [17 November OneLake announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/onelake-the-unified-foundation-for-data-context-governance-and-ai/5423035) explicitly calls AWS Glue catalog federation **GA**. The linked implementation guide still says **Preview**. Preserve this distinction and the documented IAM, Iceberg, storage, and network requirements; a lifecycle announcement does not create an undocumented private-gateway route.
 
 When you mirror an AWS Glue catalog, there is **no data movement or duplication**. Only the AWS Glue catalog structure is mirrored to Fabric. The underlying Iceberg table data stays in Amazon S3 and is accessed through OneLake shortcuts.
 
@@ -33,15 +35,15 @@ Mirrored tables are typically available to query within seconds of selection, wi
 
 ## Network and Connectivity
 
-**Gateway documentation reviewed: 4 November 2026.** The [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial), [source limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-limitations), and [preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-azure-monitor-and-aws-glue-data-to-onelake-preview/5326474) do not supply a native gateway procedure; the tutorial and limitations explicitly require public catalog/storage reachability. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
+**Connectivity documentation reviewed: 18 November 2026.** The [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial) and [source limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-limitations), revised **10 November**, require public catalog/storage reachability and exclude **source-network** restrictions, while explicitly supporting Fabric workspace outbound protection. Neither they nor the [preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-azure-monitor-and-aws-glue-data-to-onelake-preview/5326474) supplies a native gateway procedure. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
 
 | Question | Answer |
 |---|---|
 | **Data gateway required?** | Neither a **VNet** nor a **standard-mode on-premises** gateway setup is documented for the native Glue catalog. A generic gateway is not a documented workaround for its public-reachability requirement. |
 | **Private source access?** | No private native-catalog procedure is documented. The source limitations explicitly exclude firewall rules and other network restrictions. |
-| **Outbound-restricted (firewalled) networks?** | The AWS Glue Iceberg REST catalog endpoint and the S3 locations holding the Iceberg data must be publicly reachable. The connector does not support firewall rules or other network restrictions. |
+| **Source-network restrictions?** | The AWS Glue Iceberg REST catalog endpoint and the S3 data locations must be publicly reachable. Source firewall/private-network restrictions remain unsupported; this does not prohibit Fabric workspace outbound protection. |
 | **Fabric Private Link?** | Separately, Iceberg-to-Delta virtualization does not support tenants/workspaces with Private Link enabled. This restriction is distinct from AWS endpoint/VPC configuration. |
-| **Fabric workspace outbound protection?** | AWS Glue is not explicitly enumerated in the [mirrored-database support list](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). [OneLake outbound rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) govern shortcut reads and chains separately; a storage allow rule does not establish native catalog support. |
+| **Fabric workspace outbound protection?** | **Explicitly supported, in Preview**, by the [catalog OAP guide](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-catalogs-snowflake-database). Allow the **AWS Glue provider's cloud connection type** as a whole. **Endpoint exceptions aren't supported**. The generated catalog path needs only its catalog connection rule, not a separate S3 data connection rule; IAM/S3/KMS permissions and public source reachability still apply. |
 | **Different gateway integration?** | A standalone [Amazon S3 storage shortcut](https://learn.microsoft.com/en-us/fabric/onelake/create-on-premises-shortcut) can use a **standard-mode on-premises gateway** for network-restricted storage. That is not native AWS Glue catalog mirroring and does not provide a gateway to the Glue REST endpoint. |
 
 Confirm both catalog and storage reachability before deployment. This does **not** require public or anonymous S3 bucket access: the connection must still authenticate with the authorised IAM credential.
@@ -99,8 +101,11 @@ Follow the [Microsoft AWS Glue tutorial](https://learn.microsoft.com/en-us/fabri
 5. **Storage/encryption owner:** inspect the actual Iceberg metadata, manifest and data objects for **SSE-KMS**, not only the bucket's current default encryption. Where KMS is used, AWS requires the reader to have [`kms:Decrypt`](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html) on the relevant keys, with the key policy permitting that use. Scope approval to those keys and check explicit denies in organizational, bucket and key policies. Glue/S3 read permissions alone are insufficient; do not disable encryption or grant KMS wildcards as a workaround.
 6. **Credential owner:** create an access key for that user in AWS IAM, securely capture its **access key ID and secret access key**, and record rotation ownership. Do not use root-account keys, paste secrets into notebooks, or put them in this runbook.
 7. **Fabric administrator:** provide a workspace with F SKU/trial capacity and item-creation permissions; enable **Enable new mirrored catalog items (Preview)** for the intended users.
+8. **Workspace outbound-protection administrator:** when OAP is enabled, set the AWS Glue provider's cloud connection type to **Allowed** in data connection rules and **Save**. A storage-only allow rule or a catalog-endpoint exception is not the supported configuration. Review [OneLake outbound rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) independently for extra downstream shortcut hops.
 
 > **IAM trust and external ID — not this connector's authentication path:** Microsoft's current [overview](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue#connect-and-authenticate) documents only an IAM-user key. It supplies no Fabric AWS principal ARN, `sts:AssumeRole` trust policy, role-ARN field, or external-ID exchange. Do **not** invent one or reuse an S3-shortcut, Snowflake, or another connector's role-assumption recipe. Where organizational policy requires role federation instead of long-lived user keys, this documented connector path does not meet that requirement; resolve support/design before onboarding.
+
+AWS's current [Iceberg REST endpoint reference](https://docs.aws.amazon.com/glue/latest/dg/connect-glu-iceberg-rest.html) also describes OAuth 2.0 token exchange and role-bounded vended credentials for external integrations. That broader **AWS service capability** does not add an OAuth or role-assumption choice to Microsoft's current IAM-user-key Fabric connector.
 
 ### 2. Create and scope the Fabric catalog
 
@@ -156,9 +161,10 @@ Record the key owner/rotation date without recording the secret, Glue account/Re
 |---|---|
 | **Iceberg tables only** | Only tables in the Apache Iceberg format can be mirrored. Selecting a non-Iceberg table (Hive, CSV, JSON, or plain Parquet) does not mirror it, and can show an error on the mirrored item. |
 | **500-table limit** | A maximum of 500 tables can be mirrored at once, whether individually selected or automatically synced. |
-| **Public internet only** | The AWS Glue Iceberg REST catalog endpoint and the Amazon S3 storage locations must be reachable via the public internet. Firewall rules and other network restrictions are not currently supported; a standalone S3 gateway shortcut is a different integration. |
+| **Public internet only** | The AWS Glue Iceberg REST endpoint and S3 storage must be publicly reachable. Source firewall rules and other source-network restrictions remain unsupported; Fabric OAP is a separately supported Preview. A standalone S3 gateway shortcut is a different integration. |
 | **Iceberg-to-Delta virtualization** | OneLake generates Delta metadata over existing Parquet files. Iceberg V2 is supported; V3 support is partial. There is no second data copy. |
 | **Conversion limits** | Source tables must have fewer than 5,000 transactions or commits. Equality deletes and live files spanning multiple partition specs fail conversion; supported position deletes and V3 deletion vectors become Delta deletion vectors. Column renames and incompatible schema changes are unsupported. |
+| **V3 engine compatibility** | Partial V3 virtualization is not full reader compatibility. The [conversion guide](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables#iceberg-v3-features) warns that some engines cannot read files containing V3-only types even after those columns are omitted. Do not infer a new Glue connector version guarantee from the generic conversion matrix. |
 | **Conversion timing** | Metadata generation can take 5 seconds to 2 minutes. Microsoft advises source updates less frequent than once per 2 minutes to avoid an inconsistent virtual view. This is not an end-to-end refresh SLA. |
 | **Region and Private Link** | Format virtualization is unavailable in Qatar Central and Norway West, and in tenants or workspaces with Private Link enabled. |
 | **Read-only** | Mirrored AWS Glue catalog data is read-only in Fabric. You cannot write back to the source AWS Glue tables through the mirrored item. |
@@ -185,6 +191,7 @@ See the current [AWS Glue catalog mirroring limitations](https://learn.microsoft
 |---|---|---|
 | Cannot create a mirrored catalog item | Tenant admin setting not enabled | Ask your Fabric tenant administrator to enable **Enable new mirrored catalog items (Preview)** |
 | Connection fails | AWS Glue endpoint or S3 storage not reachable over the public internet, or invalid access key | Verify the regional Glue endpoint and every S3 metadata/data location through the public path, then verify the IAM access key. An S3-only shortcut gateway does not supply native Glue connectivity |
+| Catalog stops working after Fabric outbound protection is enabled | AWS Glue provider's connection type is blocked | Allow the provider's cloud connection type and save the rules; endpoint exceptions aren't supported, and an S3-only rule is not the catalog rule |
 | Database or table not visible | IAM user lacks Glue or Lake Formation read permissions on it | Grant the required `glue:Get*` actions and, if Lake Formation governs the catalog, the corresponding Lake Formation permissions |
 | Table not mirrored | Table is not in Apache Iceberg format | Confirm the table is cataloged as Iceberg; Hive, CSV, JSON, and plain Parquet tables are not supported |
 | Expected tables exceed the mirror limit | More than 500 tables selected or eligible for automatic sync | Reduce the database or table selection to stay within the 500-table limit |
@@ -212,12 +219,12 @@ If a table is discoverable but unreadable, collect the failing table and metadat
 
 ## Supplementary setup: Google Lakehouse runtime catalog
 
-The **Public Preview metadata-mirroring** walkthrough now has its own [Chapter 30: Google Lakehouse Runtime Catalog Mirroring](30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md), including federation, bucket authorization, validation, and troubleshooting. It is a separate source from AWS Glue and BigQuery. This heading remains so older links to the supplementary runbook still lead to the current guide.
+The **metadata-mirroring** walkthrough now has its own [Chapter 30: Google Lakehouse Runtime Catalog Mirroring](30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md), including its dated GA-announcement/Preview-guide distinction, federation, bucket authorization, validation, and troubleshooting. It is a separate source from AWS Glue and BigQuery. This heading remains so older links to the supplementary runbook still lead to the current guide.
 
 ---
 
 ## Summary
 
-AWS Glue catalog mirroring is a Public Preview, metadata-only connector: Fabric mirrors the AWS Glue Iceberg REST Catalog structure and creates OneLake shortcuts to the underlying tables in Amazon S3, without copying data. Plan for the Iceberg-only requirement, the public-internet-only requirement, the 500-table limit, and the Iceberg-to-Delta conversion behaviour before relying on it for production analytics. See the current [AWS Glue catalog mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-limitations).
+AWS Glue catalog federation was announced GA on 17 November; the implementation guides still say Preview, and catalog OAP is independently Preview. The integration remains metadata-only: Fabric mirrors the Iceberg REST catalog structure and creates shortcuts to S3 data without copying it. Preserve the IAM-user-key, Iceberg-only, public source/storage, 500-table, and format-conversion contracts while the lifecycle wording is reconciled. See the current [overview](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-tutorial), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/aws-glue-limitations).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 26: Dremio Catalog Mirroring](26%20-%20Dremio%20Catalog%20Mirroring.md) | **Next:** [Chapter 28: Dataverse Link to Microsoft Fabric](28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md)

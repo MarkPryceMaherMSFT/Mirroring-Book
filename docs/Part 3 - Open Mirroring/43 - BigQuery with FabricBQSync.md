@@ -1,4 +1,4 @@
-# Chapter 42: BigQuery with FabricBQSync
+# Chapter 43: BigQuery with FabricBQSync
 
 > **Part 3: Open Mirroring**
 >
@@ -33,7 +33,7 @@ Trace [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9f
 
 Follow the project's [installation guide](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Docs/Installation.md). Import the installer notebook, attach the required Lakehouse for supporting metadata, configure GCP service-account access and select the project/dataset. Select the mirrored-database target and enable the schema configuration required by that path.
 
-Keep credentials in protected configuration. Record the installed package version because automatic upgrades can change the code beneath a scheduled run. Begin with a small keyed table and an explicit extraction strategy. Prepare the destination and permissions using [Chapter 33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md).
+Keep credentials in protected configuration. Record the installed package version because automatic upgrades can change the code beneath a scheduled run. Begin with a small keyed table and an explicit extraction strategy. Prepare the destination and permissions using [Chapter 34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md).
 
 Inspect the initial file, table key and destination row values before enabling broad table discovery or scheduling. Initialization/overwrite paths can drop a mirrored table folder and reseed it; they are not harmless incremental operations.
 
@@ -41,7 +41,7 @@ Inspect the initial file, table key and destination row values before enabling b
 
 The query builder includes BigQuery `CHANGES`/`APPENDS` strategies and ordinary watermark predicates. These have different source prerequisites and completeness guarantees. A strict timestamp predicate does not acquire CDC semantics just because its output is sent to an Open Mirrored Database.
 
-The mirror conversion maps keyed change operations to Fabric markers, handles initial/no-key insert semantics and converts complex values to JSON strings. Internal source CDC columns are removed. The inspected row selection puts the marker before data columns, which differs from the current documented final-column requirement; resolve that discrepancy against [Chapter 36](36%20-%20Metadata%20and%20Change%20Files.md) when preparing the version you deploy.
+The mirror conversion maps keyed change operations to Fabric markers, handles initial/no-key insert semantics and converts complex values to JSON strings. Internal source CDC columns are removed. The inspected row selection puts the marker before data columns, which differs from the current documented final-column requirement; resolve that discrepancy against [Chapter 37](37%20-%20Metadata%20and%20Change%20Files.md) when preparing the version you deploy.
 
 Also test multiple changes to one key within a window. Spark partitioning and numbered output files do not independently establish source-event order after source ordering fields have been removed.
 
@@ -53,8 +53,8 @@ The filesystem code discovers file progress, checks the expected next index and 
 
 An especially useful exercise is to fail the second file of a multi-file publication. On retry, require reconciliation of the already-published first file and its source batch. Detecting a sequence mismatch is valuable; choosing another sequence or resetting the table automatically is not a general recovery solution.
 
-![Figure 42.1: FabricBQSync Spark extraction and a second-file failure after partial publication](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.png)
-*Figure 42.1: With `MIRRORED_DATABASE` selected, Spark output is shaped and staged, then renamed file by file. One successful rename can survive a later failure; `max_watermark`, `mirror_file_index` and Fabric ingestion completion are different notions of progress. Explanatory illustration by this book, based on pinned [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py), [Mirror.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py), [FileSystem.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py#L560-L597), and [schedule telemetry](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756); not an official Microsoft diagram or a crash-safe transaction guarantee. [Editable Excalidraw source](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.excalidraw).*
+![Figure 43.1: FabricBQSync Spark extraction and a second-file failure after partial publication](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.png)
+*Figure 43.1: With `MIRRORED_DATABASE` selected, Spark output is shaped and staged, then renamed file by file. One successful rename can survive a later failure; `max_watermark`, `mirror_file_index` and Fabric ingestion completion are different notions of progress. Explanatory illustration by this book, based on pinned [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py), [Mirror.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py), [FileSystem.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py#L560-L597), and [schedule telemetry](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756); not an official Microsoft diagram or a crash-safe transaction guarantee. [Editable Excalidraw source](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.excalidraw).*
 
 ## Operational Lessons
 
@@ -62,4 +62,4 @@ Monitor BigQuery query volume, Spark execution, source progress, staged files, p
 
 Free Fabric replication compute does not make the extractor free. Budget BigQuery query charges, Fabric Spark, supporting storage and possible network egress. The project's value is inspectable orchestration and source-specific logic; the reader still owns its configuration, reliability and upgrades.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 41: MariaDB Through MaxScale and Kafka](41%20-%20MariaDB%20Through%20MaxScale%20and%20Kafka.md) | **Next:** [Chapter 43: MongoDB Through Change Streams](43%20-%20MongoDB%20Through%20Change%20Streams.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 42: MariaDB Through MaxScale and Kafka](42%20-%20MariaDB%20Through%20MaxScale%20and%20Kafka.md) | **Next:** [Chapter 44: MongoDB Through Change Streams](44%20-%20MongoDB%20Through%20Change%20Streams.md)

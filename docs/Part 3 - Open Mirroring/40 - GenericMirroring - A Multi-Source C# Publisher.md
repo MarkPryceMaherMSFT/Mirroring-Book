@@ -1,4 +1,4 @@
-# Chapter 39: GenericMirroring - A Multi-Source C# Publisher
+# Chapter 40: GenericMirroring - A Multi-Source C# Publisher
 
 > **Part 3: Open Mirroring**
 >
@@ -30,7 +30,7 @@ Read [Program.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb184136
 
 Start on a Windows test host with .NET 8, the required source drivers, and source/OneLake connectivity. Access uses the ACE OLE DB provider; the AzCopy path also expects its executable and PowerShell. Configure one source table and one destination first. Set enable flags explicitly: parts of the program gate execution on settings missing from the checked-in example.
 
-Prepare the Fabric item and identity using [Chapter 33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md), protect real credentials, and keep the configuration out of source control. Review SQL statements before enabling Change Tracking on a source. File watchers are not a substitute for an initial directory scan: prove that pre-existing files are handled as well as newly changed ones.
+Prepare the Fabric item and identity using [Chapter 34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md), protect real credentials, and keep the configuration out of source control. Review SQL statements before enabling Change Tracking on a source. File watchers are not a substitute for an initial directory scan: prove that pre-existing files are handled as well as newly changed ones.
 
 ## What Each Adapter Actually Does
 
@@ -42,8 +42,8 @@ Prepare the Fabric item and identity using [Chapter 33](33%20-%20Setting%20Up%20
 | Access | Read tables/views through OLE DB | Positional identity and whole-result extraction, not a source change stream |
 | SharePoint Lists | Graph request and returned field extraction | Inspected extraction does not traverse continuation pages or a delta cursor |
 
-![Figure 39.1: GenericMirroring source adapters, local conversion and unverified publication boundary](../assets/diagrams/chapter-39/walkthrough-generic-adapters.png)
-*Figure 39.1: Implemented source branches converge on local Parquet and configured destinations, but stable file-source keys, missing-key deletes and verified per-destination acknowledgement remain hardening work. Explanatory illustration by this book, based on [Program.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Program.cs), [source adapters](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources), and [Upload.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs); not an official Microsoft diagram or a production-reliability claim. [Editable Excalidraw source](../assets/diagrams/chapter-39/walkthrough-generic-adapters.excalidraw).*
+![Figure 40.1: GenericMirroring source adapters, local conversion and unverified publication boundary](../assets/diagrams/chapter-39/walkthrough-generic-adapters.png)
+*Figure 40.1: Implemented source branches converge on local Parquet and configured destinations, but stable file-source keys, missing-key deletes and verified per-destination acknowledgement remain hardening work. Explanatory illustration by this book, based on [Program.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Program.cs), [source adapters](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources), and [Upload.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs); not an official Microsoft diagram or a production-reliability claim. [Editable Excalidraw source](../assets/diagrams/chapter-39/walkthrough-generic-adapters.excalidraw).*
 
 The adapter implementations are under [sources](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources). Test nulls, dates, decimals and large integers through [Parquet.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Parquet.cs), not just string-only demonstration data.
 
@@ -53,7 +53,7 @@ In the inspected SQL loop, a database-level high watermark is advanced around in
 
 The [upload implementation](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs) also needs hardening: the direct-storage path writes final filenames with overwrite enabled, while the AzCopy path starts a process without awaiting a verified exit result. Incremental callers can advance state without awaiting successful remote publication.
 
-These are findings from source inspection, not claims of observed customer incidents. They explain why the project's proof-of-concept label matters. Adapt the immutable, atomic publication and durable assignment design from Chapters [33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md) and [36](36%20-%20Metadata%20and%20Change%20Files.md) before attaching a reliable source checkpoint.
+These are findings from source inspection, not claims of observed customer incidents. They explain why the project's proof-of-concept label matters. Adapt the immutable, atomic publication and durable assignment design from Chapters [34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md) and [37](37%20-%20Metadata%20and%20Change%20Files.md) before attaching a reliable source checkpoint.
 
 For file-based adapters, replace row-position keys with business keys. Compare the new accepted snapshot with the previous accepted snapshot and emit explicit deletes for missing keys. An in-memory cache cannot preserve that comparison across process loss. Also ensure the row marker is last: some sample layouts precede later-added identity columns and differ from the current contract.
 
@@ -63,6 +63,6 @@ Use two SQL tables, not one: change both during extraction and confirm neither l
 
 Keep source checks, local export success and Fabric ingestion status separate. Broadcast to several destinations requires a separate acknowledgement for each destination; a single global watermark is not sufficient evidence that all copies are current.
 
-**Not implemented here:** the README's Synapse Gen2, BigQuery, Redshift and ODBC TODO entries do not constitute working adapters. Read the separate [FabricBQSync](42%20-%20BigQuery%20with%20FabricBQSync.md) and [Synapse](46%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) chapters. The archived SQL Server and Excel projects are predecessors, not additional current connectors.
+**Not implemented here:** the README's Synapse Gen2, BigQuery, Redshift and ODBC TODO entries do not constitute working adapters. Read the separate [FabricBQSync](43%20-%20BigQuery%20with%20FabricBQSync.md) and [Synapse](47%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) chapters. The archived SQL Server and Excel projects are predecessors, not additional current connectors.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 38: The Microsoft Open Mirroring Python SDK](38%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md) | **Next:** [Chapter 40: Toolbox Notebook Solutions](40%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 39: The Microsoft Open Mirroring Python SDK](39%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md) | **Next:** [Chapter 41: Toolbox Notebook Solutions](41%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md)

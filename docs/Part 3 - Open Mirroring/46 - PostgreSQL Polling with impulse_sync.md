@@ -1,4 +1,4 @@
-# Chapter 45: PostgreSQL Polling with impulse_sync
+# Chapter 46: PostgreSQL Polling with impulse_sync
 
 > **Part 3: Open Mirroring**
 >
@@ -34,7 +34,7 @@ The [run implementation](https://github.com/srutz/impulse_sync/blob/b5921324d736
 
 ## Setup
 
-Follow the repository's installation/build instructions and inspect [package.json](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/package.json) for the supported commands. Configure the source query, tables, key/watermark fields and Fabric credentials. Use a new test destination and the shared setup from [Chapter 33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md).
+Follow the repository's installation/build instructions and inspect [package.json](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/package.json) for the supported commands. Configure the source query, tables, key/watermark fields and Fabric credentials. Use a new test destination and the shared setup from [Chapter 34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md).
 
 Choose stable non-null business keys and a query with deterministic types. The implementation infers schema from the first row, so an unrepresentative null, decimal or timestamp in that row deserves testing. Do not infer arbitrary composite-key support from the fact that Fabric supports it.
 
@@ -44,7 +44,7 @@ Keep local output and marker storage durable across process/container replacemen
 
 The project saves the maximum extracted source marker after upload. That is a better boundary than acknowledging before attempting delivery, but does not by itself solve ambiguous publication.
 
-The [OneLake upload code](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/src/azure/fabric.ts) creates, appends and flushes the final path. Retrying that operation is not the immutable atomic-publication pattern described in [Chapter 36](36%20-%20Metadata%20and%20Change%20Files.md).
+The [OneLake upload code](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/src/azure/fabric.ts) creates, appends and flushes the final path. Retrying that operation is not the immutable atomic-publication pattern described in [Chapter 37](37%20-%20Metadata%20and%20Change%20Files.md).
 
 File numbering is derived from local Parquet output. Local [sync marker handling](https://github.com/srutz/impulse_sync/blob/b5921324d7367c5d2c21c62dfefdce1ba112b417/src/sync/syncmarkers.ts) can default missing or unreadable state to empty. An operational adaptation should surface lost/corrupt progress rather than silently treating it as a fresh extraction.
 
@@ -58,4 +58,4 @@ These exercises explain why adding retries does not make incomplete extraction l
 
 For publication, adopt durable batch assignments, temporary files, atomic rename and explicit error handling. Monitor extraction progress and Fabric table freshness separately. The project is useful precisely because its compact implementation makes those boundaries visible.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 44: PostgreSQL Through Debezium and Kafka](44%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md) | **Next:** [Chapter 46: Synapse Dedicated SQL Pool Open Mirroring](46%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 45: PostgreSQL Through Debezium and Kafka](45%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md) | **Next:** [Chapter 47: Synapse Dedicated SQL Pool Open Mirroring](47%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md)

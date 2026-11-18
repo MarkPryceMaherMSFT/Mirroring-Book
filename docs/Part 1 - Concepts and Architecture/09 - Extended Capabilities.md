@@ -120,6 +120,16 @@ The change data feed output includes three important metadata columns:
 
 **Data Pipelines:** Use a Fabric Notebook activity within a Data Pipeline to run Spark code that reads from the CDF Lakehouse shortcut. A native Data Pipeline source connector for mirroring CDF is not currently available.
 
+### October-November Streaming and Incremental-Refresh Updates
+
+The [20 October Eventstreams Q3 recap](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/from-mixed-events-to-real-time-action-fabric-eventstreams-q3-2026/5375736) repeats **Mirrored Database Change Feed GA** and describes DeltaFlow integration. The current connector guide still says **Preview, All tables, raw events, and no DeltaFlow**. This reinforces the announcement/implementation conflict above; a Q3 recap is not proof of a new October rollout or removal of those restrictions.
+
+The [22 October schema-aware Eventstreams Preview](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/explore-and-process-multiple-event-types-with-schema-aware-fabric-eventstreams-p/5376384) requires opting in at stream creation; existing streams cannot simply be converted. The [3 November Delta reference-join pattern](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/adding-the-context-streaming-events-need-reference-data-joins-with-onelake-delta/5382230) uses Lakehouse Delta/shortcut-backed reference data with a configured refresh cadence. It is not instantaneous source-transaction enrichment.
+
+The [29 October private custom-source endpoint Preview](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/strengthening-data-security-with-workspace-level-private-connectivity-for-custom/5377347) does not make every Eventstream connector/private-destination combination supported. The [support matrix](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/event-streams/set-up-tenant-workspace-private-links) distinguishes custom **sources** from unsupported custom destinations. Check the actual mirrored-change-feed source path before combining features.
+
+For downstream **materialized Lake views**, November announces Preview incremental handling of deletes/updates. The [refresh-hint contract](https://learn.microsoft.com/en-us/fabric/data-engineering/materialized-lake-views/optimal-refresh-handling-deletes-updates) requires CDF on all relevant source tables and an output-key uniqueness hint that is **trusted, not enforced**. An incorrect uniqueness claim can silently corrupt the result. Verify the supported mirrored-source/CDF path and key uniqueness; do not directly alter managed mirrored Delta properties to imitate a Lakehouse example. Broader refresh constructs and scheduled-failure notifications are separate consumer improvements.
+
 ---
 
 ## 9.3 Mirroring Views
@@ -196,6 +206,8 @@ The published **3 CU-hours** rate is a usage rate, not a flat charge per databas
 When Delta CDF and Mirroring Views are both enabled on the same mirrored database, Fabric applies a **single unified charge**. You are not billed twice.
 
 This does not make the full mirror workload a fixed-price operation: CDF applies at mirror level, so its billing scope includes all replicated tables and any views. Additional CDF files increase storage consumption. Chapter 10 explains the capacity-based storage allowance and paused-capacity charges.
+
+**Documentation wording check, 18 November 2026:** the extended-capabilities overview and CDF how-to use broad phrases such as storage and SQL analytics endpoints being free. Read these alongside the [main cost contract](https://learn.microsoft.com/en-us/fabric/mirroring/overview#cost-of-mirroring) and the billing-scope section: eligible replica storage is capacity-limited, paused/overage storage and analytical queries are chargeable, and enabling CDF meters the documented full mirror workload. The broad summaries do not establish unlimited storage, free SQL query compute, or billing only the extra `_change_data` files.
 
 [![Figure 9.3 - When extended capability billing applies](../assets/diagrams/chapter-09/diagram-03.png)](../assets/diagrams/chapter-09/diagram-03.excalidraw.png)
 *Figure 9.3 - When extended capability billing applies*

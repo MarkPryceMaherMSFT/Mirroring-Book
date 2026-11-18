@@ -1,4 +1,4 @@
-# Chapter 37: Common Issues and Troubleshooting
+# Chapter 38: Common Issues and Troubleshooting
 
 > **Part 3: Open Mirroring**
 >
@@ -14,8 +14,8 @@ This chapter provides diagnostic steps for common built-in and Open Mirroring fa
 
 Start with [Monitor replication](https://learn.microsoft.com/en-us/fabric/mirroring/monitor) and the affected table's error. Distinguish source extraction, landing-zone publication, OneLake processing, and SQL endpoint metadata synchronisation. A healthy database-level status does not prove every table is current.
 
-[![Figure 37.1: Troubleshooting decision tree for mirroring issues](../assets/diagrams/chapter-37/diagram-01.png)](../assets/diagrams/chapter-37/diagram-01.excalidraw.png)
-*Figure 37.1: Troubleshooting decision tree for mirroring issues*
+[![Figure 38.1: Troubleshooting decision tree for mirroring issues](../assets/diagrams/chapter-37/diagram-01.png)](../assets/diagrams/chapter-37/diagram-01.excalidraw.png)
+*Figure 38.1: Troubleshooting decision tree for mirroring issues*
 
 ---
 
@@ -54,8 +54,8 @@ The [Open Mirroring recovery guidance](https://learn.microsoft.com/en-us/fabric/
 
 Deleting a table folder drops the mirrored table. Do not use this procedure without a reload plan. Do not stop and restart the entire mirrored database to repair just one table.
 
-![Figure 37.2: Failed-file replacement and table rebuild are separate recovery paths](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.png)
-*Figure 37.2: Repair a rejected invalid file at its original sequence; rebuild a table only when the evidence and reload plan require it. Explanatory illustration by this book, based on Microsoft's [recovery procedure](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery) and [schema-change guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#coordinate-source-schema-changes); not an official Microsoft diagram. The example index numbers are abbreviated, not literal filenames. [Editable Excalidraw source](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.excalidraw).*
+![Figure 38.2: Failed-file replacement and table rebuild are separate recovery paths](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.png)
+*Figure 38.2: Repair a rejected invalid file at its original sequence; rebuild a table only when the evidence and reload plan require it. Explanatory illustration by this book, based on Microsoft's [recovery procedure](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery) and [schema-change guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#coordinate-source-schema-changes); not an official Microsoft diagram. The example index numbers are abbreviated, not literal filenames. [Editable Excalidraw source](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.excalidraw).*
 
 ---
 
@@ -162,6 +162,8 @@ Resuming replication after a capacity pause is a separate action from deliberate
 3. **Use atomic delivery**: Partial or repeatedly retried files create avoidable failures.
 4. **Parallelise by table**: Extract and upload independent tables concurrently while keeping one ordered publisher per table.
 
+The current [Open Mirroring performance guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#keep-merge-keys-narrow) explains why narrow keys and target layout matter. A 64-bit candidate locator accelerates lookup, but the engine verifies exact typed composite-key values; the hash is not the row identity. Matched updates use deletion vectors plus replacement rows, rather than rewriting the old row in place. Assess key width, changed rows, relevant target files, index readiness, cache state, and storage reads together; none of those counters is an elapsed-time prediction.
+
 ### Reducing Source System Impact
 
 1. **Off-peak extraction**: Schedule extraction windows during source system off-peak hours.
@@ -194,7 +196,7 @@ A: Snapshot duration depends on data volume, source throughput, network transfer
 A: No. The SQL analytics endpoint is read-only for mirrored tables. All data modifications must occur through the source system (for database mirroring) or through the landing zone (for open mirroring).
 
 **Q: Does Fabric Mirroring support schema changes (DDL)?**
-A: Support varies by source and file format. Open Mirroring can add Parquet columns and retain omitted nullable columns with nulls for new rows. Type changes and key changes require a table rebuild; delimited-text schema evolution is unsupported. See Chapter 36 and the source-specific chapters.
+A: Support varies by source and file format. Open Mirroring can add Parquet columns and retain omitted nullable columns with nulls for new rows. Type changes and key changes require a table rebuild; delimited-text schema evolution is unsupported. See Chapter 37 and the source-specific chapters.
 
 ---
 
@@ -204,6 +206,6 @@ Start with monitoring evidence, then investigate source health, connectivity, sc
 
 **References:** [General troubleshooting](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting), [monitoring](https://learn.microsoft.com/en-us/fabric/mirroring/monitor), [landing-zone requirements](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format), and [Open Mirroring recovery and schema guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
 
-The project chapters that follow apply this shared guidance to actual source code. Use the [cross-project acceptance exercises](48%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md#acceptance-exercises) to distinguish a successful demonstration from a recoverable replication service.
+The project chapters that follow apply this shared guidance to actual source code. Use the [cross-project acceptance exercises](49%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md#acceptance-exercises) to distinguish a successful demonstration from a recoverable replication service.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 36: Metadata and Change Files](36%20-%20Metadata%20and%20Change%20Files.md) | **Next:** [Chapter 38: The Microsoft Open Mirroring Python SDK](38%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 37: Metadata and Change Files](37%20-%20Metadata%20and%20Change%20Files.md) | **Next:** [Chapter 39: The Microsoft Open Mirroring Python SDK](39%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md)

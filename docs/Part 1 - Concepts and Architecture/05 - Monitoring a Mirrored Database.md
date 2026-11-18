@@ -125,6 +125,14 @@ The [table-status API reference](https://learn.microsoft.com/en-us/rest/api/fabr
 | processedBytes           | integer (int64)    | Processed bytes for this table.                                                                                                                                                   |
 | processedRows            | integer (int64)    | Processed row count for this table.                                                                                                                                               |
 
+### Capacity Resume and Source-Object Changes
+
+The [shared troubleshooting contract](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting#changes-to-fabric-capacity) distinguishes a **capacity resume** from a **stop/start** operation. After capacity resumes, a mirror can remain Paused until **Resume replication** is selected; a long pause can force a reseed when the prior change position can no longer be retained. Do not silently substitute stop/start or claim that a running capacity proves the mirror resumed.
+
+Table selection also changes deletion behaviour. In the shared database-mirroring guide, dropping a source table selected explicitly leaves a failed/stale mirrored entry until it is removed from configuration; **Mirror all** removes the corresponding mirrored table when it detects the source drop. A dropped source schema can remain as an empty SQL endpoint schema. Check the source's supported DDL contract before treating these states as an ingestion failure or issuing destructive cleanup.
+
+The general page lists a **1,000-table** limit message and **1 TB of captured changes per mirrored database per day** throttling message. Treat an actual error as scoped operational evidence, not proof that every source or native preview has identical limits. Use the source-specific contract and supported table selection; do not drop operational source tables merely to silence a discovery warning.
+
 ### SQL-Based Monitoring
 
 If you need a simple completeness check, list the replicated tables and run an explicit count against the table you want to verify:
@@ -145,6 +153,14 @@ FROM dbo.YourMirroredTable;
 ```
 
 These queries do not expose replication lag or state, but they help confirm that the expected table and data are present.
+
+### SQL Query Telemetry Is Not Replication Telemetry
+
+The [26 October Warehouse workspace-monitoring Preview](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/announcing-workspace-monitoring-integration-for-fabric-data-warehouse-preview/5376599) includes SQL analytics endpoints. Its [WarehouseExecutions contract](https://learn.microsoft.com/en-us/fabric/data-warehouse/warehouse-workspace-monitoring) records completed, user-initiated **distributed** queries, not every running, front-end-only, or system query. Default retention is 30 days and the Eventhouse/KQL monitoring workload has its own charges. Correlate `OperationId` with Query Insights `distributed_statement_id`; do not infer source replication lag from query duration.
+
+The [4 November Capacity Metrics drill-through](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/find-expensive-queries-from-capacity-metrics-generally-available/5393588) is **GA** and preserves the selected time window when opening Warehouse Monitor for eligible operations, including SQL endpoint queries. CPU time is useful diagnostic evidence, not the exact CU charge for an individual query.
+
+The [November summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-november-2026-feature-summary/5414311) calls Warehouse query alerts GA and announces Private Link support. Use the [supported query-alert procedure](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/data-activator/set-alerts-warehouse-sql-query), retaining the new network claim as dated announcement evidence. An alert over a SQL result is not a built-in transactionally current Mirroring lag metric. Review ingestion after deleting the last rule so unused alerting does not continue consuming capacity.
 
 ### Gateway Diagnostics Are a Separate Layer
 

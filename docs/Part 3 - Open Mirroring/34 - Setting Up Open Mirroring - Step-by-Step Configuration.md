@@ -1,4 +1,4 @@
-# Chapter 33: Setting Up Open Mirroring: Step-by-Step Configuration
+# Chapter 34: Setting Up Open Mirroring: Step-by-Step Configuration
 
 > **Part 3: Open Mirroring**
 >
@@ -12,8 +12,8 @@
 
 This chapter walks through creating an Open Mirrored Database and implementing a Python-based extraction pipeline.
 
-[![Figure 33.1: Six-step Open Mirroring setup process](../assets/diagrams/chapter-33/diagram-01.png)](../assets/diagrams/chapter-33/diagram-01.excalidraw.png)
-*Figure 33.1: Six-step Open Mirroring setup process*
+[![Figure 34.1: Six-step Open Mirroring setup process](../assets/diagrams/chapter-33/diagram-01.png)](../assets/diagrams/chapter-33/diagram-01.excalidraw.png)
+*Figure 34.1: Six-step Open Mirroring setup process*
 
 ---
 
@@ -38,8 +38,8 @@ From the mirrored database item page:
 
 Microsoft's tutorial screenshot locates the item-level **Landing zone** link. It does not show a source connection or verify a publisher's change capture, delivery, or recovery behaviour.
 
-![Figure 33.2: The Landing zone link in the mirrored database Home page](../assets/setup/chapter-33/microsoft-landing-zone-url.png)
-*Figure 33.2: Locate the destination landing-zone URL, rather than a SQL endpoint or Lakehouse URL. Credit: Microsoft, [Open Mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring-tutorial/landing-zone-url.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*
+![Figure 34.2: The Landing zone link in the mirrored database Home page](../assets/setup/chapter-33/microsoft-landing-zone-url.png)
+*Figure 34.2: Locate the destination landing-zone URL, rather than a SQL endpoint or Lakehouse URL. Credit: Microsoft, [Open Mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring-tutorial/landing-zone-url.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*
 
 The URL format is:
 
@@ -141,7 +141,7 @@ Create the table folder and its `_metadata.json` before publishing data. For exa
 }
 ```
 
-For Parquet, column types come from the file, not this metadata. Initial snapshot files normally omit the row marker; later update/upsert rows contain the full row. Chapter 36 covers deletes, schema changes, and alternative detection.
+For Parquet, column types come from the file, not this metadata. Initial snapshot files normally omit the row marker; later update/upsert rows contain the full row. Chapter 37 covers deletes, schema changes, and alternative detection.
 
 ### Python Code Sample
 
@@ -282,4 +282,4 @@ Also test a full-row update, an upsert of a new key, a key-only delete, and retr
 
 Open Mirroring setup requires a Fabric item, authentication, source change extraction, per-table metadata, and sequential file delivery. Use temporary names and atomic rename so Fabric never reads a partial file.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 32: What is Open Mirroring and Why It's Useful](32%20-%20What%20is%20Open%20Mirroring%20and%20Why%20It%27s%20Useful.md) | **Next:** [Chapter 34: Code Samples and the Fabric Toolbox](34%20-%20Code%20Samples%20and%20the%20Fabric%20Toolbox.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 33: What is Open Mirroring and Why It's Useful](33%20-%20What%20is%20Open%20Mirroring%20and%20Why%20It%27s%20Useful.md) | **Next:** [Chapter 35: Code Samples and the Fabric Toolbox](35%20-%20Code%20Samples%20and%20the%20Fabric%20Toolbox.md)

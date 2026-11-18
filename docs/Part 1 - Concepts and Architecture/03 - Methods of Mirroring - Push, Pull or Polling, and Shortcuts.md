@@ -98,6 +98,8 @@ You will usually see this pattern when the source platform has a dedicated mirro
 
 Source-driven capture can still batch changes, wait for resources, or retry after failures. Avoid treating "push" as a promise of immediate delivery or an absence of backoff.
 
+**Native PostgreSQL addition, Ignite 2026:** [Fabric HorizonDB](../Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md) automatically creates an asynchronous analytical copy for eligible tables. Its current documentation does not expose a customer-configured log-capture/publisher protocol. Classify it as an internal managed database integration, not the external Flexible Server `azure_cdc` recipe or a customer Open Mirroring publisher.
+
 ***
 
 ## Pull or Polling-Based Mirroring
@@ -294,11 +296,12 @@ The table below brings the source list together using the replication model in t
 | **SQL Server 2016–2022**                                                                       | Pull or polling-based                                |                    Yes | SQL Server CDC via data gateway                                          | 23      |
 | **SQL Server 2025**                                                                            | Push-based                                           |                    Yes | Change feed + Azure Arc; documented gateway-backed setup                 | 24      |
 | **Fabric SQL Database**                                                                        | Push-based                                           |         Yes, automatic | Auto-configured inside Fabric                                            | 25      |
+| **Fabric HorizonDB (Public Preview)** | Automatic internal replication; customer transport not specified | Yes, for eligible tables | Service-managed initial copy and asynchronous committed changes | [32](../Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md) |
 | **Dremio**                                                                                     | Shortcuts                                            |                     No | Dremio metadata + OneLake shortcuts                                      | 26      |
 | **AWS Glue**                                                                                   | Shortcuts                                            |                     No | AWS Glue Iceberg catalog metadata + OneLake shortcuts                    | 27      |
 | **Google Lakehouse Runtime Catalog** | Shortcuts | No | Iceberg REST catalog + Google Cloud Storage shortcuts | [30](../Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) |
 | **Snowflake Iceberg tables** | Shortcuts | No | Shortcut access rather than Snowflake Streams replication | 22 |
-| **Business Central online v29+ (prerelease)** | Application-managed Open Mirroring publisher | Yes | Source initial/incremental runs publish to an open mirrored database | [31](../Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md) |
+| **Business Central online, compatible extension (Preview)** | Application-managed Open Mirroring publisher | Yes | Source initial/incremental runs publish to an open mirrored database | [31](../Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md) |
 | **Dataverse Link to Fabric** | Managed analytics replication plus shortcuts | Dataverse-managed replica; no second full Fabric copy | Low-latency database-to-Delta sync, consumed through lakehouse shortcuts | [28](../Part%202-%20Source-Specific%20Mirroring%20Guides/28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md) |
 
 The Dataverse and Business Central rows are application-managed routes, not extra native connectors. Their chapters identify which platform owns synchronization and how the consumer reaches the data. [SAP BDC Connect, Chapter 29](../Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md) covers a separately announced data-product sharing integration and readiness checks, not a verified released setup or the Chapter 20 Datasphere pipeline.
@@ -325,6 +328,6 @@ You do not choose the method directly, but you do need to plan around it.
 
 ## Summary
 
-This chapter uses a simple replication model with three methods: push-based, pull or polling-based, and shortcuts, while keeping managed/hybrid exceptions explicit. These are book terms, not an official Microsoft taxonomy. The model helps you predict connectivity, data placement, and sources of lag without inventing transport guarantees. The detailed source chapters run from Azure SQL Database in Chapter 11 through AWS Glue in Chapter 27, followed by Dataverse Link in Chapter 28, the SAP BDC Connect announcement/readiness guide in Chapter 29, Google Lakehouse Runtime Catalog in Chapter 30, and prerelease Business Central Mirroring in Chapter 31.
+This chapter uses a simple replication model with three methods: push-based, pull or polling-based, and shortcuts, while keeping managed/hybrid exceptions explicit. These are book terms, not an official Microsoft taxonomy. The model helps you predict connectivity, data placement, and sources of lag without inventing transport guarantees. The detailed source chapters run from Azure SQL Database in Chapter 11 through AWS Glue in Chapter 27, followed by Dataverse Link in Chapter 28, the SAP BDC Connect readiness guide in Chapter 29, Google Lakehouse Runtime Catalog in Chapter 30, Business Central Preview in Chapter 31, and native Fabric HorizonDB Preview in Chapter 32.
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 2: Types of Mirroring in Fabric](02%20-%20Types%20of%20Mirroring%20in%20Fabric.md) | **Next:** [Chapter 4: The Anatomy of a Mirrored Database](04%20-%20The%20Anatomy%20of%20a%20Mirrored%20Database.md)

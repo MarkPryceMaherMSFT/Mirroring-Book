@@ -10,16 +10,18 @@
 
 ## Overview of the Source System
 
-**Google Lakehouse runtime catalog mirroring is Public Preview.** Fabric mirrors an Apache Iceberg REST catalog's metadata and creates OneLake shortcuts. The table data remains in **Google Cloud Storage (GCS)**; creating the mirrored catalog does not export the source rows into a second Fabric-managed replica.
+Fabric mirrors the **Google Lakehouse runtime catalog's** Apache Iceberg REST metadata and creates OneLake shortcuts. The table data remains in **Google Cloud Storage (GCS)**; creating the mirrored catalog does not export the source rows into a second Fabric-managed replica.
 
-The [Microsoft preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-google-lakehouse-runtime-catalog-data-to-onelake-preview/5360492) was published on **24 August 2026**. The overview, tutorial, and limitations were reviewed again on **2 November 2026**. Their presence outside the general overview's source table is not evidence that the connector is unavailable: the source-specific documentation and Mirroring navigation include it.
+**Lifecycle snapshot, 18 November 2026:** the [17 November OneLake announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/onelake-the-unified-foundation-for-data-context-governance-and-ai/5423035) explicitly includes Google Lakehouse runtime catalog federation in **GA**. The source-specific guides still say **Public Preview**. Both are retained here; do not infer changed table-format, federation, or public-reachability requirements from the umbrella announcement.
+
+The [Microsoft preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-google-lakehouse-runtime-catalog-data-to-onelake-preview/5360492) was published on **24 August 2026**. The overview, tutorial, and limitations were reviewed again on **18 November 2026**, including the **10 November** networking revision. Their presence outside the general overview's source table is not evidence that the connector is unavailable: the source-specific documentation and Mirroring navigation include it.
 
 ### Google Catalog or Google BigQuery?
 
 | Decision | Google Lakehouse runtime catalog | Google BigQuery database mirroring |
 |---|---|---|
 | Mirroring type | Metadata mirroring | Database mirroring |
-| Status | Public Preview | GA |
+| Status | GA announced 17 November; source guides still Preview | GA |
 | Data location after setup | Existing Iceberg tables in GCS | Replicated Delta tables in OneLake |
 | Source mechanism | Iceberg REST catalog and storage reads | Initial exports and BigQuery change-history polling |
 | Authentication | Entra OIDC through Google Workload Identity Federation | The service-account credential documented in the BigQuery tutorial |
@@ -46,15 +48,15 @@ The source overview describes initial table availability within seconds and meta
 
 ## Network and Connectivity
 
-**Gateway documentation reviewed: 4 November 2026.** The [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial), [source limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations), and [24 August preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-google-lakehouse-runtime-catalog-data-to-onelake-preview/5360492) do not document a native gateway path; the tutorial and limitations explicitly require public catalog/storage reachability. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
+**Connectivity documentation reviewed: 18 November 2026.** The [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial) and [source limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations), revised **10 November**, retain public source/storage reachability while explicitly supporting Fabric workspace outbound protection. Neither they nor the [24 August preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bring-your-google-lakehouse-runtime-catalog-data-to-onelake-preview/5360492) documents a native gateway path. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
 
 | Question | Answer |
 |---|---|
 | **Data gateway required?** | Neither a **VNet** nor a **standard-mode on-premises** gateway configuration is documented for this native catalog. A generic gateway is not a documented workaround for the explicit public-reachability requirement. |
-| **Private source access?** | The catalog endpoint and GCS locations must be reachable over the public internet. Firewall rules and other source-network restrictions are unsupported. |
+| **Private source access?** | The catalog endpoint and GCS locations must be reachable over the public internet. Source firewalls and other source-network restrictions are unsupported; this is not a prohibition on Fabric workspace outbound protection. |
 | **Anonymous bucket access?** | Not required. Public reachability is not public bucket permission; retain authenticated access. |
 | **Fabric Private Link?** | OneLake Iceberg-to-Delta virtualization excludes Private Link-enabled tenants/workspaces. Its current regional exclusions include Qatar Central and Norway West. |
-| **Fabric workspace outbound protection?** | Google Lakehouse runtime catalog is not explicitly enumerated in the [mirrored-database support list](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). [OneLake outbound rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) govern shortcut reads and chains separately; an allow rule does not add native private-catalog support. |
+| **Fabric workspace outbound protection?** | **Explicitly supported, in Preview**, by the [catalog OAP guide](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-catalogs-snowflake-database). Allow the **Google Lakehouse runtime provider's cloud connection type** as a whole; **endpoint exceptions aren't supported**. Only the catalog connection needs a data connection rule, not a separate rule for its backing GCS storage. Federation, bucket permissions, and source public reachability remain required. |
 | **Different gateway integration?** | A standalone [GCS storage shortcut](https://learn.microsoft.com/en-us/fabric/onelake/create-on-premises-shortcut) can use a **standard-mode on-premises gateway**. This is a different integration from the native federated catalog, not a gateway to its Iceberg REST endpoint, and it does not remove Iceberg virtualization exclusions. |
 | **Regional Google endpoint?** | Follow Microsoft's documented endpoint. Google's support for regional REST endpoints does not establish that substituting one is supported by this Fabric connector. |
 
@@ -73,6 +75,7 @@ This procedure follows the [Microsoft tutorial](https://learn.microsoft.com/en-u
 3. **IAM owner:** arrange permission to create/manage a Workload Identity Pool and OIDC provider and grant IAM roles. Obtain the Entra **tenant ID** and authorized identities' **object IDs**, not their application client IDs.
 4. **Network owner:** validate the catalog and every metadata/data storage location through the documented public path while retaining bucket authentication. The native catalog has no documented VNet/on-premises gateway setup; a separately created GCS gateway shortcut does not satisfy this prerequisite.
 5. **Fabric administrator:** provide an F SKU or permitted trial workspace, item-creation permissions, and **Enable new mirrored catalog items (Preview)**. The tutorial does not name a Google-specific minimum workspace role; use an authorized item creator, not a Viewer.
+6. **Workspace outbound-protection administrator:** if OAP is enabled, set this catalog provider's cloud connection type to **Allowed** in data connection rules and **Save**. Do not substitute a GCS-only rule or endpoint exception. This catalog rule does not grant Google IAM/storage permissions, and [OneLake outbound rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) still need review for additional downstream shortcut paths.
 
 ### 2. Configure Entra-to-Google federation
 
@@ -153,6 +156,7 @@ Have the catalog owner identify its credential mode before changing bucket permi
 |---|---|
 | **Format** | This connector supports Iceberg V2 with Parquet files. Broader Google V3 Preview or partial OneLake V3 support does not establish V3 support here. |
 | **Native network path** | Both the Iceberg REST endpoint and all table GCS locations require public reachability. No source firewall/private-network workaround is documented; standalone GCS shortcut gateways do not add native catalog support. Check Fabric Private Link/virtualization and outbound rules separately. |
+| **Workspace outbound protection** | Explicit catalog OAP support is separately Preview. Allow/block the provider's connection type as a whole, with no endpoint exceptions and no separate data connection rule for backing GCS storage. This does not broaden the source-network contract. |
 | **Object limits** | At most 500 tables; source Iceberg `metadata.json` must not exceed 1 MB. Database, metastore, and Iceberg views are unsupported. |
 | **Read-only** | No writes back to Google tables through the mirrored item. |
 | **History and deletes** | OneLake conversion requires fewer than 5,000 source transactions/commits. Position deletes can become Delta deletion vectors; equality deletes fail conversion. |
@@ -173,13 +177,14 @@ The database/open-mirroring **1 TB per purchased CU replica allowance** is not a
 
 ## Public Issues and Troubleshooting
 
-The **7 October 2026** community search found no verified Google-catalog-specific Reddit incident; BigQuery reports concern another connector. The August Microsoft announcement is product evidence, not evidence of a defect or fix. The **2 November 2026** documentation review supports these operational checks:
+The **7 October 2026** community search found no verified Google-catalog-specific Reddit incident; BigQuery reports concern another connector. The August Microsoft announcement is product evidence, not evidence of a defect or fix. The **18 November 2026** documentation review supports these operational checks:
 
 | Symptom | First checks |
 |---|---|
 | Federation or catalog access fails | Enabled pool/provider, numeric project number, issuer slash, exact audience, `assertion.oid`, subject bindings, and catalog roles |
 | Catalog visible but table unreadable | Public reachability of every metadata/data location, correct storage principal for the credential mode, and effective object-read permissions |
 | Private-only source or gateway-based workaround fails | Recheck the native public catalog/GCS requirement. A standard-mode gateway for a standalone GCS storage shortcut is not a native catalog gateway or an exemption from format-virtualization limits |
+| Catalog is blocked after Fabric outbound protection is enabled | Allow the Google Lakehouse runtime provider's cloud connection type and save the data connection rules. Endpoint exceptions aren't supported; a GCS-only rule does not authorize this catalog |
 | Rejected or stale table | V2/Parquet, 1 MB metadata limit, supported deletes/schema, and `_delta_log/latest_conversion_log.txt` |
 | SQL schema lags behind | Distinguish catalog/conversion failures from SQL endpoint metadata sync; a SQL refresh cannot repair failed federation |
 | Unexpected exposure | Wildcard IAM bindings, automatic future-table selection, and independent Fabric/OneLake permissions |
@@ -190,8 +195,8 @@ The [conversion log guidance](https://learn.microsoft.com/en-us/fabric/onelake/o
 
 ## Summary
 
-Google Lakehouse runtime catalog mirroring is a preview, metadata-only path to existing GCS Iceberg tables. Prove federation, catalog discovery, authenticated file access, conversion, and consumer security separately. Use BigQuery database mirroring when the requirement is a supported BigQuery table replica in OneLake.
+Google Lakehouse runtime catalog federation was announced GA on 17 November; the implementation guides still say Preview, and catalog OAP is independently Preview. It remains a metadata-only path to existing GCS Iceberg V2/Parquet tables. Prove federation, catalog discovery, authenticated file access, conversion, and consumer security separately. Use BigQuery database mirroring when the requirement is a supported BigQuery table replica in OneLake.
 
-**References, reviewed 2 November 2026:** [overview](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations), and [OneLake Iceberg virtualization](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables).
+**References, reviewed 18 November 2026:** [overview](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-tutorial), [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations), and [OneLake Iceberg virtualization](https://learn.microsoft.com/en-us/fabric/onelake/onelake-iceberg-tables).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 29: SAP Business Data Cloud Connect for Microsoft Fabric](29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md) | **Next:** [Chapter 31: Dynamics 365 Business Central Mirroring](31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md)

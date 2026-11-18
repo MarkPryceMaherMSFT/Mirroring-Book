@@ -1,4 +1,4 @@
-# Chapter 36: Metadata and Change Files
+# Chapter 37: Metadata and Change Files
 
 > **Part 3: Open Mirroring**
 >
@@ -14,8 +14,8 @@ Each Open Mirroring table has its own landing-zone folder and `_metadata.json` f
 
 The public contract does not require `settings.json`, commit marker files, or a source-watermark directory. Keep durable publisher state separate from data files. Producers can use ignored underscore-prefixed state files, but those are their own convention, not a Fabric checkpoint protocol.
 
-[![Figure 36.1: Open Mirroring landing-zone structure](../assets/diagrams/chapter-36/diagram-01.png)](../assets/diagrams/chapter-36/diagram-01.excalidraw.png)
-*Figure 36.1: Open Mirroring landing-zone structure*
+[![Figure 37.1: Open Mirroring landing-zone structure](../assets/diagrams/chapter-36/diagram-01.png)](../assets/diagrams/chapter-36/diagram-01.excalidraw.png)
+*Figure 37.1: Open Mirroring landing-zone structure*
 
 ---
 
@@ -118,8 +118,8 @@ The column must:
 
 Rows are applied from top to bottom within a file. If a key value changes, send a delete for the old key followed by an insert for the new key.
 
-![Figure 36.2: Ordered deletion of an old key followed by insertion of the new key](../assets/diagrams/chapter-36/walkthrough-key-change-operations.png)
-*Figure 36.2: A key change needs two ordered operations, not just a row containing the new key. The mixed-file illustration retains a nullable non-key field for the delete and places the marker last. Explanatory illustration by this book, based on the [public incremental-change examples](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes) and [publication best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-36/walkthrough-key-change-operations.excalidraw).*
+![Figure 37.2: Ordered deletion of an old key followed by insertion of the new key](../assets/diagrams/chapter-36/walkthrough-key-change-operations.png)
+*Figure 37.2: A key change needs two ordered operations, not just a row containing the new key. The mixed-file illustration retains a nullable non-key field for the delete and places the marker last. Explanatory illustration by this book, based on the [public incremental-change examples](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes) and [publication best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-36/walkthrough-key-change-operations.excalidraw).*
 
 ### Initial Load
 
@@ -206,4 +206,4 @@ Open Mirroring uses per-table metadata, a declared file-detection strategy, and 
 
 **References:** [Landing-zone requirements and formats](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) and [Open Mirroring best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 35: Use Cases and Examples](35%20-%20Use%20Cases%20and%20Examples.md) | **Next:** [Chapter 37: Common Issues and Troubleshooting](37%20-%20Common%20Issues%20and%20Troubleshooting.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 36: Use Cases and Examples](36%20-%20Use%20Cases%20and%20Examples.md) | **Next:** [Chapter 38: Common Issues and Troubleshooting](38%20-%20Common%20Issues%20and%20Troubleshooting.md)

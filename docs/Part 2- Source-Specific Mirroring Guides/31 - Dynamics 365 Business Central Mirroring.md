@@ -14,20 +14,20 @@ Business Central's **Microsoft Fabric Mirroring** integration replicates selecte
 
 This is separate from [SAP Business Data Cloud Connect](29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md) and [Dataverse Link to Fabric](28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md). The application, source publishing mechanism, Fabric destination, and operating controls are different.
 
-Business Central does not appear as a native source in Fabric's connector picker. Create the Open Mirroring destination in Fabric, then configure the publisher in Business Central. The internal replication service produces an initial snapshot and subsequent changes; it does **not** extract business data through Business Central APIs or consume their API limits.
+Business Central does not appear as a native source in Fabric's connector picker. Create the Open Mirroring destination in Fabric, then configure the publisher in Business Central. The app requests an initial snapshot and subsequent exports from the Business Central platform rather than reading each selected business table through APIs. **Requests made by your tools to the configuration and monitoring APIs are still API calls and remain subject to Business Central limits**; API extraction-throughput estimates are not mirroring-throughput guarantees.
 
 ### Availability: Prerelease Is Not GA
 
-**Reviewed 3 November 2026.** The [setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring), overview, management, and monitoring pages call this prerelease and describe a **production-ready preview planned for October 2026**. The [FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq) still says private preview with public preview expected soon.
+**Reviewed 18 November 2026.** The [setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring), overview, management, monitoring and [FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq) pages, updated 6 November 2026, consistently describe a **production-ready Preview** under supplemental Preview terms. They no longer present the earlier private-preview/public-preview-soon split or an October launch plan as the current status. Preview is not GA.
 
-Do not infer rollout or GA from the calendar, or from Open Mirroring itself being GA. Confirm availability for the intended Business Central environment. The setup specifies **Business Central online, 2026 release wave 2, v29.0 or later**, while the FAQ qualifies the minimum version as not finally confirmed. This chapter follows the concrete setup baseline without inventing support for older or on-premises deployments.
+Do not infer rollout or GA from the calendar, or from Open Mirroring itself being GA. The current setup requires **Business Central online with a version compatible with the installed Microsoft Fabric Mirroring (Preview) extension**. Check the extension's compatibility requirements for the intended environment; the current procedure no longer states a universal v29 minimum. This change is not evidence that every earlier version or an on-premises deployment is supported.
 
 ---
 
 ## Mirroring Type and Architecture
 
 - **Fabric type:** Open Mirroring, with a Microsoft product-managed source publisher.
-- **Source scope:** Selected persisted AL tables and companies, configured separately for each Business Central environment.
+- **Source scope:** Selected eligible normal AL tables and companies, configured separately for each Business Central environment; the app validates export eligibility.
 - **Data movement:** Physical replication into OneLake Delta Parquet, not metadata-only access.
 - **Consumers:** The automatically created SQL analytics endpoint, Power BI, and supported Lakehouse shortcuts/notebooks.
 
@@ -42,13 +42,13 @@ The source documentation says synchronization enables change tracking and expose
 
 | Owner | Required preparation |
 |---|---|
-| **Business Central administrator** | Confirm the documented online/version baseline and rollout; install the **Microsoft Fabric Mirroring** extension from Microsoft Marketplace; enable data encryption; assign **MS Fabric Mirroring - Admin** or equivalent permissions. |
-| **Entra administrator** | Create a dedicated app registration and service principal, approve the documented API permission/consent, and arrange secure client-secret storage and rotation. |
+| **Business Central administrator** | Confirm online-environment and extension-version compatibility; install the **Microsoft Fabric Mirroring (Preview)** extension from Microsoft Marketplace; assign **MS Fabric Mirroring - Admin** or equivalent permissions. |
+| **Entra administrator** | As **Application Administrator** or **Cloud Application Administrator**, create or find the tenant-local service principal for Microsoft's **Dynamics 365 Business Central Fabric Export** application. No customer app registration, SPA redirect URI or client secret is required by the current procedure. |
 | **Fabric administrator** | Provide an active capacity and an existing target workspace in the **same Entra tenant**. The setup user must be **Member or Admin** to add the service principal. |
-| **Data owner** | Approve companies and whole-table/all-field replication; choose a small representative pilot and the intended data/logging namespaces. |
+| **Data owner** | Approve companies, eligible table-level scope and exported field eligibility; choose a small representative pilot and the intended data/logging namespaces. |
 | **Identity/network owner** | Permit the documented Fabric API/publishing path and validate **Test connection**. No Business Central-specific private endpoint or gateway recipe is established by these pages. |
 
-The application secret is kept in **encrypted isolated storage** in Business Central. The source app is granted workspace **Contributor** by the assisted setup, which is broader than access to one item. Approve that scope explicitly; do not substitute an assumed item-only permission while claiming to follow the documented procedure.
+Microsoft owns and manages the **Dynamics 365 Business Central Fabric Export** app registration in Microsoft's tenant. Its application (client) ID is **`dcc80069-ba40-4ad9-ba8c-60001cea3497`**. Your tenant's enterprise **service principal Object ID is different and tenant-specific**. Grant that service principal at least workspace **Contributor** access; an existing **Contributor, Member or Admin** assignment is accepted. This workspace-wide scope is broader than access to one item. No customer-managed application secret is entered in the current setup. The **Principal ID** field is needed only if Business Central will grant workspace access through **Add to workspace**.
 
 Source roles are distinct:
 
@@ -58,11 +58,11 @@ Source roles are distinct:
 | **MS Fabric Mirroring - Activate** | Activate/deactivate/reapply configuration packages |
 | **MS Fabric Mirroring - Read** | Read synchronization overview and details |
 
-The FAQ describes global availability, but that does not override the same-tenant setup requirement or establish every sovereign-cloud/private-network scenario. See the [management guide](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-manage-fabric-export).
+The current FAQ requires an available feature and compatible extension in the intended **online** environment, with the Fabric workspace in the **same Entra tenant**. It does not establish every sovereign-cloud or private-network scenario. Also ensure the Fabric tenant setting **Service principals can call Fabric public APIs**, including any allowed security-group scope, permits the publisher. See the [management guide](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-manage-fabric-export) and [connection troubleshooting](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-monitor-fabric-export#troubleshoot-common-problems).
 
 ### Network and Gateway Boundary
 
-**Gateway documentation reviewed: 4 November 2026.** The [Business Central setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring) and [FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq) describe an application-managed publisher sending snapshots and changes to a Fabric **open mirrored database**. The documented baseline remains **Business Central online v29.0+, same Entra tenant, prerelease**; a gateway does not extend it to an on-premises deployment.
+**Gateway documentation reviewed: 18 November 2026.** The [Business Central setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring) and [FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq) describe an application-managed publisher sending snapshots and changes to a Fabric **open mirrored database**. The documented baseline is **Business Central online with a compatible extension, same Entra tenant, production-ready Preview**; a gateway does not extend it to an on-premises deployment.
 
 | Question | Documented position |
 |---|---|
@@ -70,44 +70,43 @@ The FAQ describes global availability, but that does not override the same-tenan
 | **VNet data gateway?** | **Not part of the documented publisher flow.** No Business Central-specific gateway option is published in these setup/FAQ pages; generic connector or Mirroring workload support does not establish one. |
 | **Private endpoint recipe?** | **Not documented for this publisher.** Generic [Open Mirroring Private Link support](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview#mirrored-database) requires the publisher to write through the private route; it does not establish that Business Central can use that route. Do not invent endpoint overrides, a private-network allowlist, or an end-to-end private configuration. |
 
-Use **Test connection** to check the stored credential's Fabric API access, then verify synchronization separately. A successful API test alone is not proof of a private data path or complete data delivery.
+Use **Test connection** to check access to the **Fabric workspace-list API**, then verify background setup and synchronization separately. A successful API test alone is not proof of a private data path, completed setup or complete data delivery.
 
 ---
 
 ## Setup Walkthrough
 
-### 1. Register the application
+### 1. Prepare the Microsoft-provided application's service principal
 
-Follow the [Business Central-specific registration procedure](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring#register-an-application-in-microsoft-entra-id-for-business-central-data-mirroring).
+Follow the current [Business Central authentication procedure](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring#set-up-authentication), not the earlier custom app/client-secret recipe.
 
-1. In **Microsoft Entra ID > App registrations > New registration**, create a dedicated application. Use **Single tenant only** for this same-tenant deployment.
-2. Set the redirect platform to **Single-Page application (SPA)** and register the Business Central web-client base URL followed by `/OAuthLanding.htm`, for example `https://businesscentral.dynamics.com/<tenant-id>/<environment>/OAuthLanding.htm`. Use the intended environment's actual URL. A token-acquisition error can identify the exact redirect URI that must be registered.
-3. Register the application and record its **Application (client) ID**.
-4. Under **API permissions**, add **Power BI Service > Delegated permissions > Workspace.ReadWrite.All**, then obtain tenant-admin consent.
-5. Under **Certificates & secrets > Client secrets**, create a secret. Capture its **value**, not the secret's identifier, before leaving the page; keep it in the approved secret-handling process.
-6. On the registration's **Overview**, follow **Managed application in local directory** to its enterprise application and copy that object's **Object ID**. This service-principal object ID is Business Central's **Principal ID**, not the client ID or the application registration's object ID.
-7. Record credential ownership/expiry without placing secrets in this runbook, screenshots, configuration packages, or support messages.
+1. Confirm the Business Central and target Fabric workspace use the same Entra tenant.
+2. Have an **Application Administrator** or **Cloud Application Administrator** create or find that tenant's service principal for **Dynamics 365 Business Central Fabric Export**, application ID **`dcc80069-ba40-4ad9-ba8c-60001cea3497`**, using one of Microsoft's documented Cloud Shell, Azure CLI, Microsoft Graph PowerShell or Graph Explorer procedures. Reuse an existing service principal rather than creating a different app registration.
+3. In **Microsoft Entra admin center > Enterprise applications**, clear the **Application type** filter if necessary, find the application by name or application ID, and record its tenant-local **Object ID**. Do not confuse this Object ID with the fixed application ID.
+4. Choose how to grant workspace access. Either enter this Object ID as **Principal ID** and use **Add to workspace** in Business Central, or have a workspace **Member/Admin** grant the enterprise application **Contributor** through **Manage access** in Fabric.
+5. If the service principal already has **Contributor, Member or Admin**, no additional grant is needed. When access is pregranted in Fabric, leave **Principal ID** blank and skip **Add to workspace**.
 
-The delegated permission is the registration recipe published by the Business Central team. It is not a universal application-permission prescription for every Fabric publisher; runtime workspace access is separately granted below.
+Microsoft manages the app registration and its authentication settings. Do not create a customer secret or SPA redirect URI for this current flow. These instructions do not prescribe how to retire an older deployment's custom application; obtain a supported migration plan before removing an existing identity or grant.
 
 ### 2. Prepare the Fabric destination
 
 1. Open the intended capacity-backed Fabric workspace.
-2. Create a **Mirrored Database**, name it, and select **Open Mirroring** as its source, following the newer Business Central setup procedure.
+2. In the **Create** hub, select **Mirrored Database**, then **Other** to create an open mirrored database. Name it and select **Create**, following the current Business Central setup procedure.
 3. Wait for provisioning and confirm the destination item and SQL analytics endpoint.
 
 This is not a Warehouse or a Business Central database connection created in Fabric. Preserve the empty target for the source publisher; do not populate its landing zone with unrelated sample files.
 
 ### 3. Connect from Business Central
 
-1. Use **Search (Alt+Q) > Assisted Setup > Connect to Microsoft Fabric**.
-2. On **Workspace API Credentials**, enter **Client ID**, **Client Secret**, and **Principal ID** from the approved registration.
+1. Use **Search (Alt+Q) > Assisted Setup > Connect to Microsoft Fabric (Preview)**.
+2. On **Authentication**, enter the service principal's tenant-local **Object ID** as **Principal ID** only if you will use **Add to workspace**. Leave it blank if access was pregranted.
 3. On **Fabric Workspace**, select the prepared workspace.
-4. On **Grant Workspace Access**, select **Add to workspace**. The service principal receives **Contributor**; the grant is needed once per workspace.
+4. On **Grant Workspace Access**, select **Add to workspace** unless the service principal already has **Contributor, Member or Admin** access.
 5. On **Fabric Open Mirroring Database**, select the prepared destination.
-6. On **Synchronization Options**, choose the interval, then **Select companies** and **Select tables**.
-7. Approve the **Microsoft Fabric Mirroring - Open Mirroring** privacy notice as the administrator. Connection/synchronization cannot begin without that approval.
-8. Select **Connect to Fabric** and finish the asynchronous setup. Use **Start synchronization** when the approved scope is ready.
+6. On **Synchronization Options**, select **Connect to Fabric** to start background connection preparation. Approve the **Microsoft Fabric Mirroring - Open Mirroring** privacy notice if prompted; it also applies to lookups. Continue with **Next**.
+7. Choose **Select companies**, add at least one company and ensure it is enabled. Continue with **Next**, then **Select tables** and add at least one eligible table.
+8. Select **Finish** to close the guide. **Finish does not start synchronization.**
+9. Open **Microsoft Fabric Mirroring Setup (Preview)**, select **Refresh page** and wait for **Setup Complete**. Then select **Start synchronization** and inspect the first run in **Fabric Synchronization Overview**.
 
 ### 4. Verify setup and a representative table
 
@@ -118,7 +117,7 @@ Open **Microsoft Fabric Mirroring Setup** and verify:
 | **Fabric Workspace Name / Fabric Open Mirroring Name** | Intended destination, not a similarly named item |
 | **Fabric Data Namespace** | Default `BusinessCentral`; approve before setup completes |
 | **Fabric Logging Namespace** | Default `BusinessCentral_log`; operational data also becomes an analytical access surface |
-| **Setup Complete / Export Enabled** | Setup and publishing state; neither alone proves that all tables are current |
+| **Setup Complete / Export Enabled** | Both are **read-only status fields**. Setup Complete confirms background connection preparation; Export Enabled reports continuous export, not that any particular table is current. Use the supported actions and Refresh page rather than editing these values. |
 
 Namespace changes are allowed only before setup completes. Run **Test connection**, inspect initial source runs, and query a known target row through the SQL analytics endpoint using the generated entity name.
 
@@ -144,20 +143,22 @@ For validation, use a sanctioned test company/table. Compare initial data, then 
 ## Selecting Companies, Tables, and Configuration Packages
 
 - **Configuration > Companies > Add company:** select the required companies. Clearing **Enabled** skips a company without removing its configuration.
-- **Configuration > Tables > Add table:** select persisted AL tables, including standard and extension tables. Selected tables include **all fields**; field projection is unsupported.
+- **Configuration > Tables > Add table:** choose normal tables that pass the app's export validation, including eligible standard and extension tables. External, linked, virtual and certain sensitive internal tables are excluded. The same validation applies to packages and APIs.
 - **DataPerCompany** tables synchronize for each enabled company; shared tables synchronize once.
 - Inspect **Fabric entity name** and **Fabric Schema Type**, including the distinction between data and logging schema.
-- The documented limit is **1,000 tables**; the FAQ calls this **per tenant**. Confirm how the service counts multi-company/environment expansions rather than assuming 1,000 destinations per company.
+- The documented limit is **1,000 distinct selected tables across manual selections and active configuration packages**. The same table claimed by multiple packages counts once. This is not a guarantee of unlimited rows, data volume or Fabric resources.
 
-The built-in **MS-STD** configuration package contains **256 standard tables**. **Activate** adds its selections; **Deactivate** retains tables still selected manually or by another active package. **Reapply** adds changed package selections but does not remove stale ones. Deactivate/reactivate for full alignment, review the effects first, and stay within the table limit. Packages use JSON; deactivate a package before deleting it.
+The built-in **MS-STD / Microsoft Standard** definition lists **256 standard table IDs**; available entries depend on installed tables. **Activate** adds its selections; **Deactivate** retains tables still selected manually or by another active package. **Reapply** adds missing selections but does not remove stale ones. Deactivate/reactivate for full alignment, review the effects first, and stay within the table limit. Packages use JSON; deactivate a package before deleting it.
 
-The persisted-table scope is not a promise that computed **FlowFields**, virtual tables, or temporary in-memory data are exported as ordinary stored columns/tables. The mirroring pages do not provide a complete AL type/BLOB/Media mapping or unavailable-system-table matrix. Test representative fields and follow [AL storage semantics](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-flowfields), not assumptions based on a table's appearance in the UI.
+**Package import is version-sensitive.** Importing the same package code and version leaves it unchanged. Import a new version to apply a changed definition. For an active package, that import releases removed table claims and attempts to add the new selections; manual selections or another active package can retain a removed table. Missing table IDs are skipped. Existing selections keep their Fabric settings, and newly selected tables take their schema type from the package. Review the resulting selection and the 1,000-table limit before resuming.
+
+Selection is table-level, **not a custom projection of individual fields**. Field eligibility is part of the app's export validation, so do not claim that every AL field is mirrored. The current pages still do not provide a complete AL type/BLOB/Media mapping. Test representative fields and follow [AL storage semantics](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-flowfields), not assumptions based on a table's appearance in the UI.
 
 ---
 
 ## Monitoring, Scheduling, and Recovery
 
-Use **Microsoft Fabric Mirroring Setup > Monitoring > Fabric Synchronization Overview**, then **Details**. Source-side detail includes company/table/entity, initial versus incremental run, inserted/updated/deleted counts, start/end watermarks, and errors. Zero-change detail rows are hidden by default; use **Show rows with no changes**. Refresh the page for asynchronous progress.
+Use **Microsoft Fabric Mirroring Setup > Monitoring > Fabric Synchronization Overview**, then **Details**. Source-side detail includes company/table/entity, initial versus incremental run, inserted/updated/deleted counts, start/end watermarks, and errors. **Details** in the client filters to the selected run ID. Zero-change detail rows are hidden by default; use **Show rows with no changes** when investigating missing or failed tables, because **a row with an error can also have zero change counts**. The **Errors** view filters error text, not run state. Refresh the page for asynchronous progress.
 
 The same operational information is replicated into the logging namespace. Fabric's item-level status and [Chapter 5](../Part%201%20-%20Concepts%20and%20Architecture/05%20-%20Monitoring%20a%20Mirrored%20Database.md) diagnostics cover destination processing. Source completion is not proof that SQL endpoint metadata is already current.
 
@@ -168,20 +169,34 @@ The same operational information is replicated into the logging namespace. Fabri
 | **Start synchronization** | Enables tracking and recurring work; does not start an overlapping active run. |
 | **Stop synchronization** | Cancels current work and pauses recurrence while preserving connection/synchronization state. |
 | **Reset** | Cancels work, removes tenant mirroring resources, clears watermarks, and deletes run/detail records. Treat as destructive reconfiguration. |
+| **Reset table** | Requests a full snapshot on the next run for the selected table by clearing its latest successful end watermark per company. It preserves the connection, credentials and overall history, and is blocked while a synchronization run is active. |
 
 Duplicate setup/enable requests are blocked for up to **15 minutes** unless the previous setup has completed. The destination cannot change while **Export Enabled** is selected; reset clears the connection for reconfiguration.
 
-**Business Central Stop/Start is not Fabric Stop/Start.** Do not restart the Fabric mirrored database as a routine source refresh, manually delete producer-owned landing folders, or reset merely to clear an error. Generic Open Mirroring recovery in [Chapter 37](../Part%203%20-%20Open%20Mirroring/37%20-%20Common%20Issues%20and%20Troubleshooting.md) requires publisher coordination and does not establish a Business Central-specific single-table repair action.
+**Business Central Stop/Start is not Fabric Stop/Start.** Do not restart the Fabric mirrored database as a routine source refresh, manually delete producer-owned landing folders, or reset the whole connection merely to clear a table error. Generic Open Mirroring recovery in [Chapter 38](../Part%203%20-%20Open%20Mirroring/38%20-%20Common%20Issues%20and%20Troubleshooting.md) still requires publisher coordination.
 
-Schema-change handling is explicitly undocumented in the current FAQ. Plan extension upgrades, type/key changes, and recovery with the source owner; do not promise automatic reseeding from the generic landing-zone contract.
+### Request a New Snapshot for One Table
+
+The [Business Central management procedure](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-manage-fabric-export#request-a-full-snapshot-for-one-table) now documents **Reset table**:
+
+1. Select **Stop synchronization** if a run is active and verify in the overview that it is no longer running.
+2. Open **Configuration > Tables**, select the affected table, then select **Reset table** and confirm.
+3. Return to the setup page and select **Start synchronization**.
+4. Inspect the next run's details to verify its full-snapshot result.
+
+The action clears the latest successful end watermark for that table in each company with a successful synchronization record. If there is no completed synchronization, the next run already needs a full snapshot. It does not remove the connection, clear credentials or delete all history. A snapshot can take longer than an incremental run, and **resetting the watermark alone does not repair an incompatible destination schema**. Investigate extension/type/key changes with the source owner and apply Fabric schema-compatibility guidance before requesting a new snapshot.
+
+### Reconnect After Environment Configuration Cleanup
+
+When Business Central clears environment-specific configuration, the app clears the Fabric destination and authentication values and resets **Setup Complete** and **Export Enabled**. Company/table selections, package definitions and logs remain. This cleanup does **not** disable the original environment's remote Fabric connection. Treat retained selections as configuration only, not a working connection; configure and validate the new destination/authentication before restarting synchronization.
 
 ---
 
 ## Security and Billing
 
-Business Central permission sets, company restrictions, and security filters are **not documented as automatically propagated into Fabric**. Design and verify Fabric workspace/item, OneLake, SQL, and semantic-model access separately. All-field replication and the logging namespace require their own data-owner approval.
+Business Central permission sets, company restrictions, and security filters are **not documented as automatically propagated into Fabric**. Design and verify Fabric workspace/item, OneLake, SQL, and semantic-model access separately. Table-level replication, the validated exported fields and the logging namespace require their own data-owner approval.
 
-The FAQ states **no additional Business Central licensing/consumption charge for mirroring**. That does not make the underlying Business Central environment or Fabric capacity free. Because the destination is an open mirrored database, normal core replication-compute and eligible **1 TB per purchased CU** replica-storage rules apply; queries, direct OneLake requests, storage overage, paused-capacity storage, and optional extensions remain separate. See [Chapter 10](../Part%201%20-%20Concepts%20and%20Architecture/10%20-%20Billing%20and%20Capacity%20Management.md).
+The [current FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq#what-are-the-licensing-and-consumption-costs) requires **active Fabric capacity** and describes uncharged background mirroring compute, a capacity-based mirrored-storage allowance, and normal SQL, Power BI and Spark query charges. It no longer provides the earlier blanket statement about additional Business Central licensing/consumption charges; that omission is not evidence that a new fee has been introduced. Confirm the installed extension's licensing and applicable commercial terms, and use [Chapter 10](../Part%201%20-%20Concepts%20and%20Architecture/10%20-%20Billing%20and%20Capacity%20Management.md) for current Fabric allowances, storage overage, direct access and paused-capacity rules.
 
 Incremental changes typically synchronize within minutes, while initial history takes longer. The configured interval, source activity, processing, and consumer metadata affect freshness. No source-specific latency SLA, change-retention/replay window, or unlimited-throughput promise is established. Replicated logical deletions also do not mean immediate physical erasure from retained Delta files.
 
@@ -191,19 +206,20 @@ Incremental changes typically synchronize within minutes, while initial history 
 
 | Symptom | First safe check |
 |---|---|
-| Setup unavailable | Confirm rollout and documented version; do not infer GA from the planned October date |
-| Connection or workspace lookup fails | Client-secret value/expiry, client versus service-principal IDs, consent, same tenant, workspace role, and **Test connection** |
-| Token acquisition reports a redirect mismatch | Register the exact environment-specific `/OAuthLanding.htm` URI using the documented SPA platform |
+| Setup unavailable | Confirm feature availability and the installed extension's compatibility with the online environment; production-ready Preview is not GA |
+| Connection or workspace lookup fails | Confirm the signed-in user's workspace access/consent, same tenant, Microsoft's Fabric Export enterprise service principal, permitted tenant API setting/security-group scope, workspace role, privacy approval and **Test connection** |
+| Principal ID is missing or rejected | Use the tenant-local enterprise service principal's **Object ID**, not application ID `dcc80069-ba40-4ad9-ba8c-60001cea3497`; leave it blank if access is already granted in Fabric |
 | Open mirrored database lookup is empty | Select the workspace first, then confirm that it contains a provisioned Open Mirroring destination visible to the setup user |
-| Client secret cannot be stored | Enable Business Central data encryption, then enter the secret value again |
-| **Add to workspace** reports an existing member | Inspect the service principal's current role; the assisted setup expects to add it as Contributor |
+| The guide requests an unexpected custom secret or redirect URI | Confirm the installed extension and current setup procedure; do not apply the obsolete custom-registration recipe to the Microsoft-provided app |
+| **Add to workspace** encounters an existing member | Existing **Contributor, Member or Admin** is accepted; Viewer alone is insufficient. Grant Contributor directly in Fabric if the action is unavailable or fails. |
 | Setup appears stalled | Asynchronous run state, privacy approval, and duplicate-request protection; do not repeatedly reset |
 | Table/company missing | Selection, company **Enabled**, package activation, per-company/shared storage, and the 1,000-table scope |
 | Synchronization stops after failures | Source run/detail error and **Max Consecutive Failed Runs**; resolve the cause before **Start synchronization** |
 | Source succeeded but SQL is stale | Separate source publication, Fabric processing, and SQL metadata sync |
-| Schema changed after extension upgrade | The FAQ does not document automatic recovery; preserve evidence and confirm the supported repair with the Business Central team |
+| Schema changed after extension upgrade | Investigate source/destination compatibility, then use the documented **Reset table** sequence if a new full snapshot is required; it does not itself repair an incompatible destination schema |
+| A table error appears to be missing | Select **Show rows with no changes** as well as the Errors view; failed rows can have zero change counts |
 
-The linked developer Fabric-export API page returned **404** during review. The source documentation states API availability, but this chapter does not invent endpoint schemas. Use the verified [monitoring procedure](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-monitor-fabric-export) and sanitize logs/credentials before escalation.
+The published [monitoring API contract](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-monitor-fabric-export#monitor-through-apis-or-fabric) names publisher **`microsoft`**, group **`fabric`**, version **`v1.0`**, and two **read-only** entity sets: **`fabricExportRuns`** for run IDs, operation types, states, timestamps and errors; and **`fabricExportDetails`** for company/table/entity results, export type, change counts, watermarks and errors. **The detail API does not expose the run ID**; use **Details** in the Business Central client for results scoped to a selected run, rather than inventing a run-ID API join or filter. These monitoring entity sets report integration results; they do not export the selected business tables or provide configuration writes. Keep normal Business Central API limits in mind for your tools, and do not infer undocumented payloads, writable actions or endpoint scoping from the entity-set names alone.
 
 ---
 
@@ -211,6 +227,6 @@ The linked developer Fabric-export API page returned **404** during review. The 
 
 Business Central supplies the source publisher for an Open Mirroring destination. Its company/table selection, run scheduling, monitoring, credentials, and lifecycle live in the application. Preserve its prerelease qualifications and administer Fabric analytical access independently.
 
-**References, reviewed 3 November 2026:** [setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring), [overview](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-fabric), [management](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-manage-fabric-export), [monitoring](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-monitor-fabric-export), and [FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq).
+**References, reviewed 18 November 2026:** [setup](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-set-up-fabric-mirroring), [overview](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-fabric), [management](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-manage-fabric-export), [monitoring and published read-only API contract](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-monitor-fabric-export), [FAQ](https://learn.microsoft.com/en-us/dynamics365/business-central/fabric-faq), and [developer extraction-method comparison](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-extract-data).
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 30: Google Lakehouse Runtime Catalog Mirroring](30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) | **Next:** [Chapter 32: What is Open Mirroring and Why It's Useful](../Part%203%20-%20Open%20Mirroring/32%20-%20What%20is%20Open%20Mirroring%20and%20Why%20It%27s%20Useful.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 30: Google Lakehouse Runtime Catalog Mirroring](30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) | **Next:** [Chapter 32: Microsoft Fabric HorizonDB Mirroring](32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md)

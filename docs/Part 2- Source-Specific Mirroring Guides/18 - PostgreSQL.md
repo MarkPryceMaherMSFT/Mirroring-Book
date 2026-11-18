@@ -12,6 +12,8 @@
 
 **PostgreSQL** is an open-source relational database used for web applications, SaaS platforms, and data engineering. This generally available connector supports **Azure Database for PostgreSQL flexible server**, not arbitrary on-premises or self-managed PostgreSQL installations.
 
+**Ignite 2026 product boundary:** Azure HorizonDB was separately announced GA, while the new native **Fabric HorizonDB** is in Public Preview. Neither name changes this connector's source contract. Follow [Chapter 32](32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md) for Fabric HorizonDB's automatic mirror and its distinct creator-only PostgreSQL connection restrictions; do not apply this chapter's `azure_cdc`, source grants, or VNet gateway procedure to it.
+
 ---
 
 ## Mirroring Type and Architecture
@@ -50,6 +52,8 @@ A VNet data gateway, when selected, provides **Fabric-to-source connection acces
 | **Fabric workspace outbound protection?** | Supported through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Explicitly allow the source connection; this does not establish a source route, grant SAMI access, or override Fabric inbound restrictions. |
 
 **Workload boundary:** The [Data Factory Azure PostgreSQL connector](https://learn.microsoft.com/en-us/fabric/data-factory/connector-azure-database-for-postgresql-overview) lists None/on-premises/VNet gateways for **Copy/Pipeline**. That does not establish an OPDG path for native Mirroring, nor does the generic VNet connector list expand the supported source beyond Azure Flexible Server. See [Gateway support by source](../appendix.md#gateway-support-by-source) for common gateway prerequisites, servicing, and costs.
+
+**November destination announcement:** PostgreSQL as a **Dataflow destination** is GA-announced, while BigQuery destination and S3 source/destination updates have Preview scope. These are Data Factory directions, not new Mirroring sources. The [PostgreSQL Dataflow connector](https://learn.microsoft.com/en-us/fabric/data-factory/connector-postgresql-overview) documents its own on-premises gateway compatibility floor of **3000.322+**; that does not establish a native-Mirroring OPDG path or replace the current supported gateway servicing baseline.
 
 ---
 
@@ -126,7 +130,7 @@ The Azure guide describes three mirrored databases by default, expandable to six
 For a **local PostgreSQL login**, connect to the intended source database as an `azure_pg_admin` member and adapt the documented tutorial script:
 
 ```sql
-CREATE ROLE fabric_repl CREATEDB CREATEROLE LOGIN REPLICATION PASSWORD '<unique-secret-from-approved-vault>';
+CREATE ROLE fabric_repl LOGIN REPLICATION PASSWORD '<unique-secret-from-approved-vault>';
 GRANT azure_cdc_admin TO fabric_repl;
 GRANT CREATE ON DATABASE <database_to_mirror> TO fabric_repl;
 ```
@@ -139,7 +143,7 @@ For **Organizational account authentication**:
 2. Grant that mapped role `azure_cdc_admin` and `CREATE` on the selected database, as shown in the Fabric tutorial's Entra branch.
 3. Sign into Fabric with the mapped identity; merely adding an Azure IAM assignment does not create a database role.
 
-The [limitations page's generic permission list](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-limitations#permissions-in-the-source-database) also lists `CREATEDB`, `CREATEROLE`, `LOGIN`, and `REPLICATION`, whereas the tutorial's Entra branch explicitly grants only `azure_cdc_admin` and database `CREATE` after mapping. Preserve this distinction: validate the mapped role with the readiness checks and resolve any missing privilege with the DBA/Microsoft rather than automatically promoting every Entra user to an administrator.
+The [Fabric tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-tutorial#database-role-for-fabric-mirroring) and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-database-postgresql-limitations#permissions-in-the-source-database) no longer request `CREATEDB` or `CREATEROLE`; the [Azure preparation guide](https://learn.microsoft.com/en-us/azure/postgresql/integration/concepts-fabric-mirroring#create-a-database-role-for-fabric-mirroring) still includes both. Use the narrower local-role script above and retain database `CREATE`, `azure_cdc_admin`, and table ownership. Do not grant server-wide database/role creation merely to match the older sample. The tutorial's Entra branch grants `azure_cdc_admin` and database `CREATE` after mapping; validate the mapped role's effective privileges with the readiness checks and resolve any gap with the DBA rather than promoting every Entra user.
 
 For **either authentication branch**, the connection role must own every selected table. Have the DBA approve the ownership change and check application/migration jobs that rely on the old owner. The documented ownership pattern is:
 

@@ -2,7 +2,7 @@
   "title": "Chapter 1-42 illustration additions and source credits",
   "review_date": "2026-11-10",
   "baseline_source_commit": "b42fed054feaaca781f435ffcc0d24964d6f92a8",
-  "scope": "New illustrations added across Chapters 1-42, reviewed 9-10 November 2026. Existing images and sources are retained; Chapter 1's two captions were reordered with the requested platform introduction.",
+  "scope": "New illustrations added across Chapters 1-42, reviewed 9-10 November 2026. Existing images and sources are retained; Chapter 1's two captions were reordered with the requested platform introduction. Chapter/figure references were updated on 18 November 2026 after the HorizonDB source chapter was inserted; original review numbers are retained on affected entries. Existing image/editable-asset paths and hashes are unchanged.",
   "rights": "Microsoft documentation images retain their originating licences and are excluded from the book's all-rights-reserved claim. Source links do not imply endorsement.",
   "figures": [
     {
@@ -588,15 +588,15 @@
       "vector_source": "docs/assets/diagrams/chapter-31/walkthrough-publisher-acceptance-sequence.svg"
     },
     {
-      "chapter": 32,
-      "figure": "32.2",
+      "chapter": 33,
+      "figure": "33.2",
       "local_image": "docs/assets/diagrams/chapter-32/microsoft-landing-zone-processing.png",
       "sha256": "e2c310707635830d9cdbe4cc1170ac1a9b37d0f3ee67586d2d7fb65832d65cfb",
       "kind": "Microsoft-copy",
       "source_links": [
         "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring"
       ],
-      "caption": "*Figure 32.2: Landing-zone files become managed tables within the mirrored database item. Credit: Microsoft, [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*\n\n",
+      "caption": "*Figure 33.2: Landing-zone files become managed tables within the mirrored database item. Credit: Microsoft, [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*\n\n",
       "credit": "Microsoft",
       "original_image_links": [
         "https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png"
@@ -605,18 +605,20 @@
         "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
       ],
       "license": "https://creativecommons.org/licenses/by/4.0/",
-      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished.",
+      "chapter_at_original_review": 32,
+      "figure_at_original_review": "32.2"
     },
     {
-      "chapter": 33,
-      "figure": "33.2",
+      "chapter": 34,
+      "figure": "34.2",
       "local_image": "docs/assets/setup/chapter-33/microsoft-landing-zone-url.png",
       "sha256": "189330d5ba3c2db3e8f620a5577e2a01c3cf2d1a170ec3625d9c899e3539ba47",
       "kind": "Microsoft-copy",
       "source_links": [
         "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial"
       ],
-      "caption": "*Figure 33.2: Locate the destination landing-zone URL, rather than a SQL endpoint or Lakehouse URL. Credit: Microsoft, [Open Mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring-tutorial/landing-zone-url.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*\n\n",
+      "caption": "*Figure 34.2: Locate the destination landing-zone URL, rather than a SQL endpoint or Lakehouse URL. Credit: Microsoft, [Open Mirroring tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-tutorial) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring-tutorial/landing-zone-url.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*\n\n",
       "credit": "Microsoft",
       "original_image_links": [
         "https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring-tutorial/landing-zone-url.png"
@@ -625,11 +627,13 @@
         "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
       ],
       "license": "https://creativecommons.org/licenses/by/4.0/",
-      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished."
+      "modifications": "See the adjacent caption; copied originals and any converted rendering are distinguished.",
+      "chapter_at_original_review": 33,
+      "figure_at_original_review": "33.2"
     },
     {
-      "chapter": 34,
-      "figure": "34.2",
+      "chapter": 35,
+      "figure": "35.2",
       "local_image": "docs/assets/diagrams/chapter-34/walkthrough-item-versus-table.png",
       "sha256": "d5aafd1721f94d8011b22ce0d17b428be7544815b156c31a5a1a68df24994d01",
       "kind": "original",
@@ -638,14 +642,16 @@
         "https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api",
         "https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py"
       ],
-      "caption": "*Figure 34.2: Item definitions, table metadata, token audiences and publishing helpers occupy different parts of the toolchain. Explanatory illustration by this book, based on the [mirrored-database item definition](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition), [OneLake API access](https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api), and [pinned SDK implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-34/walkthrough-item-versus-table.excalidraw).*\n\n",
+      "caption": "*Figure 35.2: Item definitions, table metadata, token audiences and publishing helpers occupy different parts of the toolchain. Explanatory illustration by this book, based on the [mirrored-database item definition](https://learn.microsoft.com/en-us/rest/api/fabric/articles/item-management/definitions/mirrored-database-definition), [OneLake API access](https://learn.microsoft.com/en-us/fabric/onelake/onelake-access-api), and [pinned SDK implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-34/walkthrough-item-versus-table.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-34/walkthrough-item-versus-table.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-34/walkthrough-item-versus-table.svg"
+      "vector_source": "docs/assets/diagrams/chapter-34/walkthrough-item-versus-table.svg",
+      "chapter_at_original_review": 34,
+      "figure_at_original_review": "34.2"
     },
     {
-      "chapter": 35,
-      "figure": "35.2",
+      "chapter": 36,
+      "figure": "36.2",
       "local_image": "docs/assets/diagrams/chapter-35/walkthrough-workbook-key-diff.png",
       "sha256": "65e19c1a7eae1717324e006bd3321d6df84244b8a6e727bbe5cac1a8b6bd7b9b",
       "kind": "original",
@@ -653,14 +659,16 @@
         "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes",
         "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically"
       ],
-      "caption": "*Figure 35.2: An upsert-only refresh leaves the removed key K200 behind; the publisher must compare accepted snapshots and emit its delete. Explanatory illustration by this book, based on this chapter's workbook pattern, the [row-operation contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes), and [durable publication guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram or a claim that `excel_to_parquet` implements comparison and checkpointing. [Editable Excalidraw source](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.excalidraw).*\n\n",
+      "caption": "*Figure 36.2: An upsert-only refresh leaves the removed key K200 behind; the publisher must compare accepted snapshots and emit its delete. Explanatory illustration by this book, based on this chapter's workbook pattern, the [row-operation contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes), and [durable publication guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram or a claim that `excel_to_parquet` implements comparison and checkpointing. [Editable Excalidraw source](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-35/walkthrough-workbook-key-diff.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-35/walkthrough-workbook-key-diff.svg"
+      "vector_source": "docs/assets/diagrams/chapter-35/walkthrough-workbook-key-diff.svg",
+      "chapter_at_original_review": 35,
+      "figure_at_original_review": "35.2"
     },
     {
-      "chapter": 36,
-      "figure": "36.2",
+      "chapter": 37,
+      "figure": "37.2",
       "local_image": "docs/assets/diagrams/chapter-36/walkthrough-key-change-operations.png",
       "sha256": "04cfe4008f8cdde76089b1ea26e7603524dcb9af74ce125d8da87b9709d99d09",
       "kind": "original",
@@ -668,14 +676,16 @@
         "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes",
         "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically"
       ],
-      "caption": "*Figure 36.2: A key change needs two ordered operations, not just a row containing the new key. The mixed-file illustration retains a nullable non-key field for the delete and places the marker last. Explanatory illustration by this book, based on the [public incremental-change examples](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes) and [publication best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-36/walkthrough-key-change-operations.excalidraw).*\n\n",
+      "caption": "*Figure 37.2: A key change needs two ordered operations, not just a row containing the new key. The mixed-file illustration retains a nullable non-key field for the delete and places the marker last. Explanatory illustration by this book, based on the [public incremental-change examples](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes) and [publication best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-36/walkthrough-key-change-operations.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-36/walkthrough-key-change-operations.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-36/walkthrough-key-change-operations.svg"
+      "vector_source": "docs/assets/diagrams/chapter-36/walkthrough-key-change-operations.svg",
+      "chapter_at_original_review": 36,
+      "figure_at_original_review": "36.2"
     },
     {
-      "chapter": 37,
-      "figure": "37.2",
+      "chapter": 38,
+      "figure": "38.2",
       "local_image": "docs/assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.png",
       "sha256": "fb4f0ec52c2e2fa877f15c56f20efd941183736ea7bb4db9e7096ac6a522c0e2",
       "kind": "original",
@@ -683,14 +693,16 @@
         "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery",
         "https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#coordinate-source-schema-changes"
       ],
-      "caption": "*Figure 37.2: Repair a rejected invalid file at its original sequence; rebuild a table only when the evidence and reload plan require it. Explanatory illustration by this book, based on Microsoft's [recovery procedure](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery) and [schema-change guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#coordinate-source-schema-changes); not an official Microsoft diagram. The example index numbers are abbreviated, not literal filenames. [Editable Excalidraw source](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.excalidraw).*\n\n",
+      "caption": "*Figure 38.2: Repair a rejected invalid file at its original sequence; rebuild a table only when the evidence and reload plan require it. Explanatory illustration by this book, based on Microsoft's [recovery procedure](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#plan-for-recovery) and [schema-change guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#coordinate-source-schema-changes); not an official Microsoft diagram. The example index numbers are abbreviated, not literal filenames. [Editable Excalidraw source](../assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.svg"
+      "vector_source": "docs/assets/diagrams/chapter-37/walkthrough-repair-versus-rebuild.svg",
+      "chapter_at_original_review": 37,
+      "figure_at_original_review": "37.2"
     },
     {
-      "chapter": 38,
-      "figure": "38.1",
+      "chapter": 39,
+      "figure": "39.1",
       "local_image": "docs/assets/diagrams/chapter-38/walkthrough-sdk-boundaries.png",
       "sha256": "c0da377aee5013d9e1e80c1d143b887990bca3ea221e9389397ed4a4400c8a91",
       "kind": "original",
@@ -698,14 +710,16 @@
         "https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py",
         "https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/README.md"
       ],
-      "caption": "*Figure 38.1: The SDK creates metadata, discovers a filename, uploads and renames a file; it does not supply CDC, Parquet generation or a durable batch journal. The rename-error branch prevents treating method completion as a delivery acknowledgement. Explanatory illustration by this book, based on the [pinned `OpenMirroringClient` implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py) and [SDK README](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/README.md); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.excalidraw).*\n\n",
+      "caption": "*Figure 39.1: The SDK creates metadata, discovers a filename, uploads and renames a file; it does not supply CDC, Parquet generation or a durable batch journal. The rename-error branch prevents treating method completion as a delivery acknowledgement. Explanatory illustration by this book, based on the [pinned `OpenMirroringClient` implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py) and [SDK README](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/README.md); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-38/walkthrough-sdk-boundaries.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-38/walkthrough-sdk-boundaries.svg"
+      "vector_source": "docs/assets/diagrams/chapter-38/walkthrough-sdk-boundaries.svg",
+      "chapter_at_original_review": 38,
+      "figure_at_original_review": "38.1"
     },
     {
-      "chapter": 39,
-      "figure": "39.1",
+      "chapter": 40,
+      "figure": "40.1",
       "local_image": "docs/assets/diagrams/chapter-39/walkthrough-generic-adapters.png",
       "sha256": "d50132ac70e747377512335479d0d6312cf8b08e17de01339f69602347acbd08",
       "kind": "original",
@@ -714,14 +728,16 @@
         "https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources",
         "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs"
       ],
-      "caption": "*Figure 39.1: Implemented source branches converge on local Parquet and configured destinations, but stable file-source keys, missing-key deletes and verified per-destination acknowledgement remain hardening work. Explanatory illustration by this book, based on [Program.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Program.cs), [source adapters](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources), and [Upload.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs); not an official Microsoft diagram or a production-reliability claim. [Editable Excalidraw source](../assets/diagrams/chapter-39/walkthrough-generic-adapters.excalidraw).*\n\n",
+      "caption": "*Figure 40.1: Implemented source branches converge on local Parquet and configured destinations, but stable file-source keys, missing-key deletes and verified per-destination acknowledgement remain hardening work. Explanatory illustration by this book, based on [Program.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Program.cs), [source adapters](https://github.com/microsoft/fabric-toolbox/tree/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/sources), and [Upload.cs](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/GenericMirroring/Upload.cs); not an official Microsoft diagram or a production-reliability claim. [Editable Excalidraw source](../assets/diagrams/chapter-39/walkthrough-generic-adapters.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-39/walkthrough-generic-adapters.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-39/walkthrough-generic-adapters.svg"
+      "vector_source": "docs/assets/diagrams/chapter-39/walkthrough-generic-adapters.svg",
+      "chapter_at_original_review": 39,
+      "figure_at_original_review": "39.1"
     },
     {
-      "chapter": 40,
-      "figure": "40.1",
+      "chapter": 41,
+      "figure": "41.1",
       "local_image": "docs/assets/diagrams/chapter-40/walkthrough-notebook-ack-order.png",
       "sha256": "51653d4fca9fee6c5bbb37d6b137d5680422cab5620b63325b2dd4b1626dade8",
       "kind": "original",
@@ -730,14 +746,16 @@
         "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/mysql%20Mirroring/mysqlmirroring.ipynb",
         "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Snowflake%20Mirroring/snowflakeMirroring.ipynb"
       ],
-      "caption": "*Figure 40.1: Snapshot refreshes need explicit deletion reconciliation; the inspected MySQL and Snowflake paths move or reset source progress before later delivery. Orange steps show the existing hazard, not a recommended implementation. Explanatory illustration by this book, based on the pinned [Excel notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Excel%20Mirroring/excelmirroring.ipynb), [MySQL notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/mysql%20Mirroring/mysqlmirroring.ipynb), [Snowflake notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Snowflake%20Mirroring/snowflakeMirroring.ipynb), and SharePoint sources in the source map; not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-40/walkthrough-notebook-ack-order.excalidraw).*\n\n",
+      "caption": "*Figure 41.1: Snapshot refreshes need explicit deletion reconciliation; the inspected MySQL and Snowflake paths move or reset source progress before later delivery. Orange steps show the existing hazard, not a recommended implementation. Explanatory illustration by this book, based on the pinned [Excel notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Excel%20Mirroring/excelmirroring.ipynb), [MySQL notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/mysql%20Mirroring/mysqlmirroring.ipynb), [Snowflake notebook](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/Snowflake%20Mirroring/snowflakeMirroring.ipynb), and SharePoint sources in the source map; not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-40/walkthrough-notebook-ack-order.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-40/walkthrough-notebook-ack-order.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-40/walkthrough-notebook-ack-order.svg"
+      "vector_source": "docs/assets/diagrams/chapter-40/walkthrough-notebook-ack-order.svg",
+      "chapter_at_original_review": 40,
+      "figure_at_original_review": "40.1"
     },
     {
-      "chapter": 41,
-      "figure": "41.1",
+      "chapter": 42,
+      "figure": "42.1",
       "local_image": "docs/assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.png",
       "sha256": "80e816ff44c1ab5f25b5601f0ccfd458d38578026dcfc4d9e0d5ade65bd1b41f",
       "kind": "original",
@@ -745,14 +763,16 @@
         "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/README.md",
         "https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py#L1400-L1529"
       ],
-      "caption": "*Figure 41.1: Capture, local output, remote publication and persisted source progress are separate states. A capped flush can leave RAM-only rows behind an offset subsequently saved to disk. Explanatory illustration by this book, based on the pinned [sample README](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/README.md), [consumer loop](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py#L1400-L1529), and [MaxScale 24.02 licence](https://github.com/mariadb-corporation/MaxScale/blob/844ab7ab5033a54c934757cefea05173ce50934e/licenses/LICENSE2402.TXT); not an official Microsoft diagram, proof of exactly-once delivery or a licence grant for the entire stack. [Editable Excalidraw source](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.excalidraw).*\n\n",
+      "caption": "*Figure 42.1: Capture, local output, remote publication and persisted source progress are separate states. A capped flush can leave RAM-only rows behind an offset subsequently saved to disk. Explanatory illustration by this book, based on the pinned [sample README](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/README.md), [consumer loop](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py#L1400-L1529), and [MaxScale 24.02 licence](https://github.com/mariadb-corporation/MaxScale/blob/844ab7ab5033a54c934757cefea05173ce50934e/licenses/LICENSE2402.TXT); not an official Microsoft diagram, proof of exactly-once delivery or a licence grant for the entire stack. [Editable Excalidraw source](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.svg"
+      "vector_source": "docs/assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.svg",
+      "chapter_at_original_review": 41,
+      "figure_at_original_review": "41.1"
     },
     {
-      "chapter": 42,
-      "figure": "42.1",
+      "chapter": 43,
+      "figure": "43.1",
       "local_image": "docs/assets/diagrams/chapter-42/walkthrough-bq-partial-publication.png",
       "sha256": "240cecf7c46bd929f2609174f49699237e789766de6415556141f724714bbe98",
       "kind": "original",
@@ -762,10 +782,12 @@
         "https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py#L560-L597",
         "https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756"
       ],
-      "caption": "*Figure 42.1: With `MIRRORED_DATABASE` selected, Spark output is shaped and staged, then renamed file by file. One successful rename can survive a later failure; `max_watermark`, `mirror_file_index` and Fabric ingestion completion are different notions of progress. Explanatory illustration by this book, based on pinned [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py), [Mirror.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py), [FileSystem.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py#L560-L597), and [schedule telemetry](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756); not an official Microsoft diagram or a crash-safe transaction guarantee. [Editable Excalidraw source](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.excalidraw).*\n\n",
+      "caption": "*Figure 43.1: With `MIRRORED_DATABASE` selected, Spark output is shaped and staged, then renamed file by file. One successful rename can survive a later failure; `max_watermark`, `mirror_file_index` and Fabric ingestion completion are different notions of progress. Explanatory illustration by this book, based on pinned [Loader.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Loader.py), [Mirror.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/Mirror.py), [FileSystem.py](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/FileSystem.py#L560-L597), and [schedule telemetry](https://github.com/microsoft/FabricBQSync/blob/a8bf1f1bf26de9fdb2818322ec41d182ce9b511a/Packages/FabricSync/FabricSync/BQ/SyncUtils.py#L723-L756); not an official Microsoft diagram or a crash-safe transaction guarantee. [Editable Excalidraw source](../assets/diagrams/chapter-42/walkthrough-bq-partial-publication.excalidraw).*\n\n",
       "credit": "Original explanatory artwork for Fabric Mirroring: A Practical Guide",
       "editable_source": "docs/assets/diagrams/chapter-42/walkthrough-bq-partial-publication.excalidraw",
-      "vector_source": "docs/assets/diagrams/chapter-42/walkthrough-bq-partial-publication.svg"
+      "vector_source": "docs/assets/diagrams/chapter-42/walkthrough-bq-partial-publication.svg",
+      "chapter_at_original_review": 42,
+      "figure_at_original_review": "42.1"
     }
   ]
 }

@@ -1,4 +1,4 @@
-# Chapter 44: PostgreSQL Through Debezium and Kafka
+# Chapter 45: PostgreSQL Through Debezium and Kafka
 
 > **Part 3: Open Mirroring**
 >
@@ -20,11 +20,11 @@ PostgreSQL logical replication
     -> Parquet in OneLake
 ```
 
-Unlike the polling project in [Chapter 45](45%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md), this design obtains change events from logical replication. It can represent deletes, not just rows still present when a query runs. It is nevertheless a demonstration with important startup and acknowledgement behaviour to change before adopting it as a continuous service.
+Unlike the polling project in [Chapter 46](46%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md), this design obtains change events from logical replication. It can represent deletes, not just rows still present when a query runs. It is nevertheless a demonstration with important startup and acknowledgement behaviour to change before adopting it as a continuous service.
 
 ## Setting Up a Controlled Lab
 
-Use the repository's Docker/configuration assets to prepare PostgreSQL, Kafka and the Debezium connector. Configure logical replication and the connector's source permissions for the exact deployment. Set the source tables, Fabric workspace/database identifiers and service-principal credentials. Apply the shared destination setup from [Chapter 33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md).
+Use the repository's Docker/configuration assets to prepare PostgreSQL, Kafka and the Debezium connector. Configure logical replication and the connector's source permissions for the exact deployment. Set the source tables, Fabric workspace/database identifiers and service-principal credentials. Apply the shared destination setup from [Chapter 34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md).
 
 Read [mirrorpostgres.py](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/mirrorpostgres.py) before starting it. Startup creates timestamp-based consumer-group identifiers, recreates the connector and resets target folders. That is a reseeding workflow, not a transparent resume. Use an expendable mirrored database.
 
@@ -42,7 +42,7 @@ The batch reduction uses maximum `ts_ms` per key. Millisecond timestamps are not
 
 In [list_kafka_messages.py](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/list_kafka_messages.py), auto-commit is enabled. The consumer returns messages before the caller publishes them. Kafka progress can therefore be independent of OneLake publication.
 
-The [OneLake writer](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/mirroring_utils.py) writes directly to final paths with overwrite enabled. It does not implement the complete temporary-upload/atomic-rename/immutable-path protocol from [Chapter 36](36%20-%20Metadata%20and%20Change%20Files.md).
+The [OneLake writer](https://github.com/DaSenf1860/mirror_postgres/blob/b8ffc51513993386a17c3d3b5af0afe038ff4747/mirroring_utils.py) writes directly to final paths with overwrite enabled. It does not implement the complete temporary-upload/atomic-rename/immutable-path protocol from [Chapter 37](37%20-%20Metadata%20and%20Change%20Files.md).
 
 For a reliable adaptation, retain stable consumer identity, disable premature acknowledgement, persist each batch's source range and publication assignment, and commit only a contiguous durably published prefix. Preserve the same assignment after an ambiguous upload. Exactly-once delivery is not supplied merely by using Kafka and upsert markers.
 
@@ -54,4 +54,4 @@ Replace destructive startup with a deliberate initialization/resume distinction.
 
 Budget PostgreSQL source overhead, retained WAL, Kafka/Debezium hosting, publisher compute and Fabric consumption. The value of this repository is an inspectable end-to-end CDC architecture, not a promise that every operational responsibility has been solved.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 43: MongoDB Through Change Streams](43%20-%20MongoDB%20Through%20Change%20Streams.md) | **Next:** [Chapter 45: PostgreSQL Polling with impulse_sync](45%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 44: MongoDB Through Change Streams](44%20-%20MongoDB%20Through%20Change%20Streams.md) | **Next:** [Chapter 46: PostgreSQL Polling with impulse_sync](46%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md)

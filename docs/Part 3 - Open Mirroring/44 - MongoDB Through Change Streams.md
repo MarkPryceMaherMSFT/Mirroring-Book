@@ -1,4 +1,4 @@
-# Chapter 43: MongoDB Through Change Streams
+# Chapter 44: MongoDB Through Change Streams
 
 > **Part 3: Open Mirroring**
 >
@@ -28,7 +28,7 @@ The useful starting points are [initial synchronization](https://github.com/mong
 
 Follow the repository's configuration and deployment instructions for the selected revision. Supply MongoDB connectivity, database and collection selection, the Fabric landing-zone URL, Entra application credentials, and the batch/time thresholds. Use a source topology that supports the required change streams, with appropriate permissions and retained history.
 
-Begin with one small collection containing stable `_id` values and representative BSON types. Create the Fabric item and identity using [Chapter 33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md). Size the host for the initial scan as well as steady-state change traffic; those are different workloads.
+Begin with one small collection containing stable `_id` values and representative BSON types. Create the Fabric item and identity using [Chapter 34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md). Size the host for the initial scan as well as steady-state change traffic; those are different workloads.
 
 The application persists initial-load status, scan position, an upper `_id`, cluster-time information, file counter and schema-related state. Treat those files as recovery assets. Do not delete underscore-prefixed state because Fabric ignores it as data.
 
@@ -46,7 +46,7 @@ Delete events use `documentKey`; supported non-delete operations obtain full doc
 
 The [schema utilities](https://github.com/mongodb-partners/MongoDB_Fabric_Mirroring/blob/033d9d11bde1f1b482edf05f7c1fa39f5c4ba6e0/schema_utils.py) restore schema state and coerce BSON values for Parquet. Some failed conversions can fall back to typed nulls. Treat that as a data-quality policy requiring visibility and acceptance, not merely a formatting detail.
 
-The inspected listener inserts the marker first; the current public contract says it must be last. Reconcile the deployed output with [Chapter 36](36%20-%20Metadata%20and%20Change%20Files.md), including mixed numeric types, dates, arrays/documents and added fields.
+The inspected listener inserts the marker first; the current public contract says it must be last. Reconcile the deployed output with [Chapter 37](37%20-%20Metadata%20and%20Change%20Files.md), including mixed numeric types, dates, arrays/documents and added fields.
 
 ## Publication and Resume Tokens
 
@@ -62,4 +62,4 @@ Test scan/stream overlap, replacement events, source history expiry, HTTP 403/42
 
 The project is valuable because its real scan, stream, state and schema code can be studied and adapted. Evaluate the exact revision and source workload rather than inferring production reliability from the existence of a partner integration.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 42: BigQuery with FabricBQSync](42%20-%20BigQuery%20with%20FabricBQSync.md) | **Next:** [Chapter 44: PostgreSQL Through Debezium and Kafka](44%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 43: BigQuery with FabricBQSync](43%20-%20BigQuery%20with%20FabricBQSync.md) | **Next:** [Chapter 45: PostgreSQL Through Debezium and Kafka](45%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md)

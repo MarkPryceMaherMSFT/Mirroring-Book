@@ -1,0 +1,27 @@
+{
+  "title": "Ignite 2026 HorizonDB illustration source credit",
+  "review_date": "2026-11-18",
+  "scope": "Official onboarding screenshot for the new Fabric HorizonDB source chapter. Existing artwork paths and bytes are preserved across the chapter insertion.",
+  "rights": "Microsoft documentation images retain their originating licences and are excluded from the book's all-rights-reserved claim. Source links do not imply endorsement.",
+  "figures": [
+    {
+      "chapter": 32,
+      "figure": "32.1",
+      "kind": "Microsoft-copy",
+      "local_image": "docs/assets/setup/horizondb/create-horizondb-item.png",
+      "sha256": "364ee4639a0913b170021fe6bbccff680a35ba877161ce88bb2fded8ecdc6e42",
+      "source_links": [
+        "https://learn.microsoft.com/en-us/fabric/database/horizondb/create"
+      ],
+      "original_image_links": [
+        "https://learn.microsoft.com/en-us/fabric/database/horizondb/media/onboarding/create-postgresql-item.png"
+      ],
+      "repository_license_links": [
+        "https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE"
+      ],
+      "credit": "Microsoft",
+      "license": "CC BY 4.0, including the originating licence's warranty disclaimer",
+      "modifications": "None: original PNG bytes retained, with no crop or conversion."
+    }
+  ]
+}

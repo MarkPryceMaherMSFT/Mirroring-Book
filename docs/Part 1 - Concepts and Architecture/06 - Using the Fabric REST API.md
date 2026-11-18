@@ -16,6 +16,8 @@ They also do not manage the source-side link behind a [Dataverse-linked Lakehous
 
 For [Business Central](../Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md), the destination is an open mirrored database, but these lifecycle calls do not configure the application's companies, tables, synchronization schedule, or privacy approval. Coordinate operations with its source-side publisher.
 
+Likewise, a [Fabric HorizonDB](../Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md) PostgreSQL item's ID is not a generic MirroredDatabase API ID. Use the documented contract for the related mirror and parent item rather than assuming that a shared architecture gives every artifact the same create/lifecycle API.
+
 [![chapter-06 diagram 1](../assets/diagrams/chapter-06/diagram-01.png)](../assets/diagrams/chapter-06/diagram-01.excalidraw.png)
 
 *Figure 6.1: Fabric REST API usage patterns*
@@ -98,6 +100,10 @@ The decoded `mirroring.json` contains a `properties` object with `source`, `targ
 
 A successful create returns **201 Created**. The SQL analytics endpoint can still be provisioning, so wait for `getMirroringStatus` to return `Initialized` before starting replication.
 
+**17 November API-reference update:** the [current Create contract](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/items/create-mirrored-database) also accepts optional **`folderId`** and **`sensitivityLabelSettings`**. Omitted/null folder placement means the workspace root. Apply the documented label settings and permissions explicitly; do not retry an unsuccessful labelled creation by silently dropping the label. These are top-level request settings, not fields inside the Base64 `mirroring.json`.
+
+Mirror initialisation and SQL endpoint provisioning are separate readiness checks. `Initialized` allows the lifecycle transition; it does not prove that the generated endpoint is queryable or its first table is current.
+
 Two update paths serve different purposes:
 
 | Operation | Method and workspace-relative path | Purpose |
@@ -109,6 +115,8 @@ Two update paths serve different purposes:
 For a configuration change, get the current definition, decode `mirroring.json`, change only the required properties, and re-encode it locally. `updateDefinition` replaces the definition; it is not a partial JSON patch. Preserve existing configuration, including the table selection.
 
 The [mirroring REST guide](https://learn.microsoft.com/en-us/fabric/mirroring/mirrored-database-rest-api#update-mirrored-database-definition) documents adding or removing tables through `mountedTables`. It allows changes to the connection ID, database name, and default schema only when status is `Initialized` or `Stopped`. Plan any required stop/start as a potential reseed, not a routine configuration refresh.
+
+The general portal troubleshooting page separately says changing a source database is unsupported and recommends a new mirror. Do not turn the state-gated REST statement into an unrestricted source-switch procedure for every connector. Confirm source/item support, target lineage, credentials, permissions, and reseed/redeployment impact before an approved change. Use the formal **`defaultSchema`** spelling and keep definition encoding/decoding local rather than uploading configuration to a public converter.
 
 `getDefinition` and `updateDefinition` can return **202 Accepted**. Follow the `Location` operation URL and `Retry-After` header until the long-running operation completes; a 202 response is not completion. See [Get definition](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/items/get-mirrored-database-definition) and [Update definition](https://learn.microsoft.com/en-us/rest/api/fabric/mirroreddatabase/items/update-mirrored-database-definition).
 
@@ -283,6 +291,16 @@ The [Catalog Search API reference](https://learn.microsoft.com/en-us/rest/api/fa
 For the other interfaces, see [Core MCP Server setup](https://learn.microsoft.com/en-us/rest/api/fabric/articles/mcp-servers/core-remote/get-started-core) and [Fabric Actions activity](https://learn.microsoft.com/en-us/fabric/data-factory/fabric-actions-activity). For the separate **OneLake Table Read API Preview**, which returns table data rather than managing a mirror, see [Chapter 8](08%20-%20Using%20a%20Mirrored%20Database.md#onelake-table-read-api-preview).
 
 ---
+
+## November 2026 API and Tooling Updates
+
+The [3 November OneLake tooling post](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/onelake-the-file-system-for-agent-first-data-engineering/5383035) demonstrates an Open Mirror with **Preview hosted OneLake MCP, endpoint discovery, and catalog search**. These complement the Fabric management API; they do not grant an agent unrestricted data access or replace the publisher's delivery/recovery contract.
+
+Use the [endpoint-discovery specification](https://learn.microsoft.com/en-us/fabric/onelake/table-apis/endpoint-discovery-api), including the **`/endpoints` suffix** in `GET /api/v2/{workspaceId}/{itemId}/endpoints`. The adapted blog request omits that suffix. This OneLake API needs an **Azure Storage-audience token**, not the Fabric management token used earlier in the chapter. Discovery is not authorisation and does not prove a listed engine is ready. The [hosted OneLake MCP](https://learn.microsoft.com/en-us/fabric/onelake/onelake-hosted-mcp) is a data-plane service, distinct from the Core MCP management interface.
+
+The [November summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-november-2026-feature-summary/5414311) also announces removal of the **Preview Create/Get/List/Update Domain API versions**. Requests explicitly selecting Preview now fail; Domains and their [GA administration APIs](https://learn.microsoft.com/en-us/rest/api/fabric/admin/domains) are not retired. Since August, omitting the historical Boolean `preview` parameter selects GA. The current documented contract omits that switch; preserve legitimate filters such as `nonEmptyOnly` rather than stripping the whole query string. No universal error code or failure of legacy `preview=false` is established. Preview clients must adopt the GA payload/response differences, not merely remove `preview=true`.
+
+For SQL endpoint automation, distinguish **metadata refresh**, **Preview MD Sync migration**, and **OneLake security sync**. They have different purposes and completion conditions; [Section 4.4](04%20-%20The%20Anatomy%20of%20a%20Mirrored%20Database.md#44-sql-analytics-endpoint) contains the refresh and upgrade procedures. A status request, preflight success, or accepted long-running operation is not final table-level success.
 
 ## Summary
 

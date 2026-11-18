@@ -1,4 +1,4 @@
-# Chapter 32: What is Open Mirroring and Why It's Useful
+# Chapter 33: What is Open Mirroring and Why It's Useful
 
 > **Part 3: Open Mirroring**
 >
@@ -22,8 +22,8 @@ A product can also supply the publisher for you. [Business Central Mirroring](..
 
 At its core, open mirroring is a contract between an application and Fabric:
 
-[![Figure 32.1: The Open Mirroring contract and division of responsibilities](../assets/diagrams/chapter-32/diagram-01.png)](../assets/diagrams/chapter-32/diagram-01.excalidraw.png)
-*Figure 32.1: The Open Mirroring contract and division of responsibilities*
+[![Figure 33.1: The Open Mirroring contract and division of responsibilities](../assets/diagrams/chapter-32/diagram-01.png)](../assets/diagrams/chapter-32/diagram-01.excalidraw.png)
+*Figure 33.1: The Open Mirroring contract and division of responsibilities*
 
 - **The application** is responsible for extracting change data from its source system and writing it to the Fabric landing zone in the prescribed format.
 - **Fabric** is responsible for detecting new files in the landing zone, processing them into Delta tables, and making those tables available through the SQL analytics endpoint, Spark, and Power BI.
@@ -50,7 +50,7 @@ This part separates three kinds of resource:
 
 Even a licensed repository can be an educational sample rather than a supported connector. Pin the version you evaluate, record its dependencies, and test the source-to-landing-zone failure cases before using it for a production workload.
 
-Chapters [38](38%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md)-[47](47%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md) apply these distinctions to real GitHub projects. Start with the [source-to-project comparison](48%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md#source-to-project-comparison) if you want an existing implementation rather than a custom build. The [Synapse chapter](46%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) records the author's explicit confirmation of open-source/customer use separately from the repository's unnamed licence terms.
+Chapters [39](39%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md)-[48](48%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md) apply these distinctions to real GitHub projects. Start with the [source-to-project comparison](49%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md#source-to-project-comparison) if you want an existing implementation rather than a custom build. The [Synapse chapter](47%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) records the author's explicit confirmation of open-source/customer use separately from the repository's unnamed licence terms.
 
 An open-source publisher can depend on commercially licensed or source-available components. Check the whole stack: the C# Excel example uses EPPlus, and the MariaDB sample uses MaxScale. Neither the publisher's licence nor free Fabric replication compute eliminates source-system, hosting, storage, networking, analytics, or maintenance costs.
 
@@ -84,8 +84,8 @@ Once Fabric processes landing-zone data into Delta tables, Open Mirroring suppor
 
 Microsoft's overview illustrates the landing-zone-to-table boundary below. Its **CDC Processing** label describes Fabric applying the delivered changes; it does not mean Fabric captures changes from the application's source.
 
-![Figure 32.2: Microsoft's diagram of landing-zone changes being processed into managed tables](../assets/diagrams/chapter-32/microsoft-landing-zone-processing.png)
-*Figure 32.2: Landing-zone files become managed tables within the mirrored database item. Credit: Microsoft, [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*
+![Figure 33.2: Microsoft's diagram of landing-zone changes being processed into managed tables](../assets/diagrams/chapter-32/microsoft-landing-zone-processing.png)
+*Figure 33.2: Landing-zone files become managed tables within the mirrored database item. Credit: Microsoft, [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring) ([original image](https://learn.microsoft.com/en-us/fabric/mirroring/media/open-mirroring/landing-zone-cdc-processing-tables.png)). Copied unchanged under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see the [Fabric documentation repository licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE).*
 
 Consumers use the resulting tables rather than the publisher's file protocol. Data freshness still depends on source extraction, publication, Fabric processing, and the consuming experience; there is no fixed end-to-end latency guarantee.
 
@@ -127,4 +127,4 @@ Open Mirroring gives custom and partner integrations a defined way to deliver so
 
 **References:** [Open Mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring), [FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-faq), and [publication and recovery best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 31: Dynamics 365 Business Central Mirroring](../Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md) | **Next:** [Chapter 33: Setting Up Open Mirroring: Step-by-Step Configuration](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 32: Microsoft Fabric HorizonDB Mirroring](../Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md) | **Next:** [Chapter 34: Setting Up Open Mirroring: Step-by-Step Configuration](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md)

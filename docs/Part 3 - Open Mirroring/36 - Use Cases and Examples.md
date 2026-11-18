@@ -1,4 +1,4 @@
-# Chapter 35: Use Cases and Examples
+# Chapter 36: Use Cases and Examples
 
 > **Part 3: Open Mirroring**
 >
@@ -12,8 +12,8 @@
 
 This chapter compares five common Open Mirroring use cases and the implementation choices each one requires.
 
-[![Figure 35.1: Open Mirroring use cases](../assets/diagrams/chapter-35/diagram-01.png)](../assets/diagrams/chapter-35/diagram-01.excalidraw.png)
-*Figure 35.1: Open Mirroring use cases*
+[![Figure 36.1: Open Mirroring use cases](../assets/diagrams/chapter-35/diagram-01.png)](../assets/diagrams/chapter-35/diagram-01.excalidraw.png)
+*Figure 36.1: Open Mirroring use cases*
 
 ---
 
@@ -110,7 +110,7 @@ def extract_from_rds_postgres(
     return pa.Table.from_pylist(records, schema=CHANGE_SCHEMA), next_watermark
 ```
 
-Keep the same upper bound while paging and do not publish an empty extraction as a new batch. Serialise each nonempty page, persist its payload and sequence assignment, publish it using Chapter 33, and only then persist its returned watermark.
+Keep the same upper bound while paging and do not publish an empty extraction as a new batch. Serialise each nonempty page, persist its payload and sequence assignment, publish it using Chapter 34, and only then persist its returned watermark.
 
 The `(updated_at, id)` index and cursor make pagination deterministic for a stable data set, not for every concurrent transaction pattern. Late commits with older timestamps, repeated changes sharing a timestamp, hard deletes, and changes during paging can be missed. A safety lag alone does not fix this. Use a tested overlap-and-reconciliation design for state polling, or source-supported logical decoding when lossless ordered changes are required. Retain soft-delete records until they have been published.
 
@@ -199,10 +199,10 @@ def excel_to_parquet(
     return buf.getvalue()
 ```
 
-For the initial file, call with `incremental=False` and omit `__rowMarker__`. For later files, use upserts plus delete rows for keys present in the last published workbook but absent from the new one. An empty workbook still requires those deletes. Publish deletes with marker `2` and the old keys, preserving compatible Parquet types as described in Chapter 36.
+For the initial file, call with `incremental=False` and omit `__rowMarker__`. For later files, use upserts plus delete rows for keys present in the last published workbook but absent from the new one. An empty workbook still requires those deletes. Publish deletes with marker `2` and the old keys, preserving compatible Parquet types as described in Chapter 37.
 
-![Figure 35.2: Comparing stable workbook keys produces current-row upserts and missing-key deletes](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.png)
-*Figure 35.2: An upsert-only refresh leaves the removed key K200 behind; the publisher must compare accepted snapshots and emit its delete. Explanatory illustration by this book, based on this chapter's workbook pattern, the [row-operation contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes), and [durable publication guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram or a claim that `excel_to_parquet` implements comparison and checkpointing. [Editable Excalidraw source](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.excalidraw).*
+![Figure 36.2: Comparing stable workbook keys produces current-row upserts and missing-key deletes](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.png)
+*Figure 36.2: An upsert-only refresh leaves the removed key K200 behind; the publisher must compare accepted snapshots and emit its delete. Explanatory illustration by this book, based on this chapter's workbook pattern, the [row-operation contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format#incremental-changes), and [durable publication guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices#publish-files-atomically); not an official Microsoft diagram or a claim that `excel_to_parquet` implements comparison and checkpointing. [Editable Excalidraw source](../assets/diagrams/chapter-35/walkthrough-workbook-key-diff.excalidraw).*
 
 Persist the accepted workbook version or key set with the batch checkpoint only after publication succeeds. A repeated or out-of-order trigger must not reapply an older workbook over a newer one. This comparison and checkpoint logic is part of the publisher, not something the conversion helper or Fabric performs automatically.
 
@@ -237,7 +237,7 @@ The [Microsoft Learn partner list](https://learn.microsoft.com/en-us/fabric/mirr
 
 ## From a Pattern to an Existing Implementation
 
-These use cases are design patterns, not claims that the illustrative code forms a complete connector. The later chapters show how public projects implement them: [SQL Server CT and files](39%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md), [notebooks](40%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md), [BigQuery](42%20-%20BigQuery%20with%20FabricBQSync.md), [MongoDB](43%20-%20MongoDB%20Through%20Change%20Streams.md), [PostgreSQL CDC](44%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md), [PostgreSQL polling](45%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md), and [Synapse dedicated SQL pool](46%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md).
+These use cases are design patterns, not claims that the illustrative code forms a complete connector. The later chapters show how public projects implement them: [SQL Server CT and files](40%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md), [notebooks](41%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md), [BigQuery](43%20-%20BigQuery%20with%20FabricBQSync.md), [MongoDB](44%20-%20MongoDB%20Through%20Change%20Streams.md), [PostgreSQL CDC](45%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md), [PostgreSQL polling](46%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md), and [Synapse dedicated SQL pool](47%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md).
 
 Compare source behaviour before choosing code. Polling an increasing key does not capture updates to old rows. Re-reading a workbook does not detect removed rows without comparison. Snapshot/diff detects differences between observations, not every transaction in between. A publishing SDK cannot repair any of those source-capture gaps.
 
@@ -247,4 +247,4 @@ Each Open Mirroring pattern follows the same contract: extract source changes, w
 
 **References:** [Landing-zone contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format), [publisher best practices](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices), and [Fabric Toolbox proof-of-concept samples](https://github.com/microsoft/fabric-toolbox/tree/main/samples/open-mirroring).
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 34: Code Samples and the Fabric Toolbox](34%20-%20Code%20Samples%20and%20the%20Fabric%20Toolbox.md) | **Next:** [Chapter 36: Metadata and Change Files](36%20-%20Metadata%20and%20Change%20Files.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 35: Code Samples and the Fabric Toolbox](35%20-%20Code%20Samples%20and%20the%20Fabric%20Toolbox.md) | **Next:** [Chapter 37: Metadata and Change Files](37%20-%20Metadata%20and%20Change%20Files.md)

@@ -25,5 +25,6 @@
 - [Chapter 29: SAP Business Data Cloud Connect for Microsoft Fabric](29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md)
 - [Chapter 30: Google Lakehouse Runtime Catalog Mirroring](30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md)
 - [Chapter 31: Dynamics 365 Business Central Mirroring](31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md)
+- [Chapter 32: Microsoft Fabric HorizonDB Mirroring](32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md)
 
 **Full book:** [Table of Contents](../index.md)

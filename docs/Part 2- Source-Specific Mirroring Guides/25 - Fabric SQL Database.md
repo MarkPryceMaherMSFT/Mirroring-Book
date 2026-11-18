@@ -12,6 +12,8 @@
 
 **SQL database in Microsoft Fabric** is a managed transactional database built on the same SQL Database Engine as Azure SQL Database. Unlike external sources, it **automatically mirrors its data into OneLake** when you create the database.
 
+Fabric now also has a native PostgreSQL offering: [Fabric HorizonDB, Chapter 32](32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md), announced in Public Preview at Ignite 2026. Its automatic analytical mirror is a useful architectural comparison, not the same SQL engine, authentication model, limit set, or setup procedure described here.
+
 SQL database in Fabric is designed for:
 
 - **Intelligent applications and AI**: Vector data types, Azure OpenAI integration, and RAG patterns.

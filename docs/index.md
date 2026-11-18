@@ -4,11 +4,15 @@ This guide covers the main mirroring patterns in Microsoft Fabric, source-specif
 
 Each part has its own **chapter index** in a separate `readme.md`, listing only the chapters in that part. Every chapter links back to its part's index.
 
+**Ignite and the last 30 days, reviewed 18 November 2026:** the [dated announcement-to-chapter record](history.md#18-november-2026-ignite-and-30-day-announcement-review) covers the 19 October-18 November window, including HorizonDB, catalog federation, Databricks objects/storage, new metadata sync and migration, governance, APIs, and consumers. GA, Preview, future plans, and implementation-documentation discrepancies remain distinct.
+
+**Current implementation guidance:** the [18 November public-documentation contract review](history.md#18-november-2026-public-documentation-contract-review) supplements that announcement record with source setup/permission checks, Network Security Perimeter and outbound-rule scope, API request changes, and operational corrections. An older landing-page source list or a generic connector wizard is not the final source-specific contract.
+
 **FabCon September 2026:** the [announcement coverage record](history.md#8-october-2026-fabcon-announcement-coverage) links each relevant announcement to its chapter and distinguishes GA, Preview, Coming Soon, and unresolved documentation differences.
 
 For eligible database and open mirrored replicas, Fabric includes 1 TB of free mirrored storage per purchased CU. An F2 capacity includes 2 TB, an F4 capacity includes 4 TB, and the allowance scales with capacity. This is not a blanket storage allowance for catalog shortcuts or every application integration; check the source guide's billing boundaries.
 
-**Latest source additions:** [Chapter 30: Google Lakehouse Runtime Catalog](Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) and [Chapter 31: Business Central Mirroring](Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md). SAP BDC remains a separate [Chapter 29](Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md). The current edition has 48 consecutively numbered chapters.
+**Latest source addition:** [Chapter 32: Microsoft Fabric HorizonDB Mirroring](Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md), following [Google Lakehouse Runtime Catalog](Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) and [Business Central](Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md). SAP BDC remains a separate [Chapter 29](Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md). The current edition has **49 consecutively numbered chapters**: Part 2 ends at 32 and Open Mirroring runs from 33 to 49.
 
 [![Mirroring types and their outputs](assets/diagrams/index/diagram-01.png)](assets/diagrams/index/diagram-01.excalidraw.png)
 
@@ -69,13 +73,16 @@ Each setup link starts with the source-administrator work, not just the Fabric w
 | [28: Dataverse Link to Microsoft Fabric](Part%202-%20Source-Specific%20Mirroring%20Guides/28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md) | [Source preparation, identity, tables, and linked Lakehouse](Part%202-%20Source-Specific%20Mirroring%20Guides/28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md#setup-walkthrough) | [Troubleshooting](Part%202-%20Source-Specific%20Mirroring%20Guides/28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md#troubleshooting) |
 | [29: SAP Business Data Cloud Connect for Microsoft Fabric](Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md) | [Availability and readiness gates](Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md#readiness-checklist--not-an-executable-setup-procedure) | [Common misidentifications](Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md#troubleshooting-and-common-misidentifications) |
 | [30: Google Lakehouse Runtime Catalog](Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) | [Federation, runtime catalog, and GCS permissions](Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md#setup-walkthrough) | [Issues and troubleshooting](Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md#public-issues-and-troubleshooting) |
-| [31: Dynamics 365 Business Central Mirroring](Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md) | [Application registration, Open Mirroring, companies, and tables](Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md#setup-walkthrough) | [Documented pitfalls](Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md#documented-pitfalls) |
+| [31: Dynamics 365 Business Central Mirroring](Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md) | [Microsoft-app service principal, Open Mirroring, companies, and tables](Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md#setup-walkthrough) | [Documented pitfalls](Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md#documented-pitfalls) |
+| [32: Microsoft Fabric HorizonDB](Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md) | [Preview preflight, creator identity, and automatic mirror validation](Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md#setup-walkthrough) | [Eligibility, schema changes, and monitoring](Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md#eligibility-schema-changes-and-monitoring) |
 
-> **Note:** Chapters 14, 15, 26, 27, and 30 cover metadata mirroring. Chapters 21 and 22 also describe shortcut-backed paths alongside replicated tables. Chapters 15, 19, 26, 27, and 30 cover Public Preview sources. Google Lakehouse Runtime has its own chapter and is separate from both AWS Glue and BigQuery.
+> **Note:** Chapters 14, 15, 26, 27, and 30 cover metadata mirroring. Chapters 21 and 22 also describe shortcut-backed paths alongside replicated tables. Ignite announces catalog federation for Chapters 15, 26, 27, and 30 as **GA**, while their current source guides retain **Preview** labels; the chapters record both. MySQL and Fabric HorizonDB remain Public Preview. Google Lakehouse Runtime is separate from both AWS Glue and BigQuery.
 
 Chapters 28 and 29 cover related source-managed integrations: Dataverse maintains the Delta replica and manages its Lakehouse shortcuts, while SAP BDC Connect is an announced data-product sharing path distinct from Chapter 20's Datasphere/ADLS replication. They are full source chapters, without assuming identical native Mirroring item types or operating rules. The SAP BDC chapter explicitly records the absence of a verified Fabric-specific GA/setup confirmation.
 
-Chapter 31 follows Business Central's own assisted setup for an application-managed Open Mirroring publisher. It includes the source prerequisites, Entra registration, company/table selection, synchronization controls, monitoring, and recovery cautions. Its documentation still carries prerelease and conflicting preview-rollout wording; Open Mirroring being GA does not make the Business Central integration GA. Dataverse low-latency sync is GA-announced with station-based rollout, while its optional SQL endpoint metadata sync remains Preview.
+Chapter 31 follows Business Central's assisted setup for a production-ready **Preview** application-managed publisher. It covers Microsoft's Fabric Export application, the tenant-local service principal, eligible company/table selection, asynchronous setup, monitoring APIs, and **Reset table** recovery. Open Mirroring GA does not make the Business Central integration GA. Dataverse low-latency sync remains a separate GA-announced source engine with station-based rollout; its application-specific new-link SQL metadata procedure still says Preview, distinct from the general engine/migration contracts in Section 4.4.
+
+Chapter 32 is a **native Fabric PostgreSQL database**, not the external Azure Flexible Server source in Chapter 18. Its Public Preview mirror is automatic for eligible tables. The chapter separates mirroring, read-only `pg_fabric_fdw` federation, and bounded Copy job data delivery; the announced continuous Synced Tables capability is not presented as a verified continuous-copy procedure.
 
 #### Before You Start a Setup Walkthrough
 
@@ -95,30 +102,30 @@ Chapter 31 follows Business Central's own assisted setup for an application-mana
 
 **Part index:** [Chapters in Part 3](Part%203%20-%20Open%20Mirroring/readme.md)
 
-**Start with the source, then choose what to own.** Chapters 32-37 explain the shared contract and engineering responsibilities. Chapters 38-47 examine actual GitHub implementations and tools; Chapter 48 compares them and keeps blog-only references separate. Open-source code is not a promise of production support, and does not make Fabric capacity, the source system, or publisher hosting free.
+**Start with the source, then choose what to own.** Chapters 33-38 explain the shared contract and engineering responsibilities. Chapters 39-48 examine actual GitHub implementations and tools; Chapter 49 compares them and keeps blog-only references separate. Open-source code is not a promise of production support, and does not make Fabric capacity, the source system, or publisher hosting free.
 
 #### Foundations and shared implementation guidance
 
-* [Chapter 32: What is Open Mirroring and Why It's Useful](Part%203%20-%20Open%20Mirroring/32%20-%20What%20is%20Open%20Mirroring%20and%20Why%20It%27s%20Useful.md)
-* [Chapter 33: Setting Up Open Mirroring: Step-by-Step Configuration](Part%203%20-%20Open%20Mirroring/33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md)
-* [Chapter 34: Code Samples and the Fabric Toolbox](Part%203%20-%20Open%20Mirroring/34%20-%20Code%20Samples%20and%20the%20Fabric%20Toolbox.md)
-* [Chapter 35: Use Cases and Examples](Part%203%20-%20Open%20Mirroring/35%20-%20Use%20Cases%20and%20Examples.md)
-* [Chapter 36: Metadata and Change Files](Part%203%20-%20Open%20Mirroring/36%20-%20Metadata%20and%20Change%20Files.md)
-* [Chapter 37: Common Issues and Troubleshooting](Part%203%20-%20Open%20Mirroring/37%20-%20Common%20Issues%20and%20Troubleshooting.md)
+* [Chapter 33: What is Open Mirroring and Why It's Useful](Part%203%20-%20Open%20Mirroring/33%20-%20What%20is%20Open%20Mirroring%20and%20Why%20It%27s%20Useful.md)
+* [Chapter 34: Setting Up Open Mirroring: Step-by-Step Configuration](Part%203%20-%20Open%20Mirroring/34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md)
+* [Chapter 35: Code Samples and the Fabric Toolbox](Part%203%20-%20Open%20Mirroring/35%20-%20Code%20Samples%20and%20the%20Fabric%20Toolbox.md)
+* [Chapter 36: Use Cases and Examples](Part%203%20-%20Open%20Mirroring/36%20-%20Use%20Cases%20and%20Examples.md)
+* [Chapter 37: Metadata and Change Files](Part%203%20-%20Open%20Mirroring/37%20-%20Metadata%20and%20Change%20Files.md)
+* [Chapter 38: Common Issues and Troubleshooting](Part%203%20-%20Open%20Mirroring/38%20-%20Common%20Issues%20and%20Troubleshooting.md)
 
 #### SDK and source-backed solution chapters
 
-* [Chapter 38: The Microsoft Open Mirroring Python SDK](Part%203%20-%20Open%20Mirroring/38%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md)
-* [Chapter 39: GenericMirroring - A Multi-Source C# Publisher](Part%203%20-%20Open%20Mirroring/39%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md)
-* [Chapter 40: Toolbox Notebook Solutions - Excel, SharePoint, MySQL, and Snowflake](Part%203%20-%20Open%20Mirroring/40%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md)
-* [Chapter 41: MariaDB Through MaxScale and Kafka](Part%203%20-%20Open%20Mirroring/41%20-%20MariaDB%20Through%20MaxScale%20and%20Kafka.md)
-* [Chapter 42: BigQuery with FabricBQSync](Part%203%20-%20Open%20Mirroring/42%20-%20BigQuery%20with%20FabricBQSync.md)
-* [Chapter 43: MongoDB Through Change Streams](Part%203%20-%20Open%20Mirroring/43%20-%20MongoDB%20Through%20Change%20Streams.md)
-* [Chapter 44: PostgreSQL Through Debezium and Kafka](Part%203%20-%20Open%20Mirroring/44%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md)
-* [Chapter 45: PostgreSQL Polling with impulse_sync](Part%203%20-%20Open%20Mirroring/45%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md)
-* [Chapter 46: Synapse Dedicated SQL Pool Open Mirroring](Part%203%20-%20Open%20Mirroring/46%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md)
-* [Chapter 47: File Publishing and Open Mirroring Test Tools](Part%203%20-%20Open%20Mirroring/47%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md)
-* [Chapter 48: Choosing a Solution, Shared Lessons, and Further Reading](Part%203%20-%20Open%20Mirroring/48%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md)
+* [Chapter 39: The Microsoft Open Mirroring Python SDK](Part%203%20-%20Open%20Mirroring/39%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md)
+* [Chapter 40: GenericMirroring - A Multi-Source C# Publisher](Part%203%20-%20Open%20Mirroring/40%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md)
+* [Chapter 41: Toolbox Notebook Solutions - Excel, SharePoint, MySQL, and Snowflake](Part%203%20-%20Open%20Mirroring/41%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md)
+* [Chapter 42: MariaDB Through MaxScale and Kafka](Part%203%20-%20Open%20Mirroring/42%20-%20MariaDB%20Through%20MaxScale%20and%20Kafka.md)
+* [Chapter 43: BigQuery with FabricBQSync](Part%203%20-%20Open%20Mirroring/43%20-%20BigQuery%20with%20FabricBQSync.md)
+* [Chapter 44: MongoDB Through Change Streams](Part%203%20-%20Open%20Mirroring/44%20-%20MongoDB%20Through%20Change%20Streams.md)
+* [Chapter 45: PostgreSQL Through Debezium and Kafka](Part%203%20-%20Open%20Mirroring/45%20-%20PostgreSQL%20Through%20Debezium%20and%20Kafka.md)
+* [Chapter 46: PostgreSQL Polling with impulse_sync](Part%203%20-%20Open%20Mirroring/46%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md)
+* [Chapter 47: Synapse Dedicated SQL Pool Open Mirroring](Part%203%20-%20Open%20Mirroring/47%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md)
+* [Chapter 48: File Publishing and Open Mirroring Test Tools](Part%203%20-%20Open%20Mirroring/48%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md)
+* [Chapter 49: Choosing a Solution, Shared Lessons, and Further Reading](Part%203%20-%20Open%20Mirroring/49%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md)
 
 **Evidence and licensing:** the project chapters describe inspected public code, not certification or measured production reliability. GenericMirroring's Excel dependency and the MariaDB sample's MaxScale runtime have separate licensing restrictions. The Synapse implementation is included with the author's explicit confirmation that it is open source and customers may use it; no named licence is inferred where the inspected repository does not state one.
 

@@ -1,4 +1,4 @@
-# Chapter 38: The Microsoft Open Mirroring Python SDK
+# Chapter 39: The Microsoft Open Mirroring Python SDK
 
 > **Part 3: Open Mirroring**
 >
@@ -10,7 +10,7 @@
 
 ## What the SDK Provides
 
-The [Open Mirroring Python SDK](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK) was developed inside Microsoft and published in Fabric Toolbox. Its implementation is the `OpenMirroringClient` class in one Python module, `openmirroring_operations.py`. It is not a complete database connector or a replacement for the [shared build guidance](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md).
+The [Open Mirroring Python SDK](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK) was developed inside Microsoft and published in Fabric Toolbox. Its implementation is the `OpenMirroringClient` class in one Python module, `openmirroring_operations.py`. It is not a complete database connector or a replacement for the [shared build guidance](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md).
 
 | Responsibility | SDK or application? |
 |---|---|
@@ -26,7 +26,7 @@ The [Open Mirroring Python SDK](https://github.com/microsoft/fabric-toolbox/tree
 
 ## Prepare a Small Lab
 
-Create a new Open Mirrored Database and grant the publishing identity the permissions described in [Chapter 33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md). Use its complete landing-zone URL, not a Lakehouse URL or the SQL endpoint.
+Create a new Open Mirrored Database and grant the publishing identity the permissions described in [Chapter 34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md). Use its complete landing-zone URL, not a Lakehouse URL or the SQL endpoint.
 
 Obtain the module from the pinned source and place it on your Python import path. The inspected folder is a source-module distribution; do not invent a `pip install OpenMirroringPythonSDK` package. Install its dependencies and a Parquet library for the example:
 
@@ -103,8 +103,8 @@ The marker is the final column. The delete retains the original typed schema, wi
 | `get_table_status(schema_name=None, table_name=None)` | Reads and prints `Monitoring/tables.json`; filtering expects both schema and table |
 | `remove_table(schema_name=None, table_name="", remove_schema_folder=False)` | Deletes a table folder; the optional schema-folder deletion can affect other tables |
 
-![Figure 38.1: Actual SDK table-creation and file-publication path, with its failure and application boundaries](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.png)
-*Figure 38.1: The SDK creates metadata, discovers a filename, uploads and renames a file; it does not supply CDC, Parquet generation or a durable batch journal. The rename-error branch prevents treating method completion as a delivery acknowledgement. Explanatory illustration by this book, based on the [pinned `OpenMirroringClient` implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py) and [SDK README](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/README.md); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.excalidraw).*
+![Figure 39.1: Actual SDK table-creation and file-publication path, with its failure and application boundaries](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.png)
+*Figure 39.1: The SDK creates metadata, discovers a filename, uploads and renames a file; it does not supply CDC, Parquet generation or a durable batch journal. The rename-error branch prevents treating method completion as a delivery acknowledgement. Explanatory illustration by this book, based on the [pinned `OpenMirroringClient` implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py) and [SDK README](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/README.md); not an official Microsoft diagram. [Editable Excalidraw source](../assets/diagrams/chapter-38/walkthrough-sdk-boundaries.excalidraw).*
 
 Use keyword arguments: a positional table name could accidentally be interpreted as `schema_name`. Status methods do not return dictionaries. Do not build code around an invented success result from upload, either.
 
@@ -112,7 +112,7 @@ Use keyword arguments: a positional table name could accidentally be interpreted
 
 The [rename implementation](https://github.com/microsoft/fabric-toolbox/blob/b4636ef9cb3d6a26863ac5c93480b6c98e9df5a1/tools/OpenMirroringPythonSDK/openmirroring_operations.py#L201-L226) prints non-success HTTP responses instead of raising an exception. The upload caller can subsequently print a success message. Treat this as an implementation issue to correct before using method completion as permission to acknowledge source changes.
 
-Filename discovery is not reservation. Two writers can choose the same next filename; a crash between publication and checkpointing can replay a batch under a different filename. Preserve a durable batch-to-path assignment, enforce immutable final paths, propagate errors and reconcile ambiguous outcomes as described in [Chapter 33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md). Ordinary cleanup retains the latest sequential file, but that does not replace your journal.
+Filename discovery is not reservation. Two writers can choose the same next filename; a crash between publication and checkpointing can replay a batch under a different filename. Preserve a durable batch-to-path assignment, enforce immutable final paths, propagate errors and reconcile ambiguous outcomes as described in [Chapter 34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md). Ordinary cleanup retains the latest sequential file, but that does not replace your journal.
 
 The module does not generate Parquet, validate markers, configure CSV metadata or expose the alternative file-detection strategy. An arbitrary local file can receive a `.parquet` destination name. Its raw rename request also lacks an explicit timeout. Large-file memory use, retry policy, structured monitoring results and credential flexibility are application-hardening work.
 
@@ -124,4 +124,4 @@ This is a compact, useful reference for the OneLake side of a publisher. Reuse i
 
 **References:** [SDK source and README](https://github.com/microsoft/fabric-toolbox/tree/main/tools/OpenMirroringPythonSDK), [landing-zone contract](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format), and [publication/recovery guidance](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-best-practices).
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 37: Common Issues and Troubleshooting](37%20-%20Common%20Issues%20and%20Troubleshooting.md) | **Next:** [Chapter 39: GenericMirroring - A Multi-Source C# Publisher](39%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 38: Common Issues and Troubleshooting](38%20-%20Common%20Issues%20and%20Troubleshooting.md) | **Next:** [Chapter 40: GenericMirroring - A Multi-Source C# Publisher](40%20-%20GenericMirroring%20-%20A%20Multi-Source%20C%23%20Publisher.md)

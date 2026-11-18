@@ -1,4 +1,4 @@
-# Chapter 46: Synapse Dedicated SQL Pool Open Mirroring
+# Chapter 47: Synapse Dedicated SQL Pool Open Mirroring
 
 > **Part 3: Open Mirroring**
 >
@@ -84,7 +84,7 @@ Initial landing data and the shadow baseline are separate extraction work. Under
 
 ## Publication, Ordering and Recovery
 
-The [PowerShell module](https://github.com/MarkPryceMaherMSFT/fabric-mirroring-synapse/blob/f9ce29f0e473a49e40dfc85c9eb2c349513b2386/ps/MirroringLib.psm1) writes metadata with `LastUpdateTimeFileDetection` for nonsequential CETAS output. Its `Send-OneLakeFileBytes` helper uses create/append/flush against the supplied path. That is not yet the complete temporary-file/atomic-rename/immutable-publication pattern from [Chapter 36](36%20-%20Metadata%20and%20Change%20Files.md).
+The [PowerShell module](https://github.com/MarkPryceMaherMSFT/fabric-mirroring-synapse/blob/f9ce29f0e473a49e40dfc85c9eb2c349513b2386/ps/MirroringLib.psm1) writes metadata with `LastUpdateTimeFileDetection` for nonsequential CETAS output. Its `Send-OneLakeFileBytes` helper uses create/append/flush against the supplied path. That is not yet the complete temporary-file/atomic-rename/immutable-publication pattern from [Chapter 37](37%20-%20Metadata%20and%20Change%20Files.md).
 
 Separate three progress points: source/shadow extraction, staged-file synchronization, and Fabric ingestion. `LastSyncedUtc` is a publisher-side file watermark, not a source transaction boundary or a Fabric ingestion acknowledgement. Timestamp detection also does not guarantee logical source ordering across late files or overlapping cycles.
 
@@ -100,6 +100,6 @@ At the inspected revision, the module header still says the OneLake REST helpers
 
 Test keyed insert/update/delete, a soft delete, concurrent source changes during snapshot/diff, lost upload responses, source schema changes and staged-file recovery. Inspect source pool overhead and retain sufficient staging history. Dedicated-pool compute, ADLS storage/operations, orchestration and Fabric analytics remain costs even though customers can use the implementation.
 
-**Further reading:** [project README](https://github.com/MarkPryceMaherMSFT/fabric-mirroring-synapse#readme), [desktop quick start](https://github.com/MarkPryceMaherMSFT/fabric-mirroring-synapse/blob/main/QUICKSTART.md), and [shared recovery guidance](37%20-%20Common%20Issues%20and%20Troubleshooting.md).
+**Further reading:** [project README](https://github.com/MarkPryceMaherMSFT/fabric-mirroring-synapse#readme), [desktop quick start](https://github.com/MarkPryceMaherMSFT/fabric-mirroring-synapse/blob/main/QUICKSTART.md), and [shared recovery guidance](38%20-%20Common%20Issues%20and%20Troubleshooting.md).
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 45: PostgreSQL Polling with impulse_sync](45%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md) | **Next:** [Chapter 47: File Publishing and Open Mirroring Test Tools](47%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 46: PostgreSQL Polling with impulse_sync](46%20-%20PostgreSQL%20Polling%20with%20impulse_sync.md) | **Next:** [Chapter 48: File Publishing and Open Mirroring Test Tools](48%20-%20File%20Publishing%20and%20Open%20Mirroring%20Test%20Tools.md)

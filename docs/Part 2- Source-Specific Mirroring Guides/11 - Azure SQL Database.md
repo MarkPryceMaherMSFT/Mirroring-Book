@@ -46,6 +46,7 @@ See the [Microsoft Learn architecture description](https://learn.microsoft.com/e
 | **Connection authentication?** | The tutorial lists **Basic (SQL)**, **Organizational account (Entra)**, **Service principal**, and **Workspace identity**. It does not publish a gateway-by-authentication matrix; confirm the selected route offers the chosen kind. The server's publishing SAMI/UAMI is a separate identity. |
 | **Private endpoint support?** | Yes, through a gateway with private routing and DNS to the source endpoint. This does not establish Fabric tenant/workspace Private Link support or make source-to-OneLake publishing private automatically. |
 | **Source firewall restrictions?** | A gateway needs a permitted route to the source; it does not remove gateway outbound-connectivity requirements or configure Fabric workspace network controls. |
+| **Network security perimeter?** | Azure SQL Database mirroring behind a perimeter is **preview**. Configure the logical server's perimeter profile for Fabric's inbound connection and OneLake-bound publishing; see the source-side procedure below. This is separate from Fabric workspace outbound protection and OneLake Resource Instance Rules. |
 | **Restricted OneLake inbound access?** | Add the Azure SQL logical server's Azure resource ID to the workspace's Resource Instance Rules so it can publish mirrored data. |
 | **Fabric workspace outbound protection?** | Supported separately through [data connection rules](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases). Explicitly allow the source connection; a gateway does not bypass this policy. |
 
@@ -55,6 +56,23 @@ Use two separate acceptance tests: first prove the Fabric connection can reach S
 
 ![Azure SQL Database network checks separating the Fabric-to-SQL connection from the server-identity publisher-to-OneLake path](../assets/diagrams/chapter-11/walkthrough-network-paths.png)
 *Figure 11.1a: Two independent network directions, including the logical server's Resource Instance Rule when OneLake inbound access is restricted. Original book diagram, not a Microsoft product screenshot; based on the [Azure SQL Database setup tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-tutorial) and [OneLake landing-zone FAQ](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-mirroring-faq#is-there-a-staging-or-landing-zone-for-azure-sql-database--if-so--is-it-outside-of-onelake--), reviewed 9 November 2026. [Editable Excalidraw](../assets/diagrams/chapter-11/walkthrough-network-paths.excalidraw) · [SVG](../assets/diagrams/chapter-11/walkthrough-network-paths.svg).*
+
+### Source-side network security perimeter (preview)
+
+The [mirroring security guide](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-how-to-data-security#network-security-perimeter-preview) now documents Azure SQL Database mirroring through a **network security perimeter (NSP), in preview**. The perimeter service being GA does not make Azure SQL onboarding or this mirroring configuration GA. Validate in development/test using transition mode. SQL MI is explicitly excluded because it is not an onboarded perimeter resource.
+
+An NSP evaluates the logical server's public network boundary in both directions. Fabric has no perimeter of its own: configure the rules on the **perimeter profile associated with the Azure SQL logical server**, not on the Fabric workspace.
+
+1. Follow the [Azure SQL perimeter setup](https://learn.microsoft.com/en-us/azure/azure-sql/database/network-security-perimeter). For the documented Fabric service-connection path, add an **inbound** rule with **Source type → Service tags**, allowing `DataFactory`, `PowerBI`, and `PowerQueryOnline`. If using `DataFactory.<region>` and `PowerBI.<region>`, include the Fabric home region, the capacity region if different, and each region's paired region; retain `PowerQueryOnline`.
+2. Obtain the actual OneLake destination FQDN. After configuring the mirror, the security guide instructs the DBA to run `EXEC sys.sp_help_change_feed;` in the source database and read `destination_fqdn`, shaped as `<item-id>.<workspace-id>.<onelake-domain>`. Before configuration there is no destination to inspect. If enforced-mode setup fails with **22651**, take the evaluated FQDN from that error instead and retry only after the rule is approved.
+3. Add an **outbound** rule with **Destination type → FQDN** using that exact destination. Prefer the item-specific FQDN; `<workspace-id>.<onelake-domain>` is the documented broader option for all mirrors in one workspace. Do not use a wildcard destination.
+4. Confirm table freshness in **Monitor replication** and review [NSP diagnostic logs](https://learn.microsoft.com/en-us/azure/private-link/network-security-perimeter-diagnostic-logs) before considering enforced mode. Configure both rules during transition-mode validation rather than waiting for enforcement to interrupt replication.
+
+**Important exception:** when the logical server's public network access is **Secured by Perimeter**, mirroring does **not** honor transition mode for outbound publishing: the outbound rules already determine whether it can publish. Adding an existing mirror's server to an enforced perimeter can stop replication even while the Fabric portal still looks healthy. Check freshness and `sys.dm_change_feed_errors`, not just connection success.
+
+**Unresolved reference mismatch:** the security guide names `destination_fqdn`, but the linked [`sp_help_change_feed` reference](https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-help-change-feed?view=azuresqldb-current#result-set) does not yet list that result column. If it is absent on the source, use error 22651's evaluated FQDN or obtain Microsoft clarification; do not guess an allow-list entry from `destination_location`.
+
+The [perimeter concepts](https://learn.microsoft.com/en-us/azure/private-link/network-security-perimeter-concepts#how-does-a-network-security-perimeter-work) separately exempt private-endpoint traffic from explicit perimeter access rules. Do not interpret that private SQL connection as an exemption for the engine's OneLake-bound publishing, or the service-tag recipe as a requirement to expose a private source publicly. Gateway routing/DNS, publishing identity grants, OneLake inbound rules, and Fabric workspace outbound protection still need their own checks.
 
 ---
 
@@ -176,6 +194,8 @@ Keep passwords and client secrets in the approved secret store and Fabric connec
 5. If OneLake inbound access is restricted, a workspace administrator adds the **logical server Azure resource ID** to [Resource Instance Rules](https://learn.microsoft.com/en-us/fabric/onelake/onelake-manage-inbound-access-trusted-resources). This permits source publishing over the allowed OneLake path; it does not grant item permissions, create a private tunnel, or replace source-side firewall rules.
 6. If workspace outbound access protection is enabled, separately allow the source using the documented data connection rule. Test the complete path before the snapshot window.
 
+If the logical server belongs to an NSP, also complete the [source-side perimeter checks](#source-side-network-security-perimeter-preview) above. A firewall allowance, successful gateway test, or OneLake Resource Instance Rule does not replace the perimeter's outbound publishing rule.
+
 When using Entra/OAuth or service-principal authentication through a VNet gateway, permit its identity-service and certificate-validation dependencies as well as SQL traffic. For the specific private-resource OAuth errors `Authorization failed for Public API route` or `DM_GWPipeline_Client_OAuthTokenLoginFailedError`, the [VNet FAQ](https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-faqs#why-can-t-i-create-a-virtual-network-data-gateway-connection-with-oauth-authentication-towards-an-azure-resource-configured-with-private-endpoints-) documents enabling the `Microsoft.AzureActiveDirectory` service endpoint on the gateway subnet. This is a scoped authentication fix, not permission to open the SQL public endpoint. Grant the creator gateway/connection access separately from SQL permissions.
 
 ### 5. Prepare a safe verification table
@@ -268,7 +288,7 @@ Monitor log usage, source CPU/I/O, table warnings, and elapsed freshness—not o
 | **CDC compatibility** | User-enabled CDC and Azure Synapse Link for SQL block mirroring on the source database. |
 | **Elastic Pools** | Supported. |
 | **Read replicas** | Mirroring connects to the primary replica, not a read replica. |
-| **Network boundaries** | Both gateway types are documented, but gateway source access, source-identity publishing to OneLake, workspace inbound restrictions, and outbound data connection rules must each succeed. No gateway choice substitutes for the others. |
+| **Network boundaries** | Both gateway types are documented, but gateway source access, source-identity publishing to OneLake, applicable source-side NSP rules, workspace inbound restrictions, and outbound data connection rules must each succeed. No gateway choice substitutes for the others. |
 | **Stop and restart** | Stopping disables mirroring; starting again reseeds all tables rather than resuming from the previous position. |
 
 ### Primary Keys, Clustered Indexes, and Heaps
@@ -307,6 +327,9 @@ Fabric manages the change feed, so there are no user-managed CDC tables or CDC c
 | Permission error | Connection principal lacks external mirroring permissions | Grant `ALTER ANY EXTERNAL MIRROR` and the documented view permissions |
 | Managed identity error | Logical server identity is missing or not primary | Enable and verify the server managed identity |
 | Firewall or source connection error | Fabric/gateway cannot reach or resolve the SQL endpoint | Check the selected route, normal SQL FQDN, private DNS, firewall and Proxy/Redirect ports; use the standard gateway ports test or VNet network troubleshooter as appropriate |
+| Error **22651** after perimeter association or during setup | The logical server's NSP does not allow the OneLake destination FQDN | Have the network owner add an outbound FQDN rule on the server's associated perimeter profile, matching the exact destination in the error; **Secured by Perimeter** enforces this even in transition mode |
+| Error **22652** | Public network access is **Secured by Perimeter**, but no NSP is associated | Have the network owner associate the intended perimeter or approve changing that public-network-access setting; changing SQL permissions cannot fix it |
+| `Login failed because the network security perimeter denied inbound access` | NSP blocked Fabric's source connection | Configure the documented inbound `DataFactory`, `PowerBI`, and `PowerQueryOnline` service-tag rule, including the required regions when regional tags are used |
 | Connection succeeds but snapshot/change feed stalls | Source publishing identity or OneLake inbound access is blocked | Check the actual primary identity's item Read/Write grants, tenant settings, change-feed errors, and the logical server's Resource Instance Rule; a healthy gateway validates only the source connection path |
 | Gateway missing or rejected | Personal mode, missing gateway/connection access, or unavailable gateway | Select standard mode or a supported VNet gateway, check access/health and the current supported release; do not compensate with broader SQL privileges |
 | Table not appearing in Fabric | Table selection, an unsupported key/index or table feature, or an older eligibility inventory | Check the selected tables and [key/index rules](#primary-keys-clustered-indexes-and-heaps); no primary key alone is not a reason to reject the table |

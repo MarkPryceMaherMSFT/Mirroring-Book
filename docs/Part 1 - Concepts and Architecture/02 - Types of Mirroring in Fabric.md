@@ -62,6 +62,9 @@ Database mirroring is the standard pattern for supported source databases and pl
 * SQL Server 2016–2022
 * SQL Server 2025
 * Fabric SQL Database *(auto-configured)*
+* Microsoft Fabric HorizonDB *(Public Preview; automatic for eligible tables)*
+
+[Fabric HorizonDB](../Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md) is the native Fabric PostgreSQL service announced at Ignite 2026, separate from the Azure Database for PostgreSQL flexible server connector. Its **Federated Analytics** name groups database mirroring, read-only queries of Fabric data, and reverse-ETL delivery. Those are different directions and ownership models, not a fourth mirroring type or a bidirectional transactional replica. Azure HorizonDB's separate GA announcement does not make Fabric HorizonDB GA.
 
 SharePoint List combines database and metadata mirroring: Document Library content is surfaced through OneLake shortcuts, and list row data is replicated into Delta tables. [Chapter 21](../Part%202-%20Source-Specific%20Mirroring%20Guides/21%20-%20SharePoint%20List.md) covers this in detail.
 
@@ -96,10 +99,10 @@ Avoiding row replication does not guarantee instant query freshness. Catalog ref
 **Supported sources for metadata mirroring:**
 
 * Azure Databricks (Unity Catalog) *(GA)*
-* Azure Monitor *(Public Preview)*
-* Dremio *(Public Preview)*
-* AWS Glue *(Public Preview)*
-* Google Lakehouse Runtime Catalog *(Public Preview)*
+* Azure Monitor *(GA announced at Ignite; source guide still Preview)*
+* Dremio *(GA announced at Ignite; source guide still Preview)*
+* AWS Glue *(GA announced at Ignite; source guide still Preview)*
+* Google Lakehouse Runtime Catalog *(GA announced at Ignite; source guide still Preview)*
 * Snowflake Iceberg tables through the supported shortcut path described in [Chapter 22](../Part%202-%20Source-Specific%20Mirroring%20Guides/22%20-%20Snowflake.md)
 * SharePoint Document Library content through the hybrid integration in [Chapter 21](../Part%202-%20Source-Specific%20Mirroring%20Guides/21%20-%20SharePoint%20List.md)
 
@@ -107,7 +110,7 @@ For Dremio and AWS Glue, Fabric connects to an Iceberg REST Catalog endpoint. Au
 
 [Google Lakehouse Runtime Catalog mirroring](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime) also uses an Iceberg REST catalog, with table data remaining in Google Cloud Storage. It authenticates Microsoft Entra identities through Google Cloud Workload Identity Federation rather than a stored service-account key. This is distinct from the BigQuery database replication connector in Chapter 16. [Chapter 30](../Part%202-%20Source-Specific%20Mirroring%20Guides/30%20-%20Google%20Lakehouse%20Runtime%20Catalog%20Mirroring.md) now provides its dedicated setup, limits, and troubleshooting guide.
 
-The Google catalog preview supports up to 500 Iceberg V2 tables with Parquet data files. Both the catalog endpoint and storage must be reachable over the public internet; firewall-restricted catalog mirroring is not supported. Source row and column permissions do not carry over automatically. See its [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations).
+The currently published Google catalog contract supports up to 500 Iceberg V2 tables with Parquet data files. Both the catalog endpoint and storage must be reachable over the public internet; firewall-restricted catalog mirroring is not supported by that guide. Source row and column permissions do not carry over automatically. The 17 November GA announcement does not by itself replace these [implementation limitations](https://learn.microsoft.com/en-us/fabric/mirroring/catalog-mirroring/google-lakehouse-runtime-limitations).
 
 Azure Monitor follows a different mechanism within this same type: instead of an Iceberg catalog, it connects to a Log Analytics workspace and exposes the workspace's own Delta Parquet storage through OneLake shortcuts and a Fabric Eventhouse endpoint, with no separate catalog-sync step. Chapter 15 covers Azure Monitor mirroring in detail.
 
@@ -119,6 +122,8 @@ Some integrations deliver a similar analytical experience without following the 
 |---|---|---|
 | [Dataverse Link to Microsoft Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md) | Dataverse creates and maintains an optimized Delta/Parquet replica in Dataverse storage and links tables into a Fabric Lakehouse through managed shortcuts. | It resembles Unity Catalog metadata mirroring at the consumer edge, but the producer is Dataverse, not a Unity Catalog metastore. The linked item is a Lakehouse, not a native Mirrored Database. |
 | [SAP Business Data Cloud Connect for Microsoft Fabric](../Part%202-%20Source-Specific%20Mirroring%20Guides/29%20-%20SAP%20Business%20Data%20Cloud%20Connect%20for%20Microsoft%20Fabric.md) | Announced governed data-product sharing between SAP BDC and Fabric; a Fabric-specific GA/setup confirmation was not verified. | Do not reuse the SAP Datasphere-to-ADLS replication recipe or infer a universal SAP CDC connector. Follow the chapter's availability evidence and readiness gates, not an invented configuration procedure. |
+| Salesforce Data 360 shortcuts *(Preview)* | Exposes supported shared Data Lake Objects through shortcuts; not an announced native database-replication pipeline. | Only supported `_dll` DLOs are in scope. Source DLO filters are **not honoured**; approve the whole exposed dataset. See [the shortcut contract](https://learn.microsoft.com/en-us/fabric/onelake/shortcuts/create-salesforce-data-360-shortcut). |
+| IQ Sharing / OneLake Mirrored Items *(Preview)* | Accepting a cross-tenant share creates read-only shortcut-based consumer items. | “Mirrored Item” here is sharing terminology, not a new database source or Open Mirroring publisher. Source OneLake policies do **not** carry through this preview; see [Section 4.6](04%20-%20The%20Anatomy%20of%20a%20Mirrored%20Database.md#46-sharing-and-managing-permissions). |
 
 For Dataverse, **zero-copy access does not mean no replica exists**. The [Microsoft overview](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/azure-synapse-link-view-in-fabric) explicitly describes an optimized replica consuming additional **Dataverse database storage**. Fabric reads through shortcuts instead of owning a second native-mirroring output copy. Upstream replica freshness, shortcut authorization, and SQL/semantic-model freshness are still separate concerns.
 
@@ -160,7 +165,7 @@ The three types above remain Fabric's official mirroring taxonomy. Application t
 
 | Application | Setup entry point and target | Availability and source guide |
 |---|---|---|
-| **Dynamics 365 Business Central** | Business Central online v29+ assisted setup configures its publisher for an **open mirrored database**; replicated Delta data lives in OneLake. | Prerelease documentation plans a production-ready preview for October 2026; the date alone does not confirm delivery or GA. [Chapter 31](../Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md). |
+| **Dynamics 365 Business Central** | A compatible online environment/extension uses Microsoft's Fabric Export application and assisted setup to publish to an **open mirrored database**; replicated Delta data lives in OneLake. | Current 6 November documentation consistently describes production-ready **Preview**, not GA or a universal v29 minimum. [Chapter 31](../Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md). |
 | **Dataverse** | **Link data / Link to Fabric** creates a lakehouse and shortcuts to a **Dataverse-managed analytical replica**. Low-latency sync writes database data directly to Delta Parquet. | Link to Fabric is GA; low-latency sync is GA-announced with station-based rollout and existing-profile migration. [Chapter 28](../Part%202-%20Source-Specific%20Mirroring%20Guides/28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md). |
 
 Dataverse's use of shortcuts does not make it a metadata-mirrored catalog, and public documentation does not establish that it uses the Open Mirroring landing-zone protocol. Business Central's underlying Open Mirroring GA status does not make its application integration GA. Follow the application-specific documentation for both setup and billing.

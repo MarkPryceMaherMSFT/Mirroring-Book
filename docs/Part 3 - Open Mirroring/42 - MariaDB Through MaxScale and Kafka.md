@@ -1,4 +1,4 @@
-# Chapter 41: MariaDB Through MaxScale and Kafka
+# Chapter 42: MariaDB Through MaxScale and Kafka
 
 > **Part 3: Open Mirroring**
 >
@@ -27,7 +27,7 @@ This chapter includes the sample because its publisher implementation is public 
 
 Review the Compose services, [MaxScale configuration](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/config/maxscale/maxscale.cnf), and [consumer configuration](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/config.example.yaml). Configure source permissions, Kafka topic/partition, table keys, durable state storage and destination credentials.
 
-The supplied consumer configuration uses local-only output, a 120-second poll interval and a 1,000-row per-table upload cap. Those are sample settings, not Fabric service limits. First prove the locally produced Parquet, then deliberately enable OneLake delivery using the permissions in [Chapter 33](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md). Ensure publisher state survives container replacement.
+The supplied consumer configuration uses local-only output, a 120-second poll interval and a 1,000-row per-table upload cap. Those are sample settings, not Fabric service limits. First prove the locally produced Parquet, then deliberately enable OneLake delivery using the permissions in [Chapter 34](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md). Ensure publisher state survives container replacement.
 
 Do not put demonstration passwords on a shared network. Pin container images and dependencies, replace example credentials and restrict exposed ports before expanding the lab.
 
@@ -35,7 +35,7 @@ Do not put demonstration passwords on a shared network. Pin container images and
 
 The [consumer](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py) contains more state machinery than a simple notebook. `snapshot_source_tables` starts a consistent-snapshot transaction and records GTID-related progress. `load_state` and `save_state` manage offsets, file counters, schemas and bootstrap state, using a temporary state file and replacement.
 
-`normalize_row` maps change events, including deletes; `flush_table_rows` writes sequential Parquet files. Snapshot output omits the row marker, while incremental output places it last. The local helper adds operations such as `upload_bytes`; those are extensions, not methods available in the standalone SDK from [Chapter 38](38%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md).
+`normalize_row` maps change events, including deletes; `flush_table_rows` writes sequential Parquet files. Snapshot output omits the row marker, while incremental output places it last. The local helper adds operations such as `upload_bytes`; those are extensions, not methods available in the standalone SDK from [Chapter 39](39%20-%20The%20Microsoft%20Open%20Mirroring%20Python%20SDK.md).
 
 A consistent source transaction plus a subsequently read global GTID does not by itself prove an exact scan/change-stream handoff under concurrent commits. Test the boundary against the actual server topology and binlog fields. The [GTID utilities](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/gtid_utils.py) also deserve attention for multidomain values.
 
@@ -43,12 +43,12 @@ A consistent source transaction plus a subsequently read global GTID does not by
 
 In the inspected loop, offsets advance while rows are buffered. A flush can publish only the configured prefix while remaining rows stay in memory, after which state is saved. A saved offset must never acknowledge rows that exist only in memory. Crash recovery needs a durable pending batch or a checkpoint restricted to the contiguous published prefix.
 
-File collision handling and counters are also not a complete source-batch journal. An existing destination filename must be reconciled with its assigned payload, not simply bypassed by choosing a new number. See the [publication design](33%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md) for the distinction.
+File collision handling and counters are also not a complete source-batch journal. An existing destination filename must be reconciled with its assigned payload, not simply bypassed by choosing a new number. See the [publication design](34%20-%20Setting%20Up%20Open%20Mirroring%20-%20Step-by-Step%20Configuration.md) for the distinction.
 
 The consumer manually assigns one partition. Do not infer distributed ownership or failover from Kafka's presence. The destination-validation path can select local-only operation, so monitoring must distinguish local exports from actual Fabric delivery.
 
-![Figure 41.1: MariaDB binlog-to-Kafka capture, optional OneLake delivery and saved-offset buffer hazard](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.png)
-*Figure 41.1: Capture, local output, remote publication and persisted source progress are separate states. A capped flush can leave RAM-only rows behind an offset subsequently saved to disk. Explanatory illustration by this book, based on the pinned [sample README](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/README.md), [consumer loop](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py#L1400-L1529), and [MaxScale 24.02 licence](https://github.com/mariadb-corporation/MaxScale/blob/844ab7ab5033a54c934757cefea05173ce50934e/licenses/LICENSE2402.TXT); not an official Microsoft diagram, proof of exactly-once delivery or a licence grant for the entire stack. [Editable Excalidraw source](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.excalidraw).*
+![Figure 42.1: MariaDB binlog-to-Kafka capture, optional OneLake delivery and saved-offset buffer hazard](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.png)
+*Figure 42.1: Capture, local output, remote publication and persisted source progress are separate states. A capped flush can leave RAM-only rows behind an offset subsequently saved to disk. Explanatory illustration by this book, based on the pinned [sample README](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/README.md), [consumer loop](https://github.com/microsoft/fabric-toolbox/blob/b0183fb1841367fd0eaa4aae28949f7911ff4f05/samples/open-mirroring/MariaDBMirroring/consumer/consumer.py#L1400-L1529), and [MaxScale 24.02 licence](https://github.com/mariadb-corporation/MaxScale/blob/844ab7ab5033a54c934757cefea05173ce50934e/licenses/LICENSE2402.TXT); not an official Microsoft diagram, proof of exactly-once delivery or a licence grant for the entire stack. [Editable Excalidraw source](../assets/diagrams/chapter-41/walkthrough-mariadb-buffer-state.excalidraw).*
 
 ## What to Measure and Test
 
@@ -56,4 +56,4 @@ Track binlog/GTID progress, Kafka lag, durable pending batches, destination publ
 
 The architecture demonstrates useful separation between capture, transport and publishing. It does not establish exactly-once delivery, full topology support or an unrestricted free runtime. Budget source resources, Kafka/MaxScale hosting, state storage, network transfer and Fabric analytics separately.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 40: Toolbox Notebook Solutions](40%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md) | **Next:** [Chapter 42: BigQuery with FabricBQSync](42%20-%20BigQuery%20with%20FabricBQSync.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 41: Toolbox Notebook Solutions](41%20-%20Toolbox%20Notebook%20Solutions%20-%20Excel%2C%20SharePoint%2C%20MySQL%2C%20and%20Snowflake.md) | **Next:** [Chapter 43: BigQuery with FabricBQSync](43%20-%20BigQuery%20with%20FabricBQSync.md)

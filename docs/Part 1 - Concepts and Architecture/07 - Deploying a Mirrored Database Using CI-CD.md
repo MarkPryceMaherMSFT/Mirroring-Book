@@ -74,6 +74,16 @@ A [deployment plan](https://learn.microsoft.com/en-us/fabric/cicd/deployment-pla
 
 ---
 
+## November 2026: Downstream SQL and Streaming ALM
+
+The [11 November Warehouse CI/CD announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/the-next-chapter-for-cicd-in-fabric-warehouse-preview/5401222) is **Preview** support for Warehouse SQL-project/DacFx definitions, deployment scripts, and APIs. It does not version replicated data or make a mirror's SQL analytics endpoint objects part of `mirroring.json`.
+
+The announcement puts SQL endpoint CI/CD and further library/deployment support under **What's next**, while the [current Git contract](https://learn.microsoft.com/en-us/fabric/data-warehouse/git-integration) still excludes endpoint version control. The general Git page and [deployment-script guide](https://learn.microsoft.com/en-us/fabric/data-warehouse/deployment-scripts) also differ on script round-tripping. Verify the supported item and script designation before relying on preservation; do not promote the broader Ignite wording into proven endpoint deployment parity.
+
+For downstream CDF consumers, [Eventstream variable libraries](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/manage-once-reuse-everywhere-introducing-variable-library-support-for-eventstrea/5377349) are **Preview** and can parameterise mirrored-database change-feed item/table references. Follow the [supported variable-library fields](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/event-streams/variable-library-support). Managed-resource references are not embedded credentials, and this feature does not replace Mirroring connection/identity preparation.
+
+The November summary's **GA Gen1-to-Gen2 Dataflow upgrade** is another separate ALM workflow, with its own [upgrade API](https://learn.microsoft.com/en-us/rest/api/fabric/dataflow/upgrade). It is not a MirroredDatabase definition upgrade or evidence that unsupported endpoint objects now round-trip through Git.
+
 ## Infrastructure as Code
 
 For teams that want scripted deployment, the two current programmatic paths are the **Fabric Terraform provider** and direct **REST API** calls. If you need infrastructure-as-code beyond Terraform, the REST API is the current recommended path for mirrored databases.

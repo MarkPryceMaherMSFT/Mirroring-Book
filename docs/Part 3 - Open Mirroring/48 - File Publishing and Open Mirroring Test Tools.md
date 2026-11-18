@@ -1,4 +1,4 @@
-# Chapter 47: File Publishing and Open Mirroring Test Tools
+# Chapter 48: File Publishing and Open Mirroring Test Tools
 
 > **Part 3: Open Mirroring**
 >
@@ -53,6 +53,6 @@ Run benchmarks only on capacity and source resources approved for load testing. 
 
 Start with stable business keys, known initial rows and a declared schema. Apply an update, insert and delete, then interrupt publication and rerun the same assigned batch. Exercise an empty input, a key change, a new column and several changes to one key.
 
-Compare destination values after Fabric ingestion, not just immediately after upload. Use [Chapter 48's acceptance exercises](48%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md#acceptance-exercises) to expand this into a project qualification plan. Tools can help generate the evidence, but cannot replace a correctly designed source and publication boundary.
+Compare destination values after Fabric ingestion, not just immediately after upload. Use [Chapter 49's acceptance exercises](49%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md#acceptance-exercises) to expand this into a project qualification plan. Tools can help generate the evidence, but cannot replace a correctly designed source and publication boundary.
 
-**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 46: Synapse Dedicated SQL Pool Open Mirroring](46%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) | **Next:** [Chapter 48: Choosing a Solution, Shared Lessons, and Further Reading](48%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md)
+**Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 47: Synapse Dedicated SQL Pool Open Mirroring](47%20-%20Synapse%20Dedicated%20SQL%20Pool%20Open%20Mirroring.md) | **Next:** [Chapter 49: Choosing a Solution, Shared Lessons, and Further Reading](49%20-%20Choosing%20a%20Solution%2C%20Shared%20Lessons%2C%20and%20Further%20Reading.md)

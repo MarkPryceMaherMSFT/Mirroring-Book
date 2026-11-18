@@ -12,7 +12,7 @@
 
 **Azure Databricks** is an analytics platform built on Apache Spark. **Unity Catalog** provides centralised metadata management, access control, and data lineage across Databricks workspaces.
 
-Fabric's generally available Azure Databricks integration uses **metadata mirroring**. It synchronises catalog metadata and uses OneLake shortcuts to access source data without copying that data into OneLake.
+Fabric's generally available Azure Databricks integration uses **metadata mirroring**. It synchronises catalog metadata and creates OneLake shortcuts without making another row replica. The standard path reads Databricks data in ADLS Gen2; the separately announced native-OneLake storage path stores the Databricks data in OneLake already.
 
 ---
 
@@ -22,14 +22,14 @@ Fabric's generally available Azure Databricks integration uses **metadata mirror
 - **Method**: Pull-based (metadata sync from Unity Catalog)
 - **Metadata mechanism**: Unity Catalog metadata access and OneLake shortcuts; no row-level CDC pipeline
 
-Unlike database mirroring, Fabric Mirroring for Azure Databricks does **not** copy data into OneLake. Instead, it mirrors the selected Unity Catalog structure, with **shortcuts** pointing to the underlying managed or external Delta tables in ADLS Gen2.
+Unlike database mirroring, catalog mirroring does **not** copy the table rows. It mirrors the selected Unity Catalog structure and points shortcuts at the existing supported Delta data. The standard ADLS-backed setup below and the native-OneLake option described next have different storage-authorisation requirements.
 
 **Architecture flow:**
 
-[![Figure 14.1: Metadata mirroring keeps data in Databricks and synchronises metadata](../assets/diagrams/chapter-14/diagram-01.png)](../assets/diagrams/chapter-14/diagram-01.excalidraw.png)
-*Figure 14.1: Metadata mirroring keeps data in Databricks and synchronises metadata*
+[![Figure 14.1: Standard ADLS-backed Databricks catalog mirroring synchronises metadata without copying table rows](../assets/diagrams/chapter-14/diagram-01.png)](../assets/diagrams/chapter-14/diagram-01.excalidraw.png)
+*Figure 14.1: The standard ADLS-backed path. Native OneLake storage uses the separate storage item and permissions described below; this diagram is not that provisioning procedure.*
 
-> **Key difference:** Unlike database mirroring, no data is physically moved to OneLake. Queries traverse shortcuts back to the original Databricks storage.
+> **Key difference:** Metadata mirroring does not itself relocate table data. Queries follow shortcuts to the approved Databricks storage location, which can be ADLS Gen2 or the separately configured OneLake storage option.
 
 **Compare Dataverse, not conflate it:** [Dataverse Link to Fabric](28%20-%20Dataverse%20Link%20to%20Microsoft%20Fabric%20and%20Low-Latency%20Sync.md) also exposes source-managed Delta data through shortcuts, but Dataverse creates the optimized analytical replica and manages the link. It does not require a Unity Catalog metastore or these Databricks grants. Both patterns require separate checks of producer freshness, shortcut authorization, and Fabric consumer security.
 
@@ -37,9 +37,48 @@ Changes in the underlying data are not necessarily visible immediately through t
 
 ---
 
+## November 2026 Object and Storage Updates
+
+### Materialized views and streaming tables
+
+The [3 November announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/announcing-support-for-materialized-views-and-streaming-tables-in-mirrored-azure/5377928) explicitly adds **materialized views and streaming tables** to the existing mirrored catalog, alongside ordinary tables. These remain read-only shortcut-backed objects, not a row-replication pipeline or a new Fabric item type. The current [Fabric tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial) and overview include them. Ordinary SQL views and metric views remain excluded.
+
+Apply the [external-access guide](https://learn.microsoft.com/en-us/azure/databricks/external-access/external-for-pipelines) as well as the Fabric tutorial:
+
+- The source datasets must use Unity Catalog, **Databricks Runtime 17.3 or later**, and **default publishing mode** for external readability. The reading principal needs `EXTERNAL USE SCHEMA` and `SELECT`, in addition to the catalog/schema access below.
+- Set `pipelines.externalMetadata.enabled=true` in the pipeline configuration or the object's `TBLPROPERTIES`. A table-level setting takes precedence. Run a triggered pipeline once; stop/restart a continuous pipeline. For standalone SQL objects, rerun the materialized-view or streaming-table definition with the property.
+- The source guide requires an external **Delta 4.0+ client with deletion-vector support using Unity Catalog APIs**, or an Iceberg client supporting **V3**. It excludes path-based external reads, external writes, time travel, and row-filter/column-mask enforcement. Its compatibility mode creates a **full copy**, so it is not the same no-copy contract.
+- **Catalog commits are incompatible with external access to these pipeline assets.** Disabling them is an owner-reviewed table-feature change, not a Fabric connection setting; the [catalog-commit guide](https://learn.microsoft.com/en-us/azure/databricks/tables/features/catalog-commits#turn-off-catalog-commits) requires **Databricks Runtime 18 LTS or later** to disable them on an existing streaming table or materialized view.
+
+> **Unresolved documentation conflict, checked 18 November 2026:** the currently served source-side external-access guide, dated **30 October**, still explicitly says **“Reading from Microsoft Fabric is not supported.”** The [Databricks Fabric integration guide](https://learn.microsoft.com/en-us/azure/databricks/partners/bi/fabric-mirror), dated **6 October**, also still excludes materialized views and streaming tables. These conflict with the newer Fabric announcement and current Fabric tutorial. Retain both dated contracts and confirm the exact supported object/engine combination with the service owners before production use. Catalog discovery or the generic Spark 3.4/Delta 2.4 baseline alone does not settle this conflict.
+
+### Native OneLake storage
+
+The [5 November native-storage announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/use-onelake-as-native-storage-for-azure-databricks/5377939), reiterated at Ignite, is **GA on the Fabric side and Public Preview on the Azure Databricks side**. It lets Databricks use an **Azure Databricks Storage** item in OneLake. It is not a switch that converts every existing ADLS table to OneLake storage.
+
+Follow the [Databricks OneLake external-location guide](https://learn.microsoft.com/en-us/azure/databricks/connect/unity-catalog/cloud-storage/external-locations-onelake), updated **13 November** and checked **18 November**, rather than reusing the ADLS connection wizard:
+
+| Boundary | Required configuration |
+|---|---|
+| Databricks compute and administration | Unity Catalog plus **serverless compute or classic compute on Databricks Runtime 18.1+**. The creator needs `CREATE STORAGE CREDENTIAL` on the metastore, and `CREATE EXTERNAL LOCATION` on both the metastore and storage credential. The workspace admin controls the OneLake external-location Preview. |
+| Fabric settings | Active workspace capacity; tenant setting **Users can create Azure Databricks Storage items**; workspace **Delegated settings > OneLake Settings > Authenticate with OneLake user-delegated SAS tokens** enabled. |
+| Writer identity | The access connector's managed identity or approved service principal needs workspace **Viewer** and membership in the storage item's OneLake security role with **ReadWrite**. Workspace roles, including Administrator/Member/Contributor, do **not** themselves grant data access to this locked-by-default item. |
+| Storage path | Use `abfss://<WorkspaceID>@onelake.dfs.fabric.microsoft.com/<DatabricksStorageID>/Files/`. Both identifiers are GUIDs; display-name paths are rejected. Create/test the Unity Catalog storage credential and OneLake external location before using it as catalog/schema managed storage. |
+| File events | Enabled by default for new external locations and delivered through a Fabric eventstream. Automatic management requires **Contributor or higher on the workspace**; a provided eventstream requires **Member or higher on the eventstream's workspace**. Viewer alone is insufficient for these event operations. |
+
+Keep only the approved Databricks managed identity/service principal in the storage item's ReadWrite role. Adding human readers or groups would permit direct reads/writes outside Unity Catalog governance. Fabric readers should use the **mirrored catalog**, with its separately configured reader permissions, rather than the storage item.
+
+The same guide documents three important consumer restrictions:
+
+- **Fabric Spark cannot read catalog-commit tables through a mirrored Databricks catalog**, including notebooks and Spark job definitions: it does not obtain the authoritative latest state from Unity Catalog. Catalog commits are enabled by default for Unity Catalog managed tables in new catalogs/schemas through automatic upgrades. The documented workaround is an approved source-side `ALTER TABLE <table-name> DROP FEATURE 'catalogManaged'`; this also disables dependent features. Follow the [runtime and downgrade requirements](https://learn.microsoft.com/en-us/azure/databricks/tables/features/catalog-commits#turn-off-catalog-commits), and do not interrupt a feature downgrade. Do not generalize this Spark exclusion into a documented ban on every SQL consumer.
+- **`FILE` columns are omitted**, while the table's other columns remain mirrored. Fabric cannot use the omitted column to navigate from the row to its file.
+- **Databricks-to-Open sharing** of managed tables stored on OneLake is unsupported because this sharing path relies on pre-signed file URLs, which OneLake paths do not support.
+
+Prove the intended SQL, Direct Lake, and Spark paths separately. Neither successful catalog discovery nor support for storing an object in OneLake establishes every engine's table-feature compatibility.
+
 ## Network and Connectivity
 
-**Gateway documentation reviewed: 4 November 2026.** The [source-specific private-endpoint guide](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-private-endpoint) documents a VNet gateway for the Databricks workspace/catalog connection. The [tutorial's network-security procedure](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial#enable-network-security-access-for-your-azure-data-lake-storage-gen2-account) and [security guidance](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-security) govern the separate ADLS read path. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
+**Connectivity documentation reviewed: 18 November 2026.** The [source-specific private-endpoint guide](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-private-endpoint) documents a VNet gateway for the Databricks workspace/catalog connection. The [tutorial's network-security procedure](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial#enable-network-security-access-for-your-azure-data-lake-storage-gen2-account) and [security guidance](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-security) govern the separate ADLS read path. See the [gateway support matrix and lifecycle guidance](../appendix.md#gateway-support-by-source).
 
 | Question | Answer |
 |---|---|
@@ -48,7 +87,7 @@ Changes in the underlying data are not necessarily visible immediately through t
 | **Region and tenant bounds?** | The gateway must be in the **Databricks workspace's region**. Check both the catalog's supported regions and [VNet gateway region availability](https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways#regions-supported-for-virtual-network-data-gateways); neither list alone establishes availability. Gateway creation across tenant boundaries and cross-tenant trusted workspace access are unsupported. |
 | **Storage firewall restrictions?** | Firewall-protected ADLS Gen2 requires trusted workspace access and a Fabric workspace identity, regardless of the Databricks authentication method. The tutorial excludes Databricks workspace storage behind an Azure Storage firewall. |
 | **Fabric Private Link?** | A private source endpoint is not a Fabric tenant/workspace Private Link deployment recipe. Validate Fabric inbound controls separately; the Iceberg-to-Delta virtualization exclusion is not evidence about this native Delta catalog. |
-| **Fabric workspace outbound protection?** | The [mirrored-database support list](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases) does not explicitly enumerate this catalog item. [OneLake shortcut outbound controls](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) also apply to data access and each shortcut hop; a gateway or data connection rule alone does not establish end-to-end catalog support. |
+| **Fabric workspace outbound protection?** | The new [mirrored-catalog/Snowflake database OAP guide](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-catalogs-snowflake-database), dated 10 November, **explicitly does not cover mirrored Azure Databricks catalogs**. Its four-provider Preview and catalog-only rule recipe are not evidence of Databricks support. [OneLake shortcut outbound controls](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-onelake) still govern relevant shortcut paths; neither those controls nor a VNet gateway establish an end-to-end Databricks OAP contract. |
 
 **Storage documentation qualification:** the private-endpoint guide also says ADLS accounts behind private endpoints can be connected, but directs readers to the separate Network Security/trusted-workspace procedure. That tutorial explicitly excludes **Databricks workspace storage behind an Azure Storage firewall**. [Trusted workspace access](https://learn.microsoft.com/en-us/fabric/security/security-trusted-workspace-access) can allow eligible selected-network or public-network-disabled accounts through workspace-specific resource instance rules; this is not proof that ADLS reads traverse the catalog gateway or its private endpoint. Confirm the exact workspace-storage/table-storage configuration before promising an entirely private deployment.
 
@@ -60,7 +99,7 @@ Changes in the underlying data are not necessarily visible immediately through t
 
 Use the [Microsoft tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial) alongside this runbook. Record the Azure Databricks workspace URL, its attached Unity Catalog metastore, the **one catalog** to expose, selected schemas/tables, each table's ADLS location, and the Fabric workspace/capacity/region. A metastore can serve multiple workspaces; entering a workspace URL is not selecting every catalog in the metastore.
 
-1. **Databricks workspace administrator:** provision or identify a Unity Catalog-enabled workspace and add the intended connection user or service principal to it. Use a small, existing managed or external **Delta** table for the pilot; do not start with views, streaming tables, Delta Sharing, federation, or tables protected with row filters/column masks. Resolve the current streaming-table/materialized-view documentation conflict in **Nuances and Limitations** before planning those assets.
+1. **Databricks workspace administrator:** provision or identify a Unity Catalog-enabled workspace and add the intended connection user or service principal to it. Start the ADLS-backed pilot with a small, existing managed or external **Delta** table. Evaluate newly announced streaming tables/materialized views separately using the November prerequisites and compatibility checks below; do not infer support for ordinary views, Delta Sharing, federation, or tables protected with row filters/column masks.
 2. **Metastore administrator:** in a workspace attached to that metastore, open **Catalog** → the gear icon → **Metastore** → **Details**, and enable **External data access**. It is disabled by default. If the control is absent, have the metastore administrator perform this step, rather than granting broader Fabric roles.
 3. **Catalog owner and data owner:** explicitly authorize the connection principal. [Databricks external-access administration](https://learn.microsoft.com/en-us/azure/databricks/external-access/admin) requires `USE CATALOG`, `USE SCHEMA`, table `SELECT`, and `EXTERNAL USE SCHEMA`. Only the parent catalog owner can grant the last privilege; neither schema ownership nor `ALL PRIVILEGES` implicitly supplies it. For example, substitute real identifiers and the Databricks principal:
 
@@ -72,7 +111,7 @@ Use the [Microsoft tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/
    ```
 
    These are read-path grants, not permission to create external tables. Do not add `CREATE TABLE`, `CREATE EXTERNAL TABLE`, or `EXTERNAL USE LOCATION` merely to mirror existing tables. Catalog enumeration alone does not establish permission to read the underlying files.
-4. **Fabric administrator:** provide a workspace with an active capacity and item-creation permission, check the [supported regions](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-limitations#supported-regions), and, for Spark consumers, verify at least Spark 3.4/Delta 2.4 in workspace environment settings. Agree the Fabric/OneLake access model before importing a catalog structure.
+4. **Fabric administrator:** provide a workspace with an active capacity and item-creation permission, check the [supported regions](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-limitations#supported-regions), and, for ordinary Delta-table Spark consumers, verify the published Spark 3.4/Delta 2.4 minimum in workspace environment settings. This baseline does not override the newer pipeline-asset client requirements or catalog-commit restriction above. Agree the Fabric/OneLake access model before importing a catalog structure.
 
 ### 2. Establish catalog credentials and the separate storage path
 
@@ -115,7 +154,7 @@ Treat catalog discovery and file access as separate checkpoints. The VNet gatewa
 2. **Storage/query test:** open the item's **SQL analytics endpoint** and query known rows, for example `SELECT TOP (10) * FROM [reporting].[orders];` after checking the actual generated schema/table names. Compare a stable key and value with the source. A `403` here can be storage authorization/firewall failure even when catalog discovery succeeded.
 3. **Change test:** have the source owner append a recognizable non-sensitive test row to the pilot Delta table through the normal source write process. Requery after propagation and record the observed delay. If testing auto-discovery, create a separate approved table in the included schema and verify its shortcut appears. Data visibility and new-table discovery are different checks; neither proves replicated CDC or an ingest snapshot.
 4. **Consumer test:** grant the intended Entra group appropriate Fabric/OneLake read access, then repeat the query as a non-admin consumer. Unity Catalog grants and policies are **not copied** to Fabric, and consumers use the connection's source credential rather than passing their own Unity Catalog identity through.
-5. For Spark, create a Lakehouse **Tables** shortcut → **Microsoft OneLake** → this mirrored catalog → selected tables. This is a second shortcut hop, not a second data copy. Validate that consumer separately.
+5. For Spark, create a Lakehouse **Tables** shortcut → **Microsoft OneLake** → this mirrored catalog → selected tables. This is a second shortcut hop, not a second data copy. Validate that consumer separately, including the catalog-commit exclusion and any omitted `FILE` columns; creating another shortcut does not remove a table-feature restriction.
 
 For the [tutorial's explicit OneLake security mapping](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial#enable-onelake-security-on-the-mirrored-databricks-item), have the Databricks administrator synchronize the intended Entra group through Automatic Identity Management and grant its approved Unity Catalog permissions. In Fabric, open the mirrored item, select **Manage OneLake security**, create a data access role for the approved shortcuts, and add that same group with read access. This is an administrator-maintained mapping, not automatic policy replication. Keep it synchronized when tables or memberships change and test the actual consumer query path as described above.
 
@@ -129,11 +168,12 @@ Record connection owner, principal IDs (not secrets), catalog scope, automatic-s
 
 | Topic | Detail |
 |---|---|
-| **No data movement** | Data stays in Databricks storage. Queries read from source storage, so cross-region query latency may apply. |
+| **No data movement** | Catalog mirroring does not create another row copy. Data stays in its configured ADLS or native-OneLake storage; query-time reads and cross-region latency still apply. |
 | **Delta format required** | Only Unity Catalog tables stored in Delta format are supported. Parquet-only or CSV external tables are not supported. |
 | **Managed vs. external tables** | Both managed and external Unity Catalog tables are supported, provided Fabric can access the storage location. |
 | **Unsupported table types** | Tables with row-level security or column masking policies, lakehouse-federated tables, Delta Sharing tables, ordinary views, and metric views are not supported. Treat pipeline-managed assets separately as described below. |
-| **Streaming tables and materialized views: conflicting guidance** | The [27 October Fabric tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial#prerequisites) now includes these assets and `pipelines.externalMetadata.enabled`, applied by running/restarting the pipeline or rerunning a standalone definition. However, the linked [30 October Databricks external-access guide](https://learn.microsoft.com/en-us/azure/databricks/external-access/external-for-pipelines#limitations) explicitly says **reading from Microsoft Fabric is not supported**. Resolve this mismatch with the service team before onboarding these assets; the setting or a visible catalog object alone is not proof of supported Fabric reads. |
+| **Streaming tables and materialized views: unresolved support conflict** | The 3 November Fabric announcement and current Fabric tutorial support them with external-metadata prerequisites. As checked 18 November, the source-side external-access and Fabric integration guides still explicitly exclude Fabric access to these objects. Retain both dated statements, including the Runtime/client, default-publishing, and catalog-commit constraints above; obtain confirmation for the intended production path. |
+| **Native-OneLake consumer features** | Fabric Spark cannot read catalog-commit tables through the mirrored catalog. `FILE` columns are omitted, not converted to another supported type. Native storage GA on the Fabric side does not remove Databricks Preview status or these consumer restrictions. |
 | **Write-back not supported** | The Fabric SQL analytics endpoint is read-only for metadata-mirrored tables. |
 | **Metadata changes** | Automatic sync discovers schema and table additions and deletions. Renaming schemas or tables used in inclusion or exclusion lists is not supported. |
 | **Table permissions** | Unity Catalog permissions are not copied into Fabric. Configure Fabric or OneLake security separately; direct storage connections do not enforce Unity Catalog policies. |
@@ -158,7 +198,10 @@ Record connection owner, principal IDs (not secrets), catalog scope, automatic-s
 | Schema not visible | Schema not selected during mirroring setup | Edit the mirrored database to add the missing schema |
 | Private gateway cannot be selected | Connection is being created inside the mirror wizard | Create the VNet connection in **Manage connections and gateways**, then select it |
 | Private workspace connection fails | Gateway region, private-endpoint DNS/routing, or credentials are incorrect | Check the gateway-to-Databricks same-region requirement, private-endpoint reachability, and Organizational account/Service principal authentication separately from ADLS access |
-| Streaming table or materialized view is absent or unreadable | External-access prerequisites or the conflicting current support guidance | Resolve the tutorial/Databricks limitation mismatch above before changing source assets; neither a different gateway nor enabling external metadata proves support |
+| Streaming table or materialized view is absent or unreadable | External-metadata setting, pipeline run, Unity Catalog privileges, or table-feature/engine compatibility | Follow the 3 November support announcement and current tutorial, then validate the exact SQL/Spark path; a gateway change or visible catalog entry alone does not prove a readable object |
+| Native-OneLake storage returns `403` | Writer identity lacks workspace/data-role access, capacity, or uses the wrong path | Verify workspace Viewer (or the higher file-event role), the storage item's separate ReadWrite role, active capacity, and GUID-based `/Files/` path; a workspace administrator role alone does not unlock its data |
+| SQL works but a Fabric notebook cannot read a native-OneLake table | `catalogManaged` is enabled | Check table features and the documented catalog-commit/Spark limitation. Only the source owner should evaluate the supported feature downgrade and its dependencies; changing gateway or reader roles does not make Spark catalog-aware |
+| A `FILE` column is missing | Documented unsupported Fabric type | Compare the source schema with the mirrored schema; other columns can still be mirrored. Do not treat successful table creation as proof of file-column support |
 
 ---
 
@@ -179,6 +222,6 @@ Record connection owner, principal IDs (not secrets), catalog scope, automatic-s
 
 ## Summary
 
-Azure Databricks mirroring makes Unity Catalog tables accessible through Fabric without moving the source data into OneLake. Use it when Fabric consumers need governed access to existing Databricks data without duplication. See the current [Azure Databricks mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial), [security guidance](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-security), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-limitations).
+Azure Databricks mirroring makes supported Unity Catalog objects accessible through Fabric without creating another row copy. Standard ADLS-backed tables and Databricks objects stored natively in OneLake have different storage setup and permissions. Validate consumer security and table features separately, and retain the unresolved dated guidance for streaming tables/materialized views. See the current [Azure Databricks mirroring overview](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks), [tutorial](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-tutorial), [security guidance](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-security), and [limitations](https://learn.microsoft.com/en-us/fabric/mirroring/azure-databricks-limitations).
 
 **Contents:** [Table of Contents](../index.md) | **Previous:** [Chapter 13: Azure Cosmos DB](13%20-%20Azure%20Cosmos%20DB.md) | **Next:** [Chapter 15: Azure Monitor](15%20-%20Azure%20Monitor.md)

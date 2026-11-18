@@ -10,7 +10,7 @@
 
 ## Overview and Availability
 
-**Evidence reviewed: 8 October 2026.** SAP Business Data Cloud (SAP BDC) Connect for Microsoft Fabric was announced at Microsoft Ignite in November 2025. The announced capability is **bidirectional, zero-copy sharing**: SAP BDC data products become accessible through Microsoft OneLake, and data sets shared from OneLake become available in SAP BDC.
+**Public implementation status rechecked: 18 November 2026.** SAP Business Data Cloud (SAP BDC) Connect for Microsoft Fabric was announced at Microsoft Ignite in November 2025. The announced capability is **bidirectional, zero-copy sharing**: SAP BDC data products become accessible through Microsoft OneLake, and data sets shared from OneLake become available in SAP BDC. The current public SAP provisioning and consumer-access procedures still name Databricks, Snowflake and Google BigQuery, not Fabric. Historical announcement and planning statements below retain their original dates.
 
 **Do not treat this chapter as a released setup tutorial.** A Fabric-specific public implementation guide, supported-region matrix and GA confirmation were not verified. The original Q3 2026 target has passed, but elapsed time is not evidence of release. A later SAP-hosted answer gives a different planned date:
 
@@ -21,7 +21,7 @@
 | [Current SAP BDC Connect provisioning documentation][sap-provisioning] and [consumer-access documentation][sap-access] | Public procedures name **Databricks, Snowflake and Google BigQuery** as partner systems | Those procedures do not name Microsoft Fabric; their availability cannot be transferred to Fabric |
 | [Microsoft's current SAP integration guidance][ms-sap-options] | Separately identifies Datasphere mirroring as GA and BDC Connect for Fabric as announced, with future-looking availability wording | A Fabric BDC Connect GA announcement; its “later this year” wording does not resolve the conflicting roadmap dates |
 
-The [Fabric release-status page][ms-whats-new] reviewed for this chapter did not provide a BDC Connect launch confirmation. **Working classification: announced integration; latest explicit revised target found is end-Q1 2027, not a verified release.** Recheck both vendors before procurement or deployment. This finding does not rule out an invitation-only programme.
+The current [SAP provisioning procedure][sap-provisioning], [consumer-access procedure][sap-access] and [Microsoft integration guidance][ms-sap-options] do not establish a released Fabric connection. **Working classification: announced integration/readiness, not a verified public-preview or GA implementation.** The Q3 2026 and end-Q1 2027 statements are dated plans, not proof of release. Recheck both vendors before procurement or deployment; this finding does not rule out an invitation-only programme.
 
 ---
 
@@ -119,6 +119,8 @@ Public SAP Help pages were readable for this review. Their supporting SAP Notes,
 
 These are documentation gaps, **not claims that either Fabric gateway is explicitly unsupported**. Stay at readiness until both vendors establish the actual Fabric flow.
 
+**Current partner-specific Private Link evidence:** SAP's [provisioning page][sap-provisioning] contains an **Enforce Private Link** support table, but it lists **Snowflake on AWS, for SAP BDC-to-Snowflake data and metadata traffic**. SAP warns that enforcing Private Link for an unsupported partner can block all traffic. This is not a Fabric networking recipe or evidence that the announced Fabric integration is released.
+
 ---
 
 ## Readiness Checklist — Not an Executable Setup Procedure
@@ -183,7 +185,7 @@ For the existing Datasphere replication-flow/ADLS path, use [Chapter 20](20%20-%
 
 ## References and Recheck Points
 
-Public evidence reviewed **8 October 2026**:
+Public implementation and availability evidence rechecked **18 November 2026**; historical announcements and planning references retain their original dates:
 
 - **Original announcement:** [SAP News, November 2025][sap-announcement] and [Microsoft's joint announcement][ms-announcement].
 - **Later planning update, not a release notice:** [SAP Community GA question and 31 August 2026 answer][sap-status].

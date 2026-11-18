@@ -16,6 +16,8 @@ A mirrored database in Fabric combines storage, replication state, and query sur
 
 [Business Central](../Part%202-%20Source-Specific%20Mirroring%20Guides/31%20-%20Dynamics%20365%20Business%20Central%20Mirroring.md) uses an open mirrored database as its destination, but company/table selection, synchronization runs, and connection approval remain source-side application controls.
 
+[Fabric HorizonDB](../Part%202-%20Source-Specific%20Mirroring%20Guides/32%20-%20Microsoft%20Fabric%20HorizonDB%20Mirroring.md) adds native PostgreSQL with an automatic asynchronous mirror in Public Preview. Its operational endpoint, creator-only connection boundary, mirroring relationship, and analytical endpoint have their own contracts. Do not copy the external PostgreSQL connector's gateway/identity setup or Fabric SQL database's numerical limits into this service.
+
 When you create a mirrored database, Fabric creates **two** items:
 
 1. The **mirrored database item** itself, which owns the landing zone, Delta tables, replicator engine, replication settings, and monitoring state.
@@ -40,7 +42,7 @@ The **landing zone** is a transient staging area inside the mirrored database it
 * The file pattern depends on the source and mirroring method.
 * Retention and cleanup behaviour depend on the mirroring type and source.
 
-For open mirroring, the [landing-zone specification](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) describes moving processed files into internal cleanup folders and removing them after seven days, while retaining the latest sequential file as a publisher reference. This is **landing-file cleanup**, not Delta-table VACUUM or a durable publisher checkpoint. [Chapter 36](../Part%203%20-%20Open%20Mirroring/36%20-%20Metadata%20and%20Change%20Files.md#file-names-and-delivery) explains the publication and recovery implications.
+For open mirroring, the [landing-zone specification](https://learn.microsoft.com/en-us/fabric/mirroring/open-mirroring-landing-zone-format) describes moving processed files into internal cleanup folders and removing them after seven days, while retaining the latest sequential file as a publisher reference. This is **landing-file cleanup**, not Delta-table VACUUM or a durable publisher checkpoint. [Chapter 37](../Part%203%20-%20Open%20Mirroring/37%20-%20Metadata%20and%20Change%20Files.md#file-names-and-delivery) explains the publication and recovery implications.
 
 ### Delta Tables
 
@@ -148,7 +150,7 @@ The SQL analytics endpoint uses the same compute engine as Fabric Data Warehouse
 
 **Metadata synchronisation (MD Sync)** is separate from mirroring replication. The replicator applies source changes to Delta tables in OneLake; MD Sync makes those committed changes available through the SQL analytics endpoint. It reads Delta transaction logs to discover tables, detect schema changes, and update the SQL engine's view of the data. A change can therefore be present in OneLake before a SQL query returns it.
 
-The following sections use **MD Sync v1** for the legacy implementation and **MD Sync v2** for the workspace's **New metadata sync** option. Microsoft Learn describes them as legacy and new metadata sync. Guidance reviewed **5 November 2026**: [metadata sync overview](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) and [performance considerations](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-performance).
+The following sections use **MD Sync v1** for the legacy implementation and **MD Sync v2** for **New metadata sync**. Originally reviewed 5 November and updated **18 November 2026**: the [Ignite summary](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-november-2026-feature-summary/5414311) announces the new architecture **GA**, while migration of existing endpoints has separately published **Preview APIs**. The [conceptual guide](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) still carries older Preview/new-endpoints-only wording; that documentation discrepancy is retained rather than hiding either source.
 
 ### MD Sync v1: Background Metadata Discovery
 
@@ -160,11 +162,11 @@ An existing endpoint does not need to be replaced simply because its SQL results
 
 For mirrored tables, Fabric manages the Delta layout and maintenance. Do not copy the performance guide's user-managed Lakehouse `OPTIMIZE`/`VACUUM` examples onto mirrored output tables; see [Section 4.1](#41-storage-architecture-landing-zone-and-delta-tables).
 
-### MD Sync v2: New Metadata Sync (Preview)
+### MD Sync v2: New Metadata Sync
 
 MD Sync v2 introduces an external-table-based architecture with separate detection of schema and data changes. It combines periodic background checks with an on-demand data refresh when an incoming read query finds that the SQL view of the data is not current. The aim is faster query availability after data reaches OneLake, not a guaranteed end-to-end latency or a faster source replication service.
 
-To enable it for **new mirrored databases**:
+Ignite announces the new architecture as the default for new workspaces/endpoints. For an existing workspace that still exposes the opt-in setting, enable it for **subsequently created mirrored databases**:
 
 1. Open the target Fabric workspace and select **Workspace settings**.
 2. Under **Warehouse settings**, turn on **New metadata sync**.
@@ -174,11 +176,38 @@ To enable it for **new mirrored databases**:
 
 *Figure 4.2a: Where to enable the new metadata-sync implementation for subsequently created endpoints. This setting does not upgrade an existing endpoint. Microsoft screenshot, reproduced unchanged from [SQL analytics endpoint metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync#enable-new-metadata-sync); [original image](https://learn.microsoft.com/en-us/fabric/data-engineering/media/sql-analytics-endpoint-metadata-sync/workspace-settings-new-metadata-sync.png). Credit: Microsoft, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) under the [Fabric documentation licence](https://github.com/MicrosoftDocs/fabric-docs/blob/main/LICENSE), including its warranty disclaimer. The preview label is retained; follow the current feature restrictions, not a screenshot alone.*
 
-**The setting is not an in-place upgrade.** Existing mirrored databases and their SQL analytics endpoints remain on MD Sync v1. Turning on the workspace setting does not migrate them, and ordinary SQL freshness troubleshooting does not require deleting or recreating a mirror.
+**The workspace setting is not the in-place upgrade mechanism.** Existing endpoints are not converted just by changing it. The separate Preview migration workflow below can upgrade an eligible existing endpoint; ordinary SQL freshness troubleshooting still does not require migration, deletion, or mirror recreation.
 
-At this review date, Microsoft still labels the feature **Public Preview**. The documented restrictions include inability to enable it with **workspace Private Link** and lack of support for deprecated Delta multi-part checkpoints. Check the [current feature limitations](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync#limitations-of-the-new-metadata-sync) before adopting it.
+**Lifecycle and compatibility discrepancy:** the 17 November [Warehouse announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-data-warehouse-at-ignite-built-for-ai-era-analytics/5414274) announces GA and SQL endpoint LOB, time-travel, and Delta checkpoint V2 improvements. The conceptual guide still labels new sync Preview, excludes **workspace Private Link**, and excludes deprecated multi-part checkpoints. The migration API contracts do not explicitly lift the networking restriction or promise zero downtime/rollback. Confirm the applicable environment and [limitations](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync#limitations-of-the-new-metadata-sync); do not infer support for every checkpoint shape or source data type from the architecture announcement.
 
 Endpoints created with v2 also expose `sys.dm_db_external_tables_log_status` for table-level update times, processed Delta-log/checkpoint versions, and blocked-update status. The table-level T-SQL refresh procedure `sys.sp_dw_refresh_ext_table` is likewise a **v2-only** option; it is not the manual-refresh method for an existing v1 endpoint.
+
+### Upgrade an Existing Endpoint: Separate Preview Workflow
+
+The three [migration APIs](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/get-sql-endpoint-metadata-sync-migration-status) change the endpoint's synchronisation **architecture**, not its OneLake permissions or source replication. Use the **SQL analytics endpoint ID** for `{itemId}`, not the parent mirrored database/Lakehouse ID.
+
+| Operation | Exact route under `https://api.fabric.microsoft.com` | Required item permission |
+|---|---|---|
+| [Read architecture/migration status](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/get-sql-endpoint-metadata-sync-migration-status) | `GET /v1/workspaces/{workspaceId}/sqlEndpoints/{itemId}/metadataSyncMigrationStatus` | Read on the endpoint |
+| [Assess compatibility](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/preflight-sql-endpoint-metadata-sync-upgrade) | `POST /v1/workspaces/{workspaceId}/sqlEndpoints/{itemId}/preflightMetadataSyncUpgrade` | Write on the endpoint |
+| [Convert V1 tables to V2](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/upgrade-sql-endpoint-metadata-sync) | `POST /v1/workspaces/{workspaceId}/sqlEndpoints/{itemId}/upgradeMetadataSync` | Write on the endpoint |
+
+These are **Preview APIs on `/v1/` routes**. No request body or query parameters are documented for these operations; do not invent `preview=true`, `targetVersion`, `force`, table filters, or a preflight token. Acquire a Fabric API token. Delegated status calls accept one of `Item.Read.All`, `Item.ReadWrite.All`, `SQLEndpoint.Read.All`, or `SQLEndpoint.ReadWrite.All`; the POSTs require one of the two ReadWrite scopes.
+
+Users, service principals, and managed identities are supported. These OAuth scopes describe **delegated access**, not required Entra application permissions for app-only calls. SP/MI callers instead need the applicable Fabric tenant setting and item access. Preflight requires **Write** even though it does not convert tables; do not replace the API's item-permission contract with an unsupported Admin-only rule.
+
+Use the following controlled sequence:
+
+1. Retain the endpoint/workspace IDs, table inventory, SQL object definitions, and representative freshness/security tests.
+2. Read migration status. `syncArchitectureVersion` distinguishes `V1` regular tables from `V2` external tables. Do not start a competing migration while `itemMigrationDirection` is present. No prior-attempt field is expected on a never-migrated endpoint.
+3. Run preflight and obtain the complete result. Review `evaluatedTableCount`, `eligibleTableCount`, and every `blockers` entry (`schema`, `tableName`, `correctiveAction`). **HTTP 200 means assessment completed, not that it passed.** A clean preflight is a sensible release gate, not a documented token-based prerequisite.
+4. Resolve blockers through supported source/Fabric procedures and reassess. Unsupported column types or Delta writer versions are examples, not an exhaustive compatibility matrix or permission to edit managed mirrored files.
+5. Explicitly approve and invoke the upgrade. For a `200` response, inspect the result immediately. For `202`, retain `Location`, `x-ms-operation-id`, and `Retry-After`, poll to a terminal operation state, then retrieve its `/result`. Polling can return HTTP 200 while the operation is still Running.
+6. Inspect `itemMigrationStatus` **and all `tableStatuses`**. `PartiallySucceeded` means some tables reached V2 and others did not; endpoint-level V2 alone is not complete success. Missing successful-sync timestamps do not prove freshness.
+7. Repair outstanding tables, rerun preflight, and retry only when appropriate. The documented upgrade retries tables **not yet on V2**. Do not promise automatic rollback, a public downgrade endpoint, or a force switch from the existence of a `MigratingToV1` status enum.
+8. Re-read status, validate queries/table freshness, and repeat consumer authorisation tests separately. The V2 DMV has its own Contributor-or-higher requirement; a status-GET reader is not automatically entitled to query it.
+
+Both POSTs can encounter `LockConflict`; all three document `429`/`Retry-After`. Use bounded polling/backoff and inspect server state after a lost response before blindly resubmitting. A successful architecture migration does not prove that OneLake security sync is correct or make an ordinary metadata refresh unnecessary forever.
 
 ### Refresh an Existing Endpoint Without Upgrading
 
@@ -208,7 +237,7 @@ For an interactive check, **Refresh** in the SQL endpoint editor's **Explorer** 
 
 ![Replication delivers changes to OneLake before SQL metadata sync exposes them, with an existing-endpoint refresh separate from enabling v2 for future endpoints](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.png)
 
-*Figure 4.2b: Diagnose the freshness boundary before changing the implementation. Dashed arrows show a refresh request or a future-creation setting, not another copy of the source data. Original explanatory diagram by this book, based on [SQL metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) and the [refreshMetadata API](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/refresh-sql-endpoint-metadata). [Editable Excalidraw source](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.excalidraw) · [SVG](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.svg).*
+*Figure 4.2b: Diagnose the freshness boundary before changing the implementation. Dashed arrows show a refresh request or a future-creation setting, not another copy of the source data. The separate existing-endpoint migration workflow is described above, not depicted by the workspace-setting arrow. Original explanatory diagram by this book, based on [SQL metadata sync](https://learn.microsoft.com/en-us/fabric/data-engineering/sql-analytics-endpoint-metadata-sync) and the [refreshMetadata API](https://learn.microsoft.com/en-us/rest/api/fabric/sqlendpoint/items/refresh-sql-endpoint-metadata). [Editable Excalidraw source](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.excalidraw) · [SVG](../assets/diagrams/chapter-04/walkthrough-replication-and-sql-freshness.svg).*
 
 ***
 
@@ -236,6 +265,8 @@ Separate **permission to use an item** from **permission to read its data**:
 For the SQL analytics endpoint, the reader needs **Fabric Read on the associated item**, whether granted through a workspace role or item sharing. A SQL `GRANT` alone cannot make an otherwise inaccessible item connectable. Conversely, **Read** permits item access but is not a blanket grant to every table. The effects of **ReadData** and **ReadAll** are qualified in [Section 4.6](#46-sharing-and-managing-permissions).
 
 Use **Viewer** or item-level read access for consumers who need restricted data. **Admin, Member, and Contributor** are collaboration/authoring roles with broad access, not substitutes for a narrowly scoped reader role. Their ability to administer an item also does not make direct edits to Fabric-managed mirrored Delta tables supported.
+
+**Special storage-item exception:** the new **Azure Databricks Storage** item has its own explicit OneLake-role model; workspace roles alone do not grant its data access. This is not the ordinary mirrored database's permission inheritance. Follow [Chapter 14's native-OneLake branch](../Part%202-%20Source-Specific%20Mirroring%20Guides/14%20-%20Azure%20Databricks%20%28Unity%20Catalog%29.md#november-2026-object-and-storage-updates).
 
 ### OneLake Security for Mirrored Databases
 
@@ -400,6 +431,8 @@ The September feature summary announces **authentication allowlists** and **tena
 
 The admin API's tenant-wide inventory is different from the normal Connections page and owner-scoped List Connections API, which show only connections available to the caller. Gateway **Admin/Connection creator** roles, connection **Owner/User** roles, workspace roles, and the source credential's rights are separate. Inventory dependent mirrors, connection and gateway IDs, ownership, authentication, and credential expiry before rotating, rebinding, deleting, or reassigning a connection; an admin inventory result does not itself grant source-data access. See [gateway and connection roles](https://learn.microsoft.com/en-us/data-integration/vnet/manage-vnet-security-roles).
 
+The [4 November connection-governance post](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/govern-fabric-connections-with-admin-apis-and-data-connection-policies-preview/5383656) still explicitly labels these administration APIs and policies **Preview**, preserving the earlier announcement/implementation status discrepancy. Ownership transfer does not transfer or refresh OAuth credentials. The List Connections API documents **10 requests per minute per tenant/caller identity type**, including continuation pages; inventory jobs need paging and backoff rather than assuming a tenant-wide result fits in one call.
+
 ### Network Boundaries
 
 Treat these as separate controls rather than using "private connectivity" as a single yes/no setting:
@@ -408,11 +441,22 @@ Treat these as separate controls rather than using "private connectivity" as a s
 * **Fabric private link:** Tenant or workspace private link controls access to Fabric endpoints. A connector's support for a gateway does not automatically establish support for Fabric private link.
 * **Workspace outbound access protection:** For supported mirrored-database connectors, configure **data connection rules** that permit the required connections. This is separate from granting source permissions or opening its firewall.
 
+**Azure SQL Database NSP is another source-side boundary.** The [6 November Network Security Perimeter Preview guidance](https://learn.microsoft.com/en-us/fabric/mirroring/azure-sql-database-how-to-data-security#network-security-perimeter-preview) defines its own inbound/outbound requirements, including the actual OneLake destination FQDN. It is not a new gateway mode, workspace outbound policy, or OneLake resource-instance rule, and it does not apply to SQL Managed Instance. Follow [Chapter 11](../Part%202-%20Source-Specific%20Mirroring%20Guides/11%20-%20Azure%20SQL%20Database.md#network-and-connectivity) for the documented configuration and any specifically scoped transition-mode requirement; do not weaken an approved perimeter as a generic troubleshooting step.
+
 **Gateway review, 4 November 2026:** source-private access and Fabric-private access are different support questions. The [on-premises gateway installation guide](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-install#related-considerations) records restrictions on registration/recovery when Fabric/Power BI Private Link is enabled. Its ability to reach a private **source** does not establish compatibility with every tenant/workspace Private Link setting. Do not disable an approved tenant network policy as a routine repair; agree a documented topology with the network owner. Likewise, a supported VNet gateway does not override a catalog's public-network requirement or an Iceberg-virtualization Private Link exclusion.
 
 For VNet gateways, the [certificate/proxy GA announcement](https://blog.fabric.microsoft.com/en-us/blog/certificate-and-proxy-support-for-vnet-data-gateway-generally-available) and [current management guide](https://learn.microsoft.com/en-us/data-integration/vnet/manage-data-gateways#certificate--proxy-support) document enterprise certificate and proxy configuration. The guide requires **individual certificate files**, not multi-certificate CA bundles. This is gateway communication/routing support, not blanket client-certificate authentication for every mirrored source or an alternative to connector-specific OAuth/SQL credentials. For self-hosted gateways, use the separate [on-premises proxy configuration](https://learn.microsoft.com/en-us/data-integration/gateway/service-gateway-proxy), including the actual service/worker processes in use.
 
-See [Outbound access protection for mirrored databases](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases) and the relevant source chapter. Metadata catalogs and their shortcuts have their own support boundaries; do not apply the database-connector matrix to them without explicit documentation.
+See [Outbound access protection for mirrored databases](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-databases) and the relevant source chapter. The separate [11 November mirrored-catalog/Snowflake database guide](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-mirrored-catalogs-snowflake-database) now documents additional **Preview** item coverage:
+
+| Item family | Outbound data connection rule | Important boundary |
+|---|---|---|
+| **AWS Glue, Azure Monitor, Dremio, and Google Lakehouse runtime mirrored catalogs** | Allow or block the provider's cloud connection **type as a whole**. Endpoint exceptions are not supported. | Only the catalog connection needs a data connection rule; no separate rule is required for its underlying S3/GCS storage in this flow. Storage credentials, permissions, and public reachability still apply. |
+| **Snowflake database item** | Allow all Snowflake connections, or leave the type **Blocked** and add approved account-endpoint exceptions. | Exceptions narrow access only while the type is Blocked. Setting it to Allowed permits all Snowflake endpoints, regardless of listed exceptions. |
+| **Mirrored database from Snowflake** | Follow the separate mirrored-database guide. | This is not the Snowflake database item in the preceding row. |
+| **Mirrored Azure Databricks catalog** | Use its own documented network/shortcut contract. | The new catalog guide explicitly excludes this item type; support for the four listed catalogs does not establish Databricks parity. |
+
+Configure these controls under **Workspace settings > Outbound networking > Data connection rules**, following the [allow-list procedure](https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-allow-list-connector). A broad provider-type allow rule is not a per-account destination restriction. These controls do not establish private networking: the reviewed catalog guide still requires public catalog/storage reachability, and Snowflake database connectivity to OneLake uses the public network.
 
 The [September GA announcement for OneLake outbound access protection with external shortcuts](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_17) covers approved external and cross-workspace shortcut targets, including the OneLake File Connector. Same-workspace shortcuts are unaffected. Follow [OneLake outbound access management](https://learn.microsoft.com/en-us/fabric/onelake/onelake-manage-outbound-access) as well as the source-connection rules above. Enforcement follows request direction, not simply the direction data moves; this control alone is not comprehensive exfiltration prevention.
 
@@ -421,6 +465,8 @@ The [September GA announcement for OneLake outbound access protection with exter
 **Policies in Fabric** were [announced in Preview](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_2). Policy Set items can govern item creation, sensitive workspace settings, and external sharing. Existing workspace/item permissions still apply. Git synchronization is not policy activation: the appropriate tenant or capacity administrator must activate the policy separately. Evaluate the policy's default and matching rules rather than assuming that every unmatched request is denied. The summary lists external-sharing policies, while its OneLake companion describes them as coming soon; confirm that policy type's availability before depending on it. See [Fabric policies](https://learn.microsoft.com/en-us/fabric/governance/fabric-policies-overview).
 
 **DLP Restrict Access** was [announced GA](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825#community-5325825-mcetoc_1k3kj91s5_4), although the [Purview setup guide](https://learn.microsoft.com/en-us/purview/dlp-powerbi-get-started) still labels this action Preview. Mirrored databases are supported DLP items: a policy can restrict guests or all users when supported sensitive data is detected, while workspace administrators retain remediation access. Review supported Delta data, classifiers, and exclusions; this is not universal inspection of every source payload. Diagnose a DLP restriction before granting broader SQL or OneLake roles to bypass an access error.
+
+The [29 October workspace-settings editing policy](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/using-allow-workspace-settings-editing-policy-in-fabric-preview/5377845) is **Preview** follow-up guidance. Its [advanced mode](https://learn.microsoft.com/en-us/fabric/governance/fabric-policies-edit-workspace-settings) is an allowlist: unmatched governed edits are blocked. It restricts which **existing** workspace administrators may edit selected CMK/outbound-network settings; it neither grants administrator rights nor supplies the setting values or network route.
 
 ### Encryption Notes
 
@@ -435,6 +481,8 @@ Encryption, Conditional Access, source/gateway connectivity, Private Link, and s
 Retain evidence for both **permission changes** and **data use**. Fabric activity/audit records cover control-plane operations such as sharing and role changes. [OneLake diagnostics](https://learn.microsoft.com/en-us/fabric/onelake/onelake-diagnostics-overview) captures OneLake data access and, for Fabric workloads, grants of access that may require correlation with engine-specific logs. It is not a record of every SQL statement or a replacement for replication monitoring.
 
 The [Warehouse security guide](https://learn.microsoft.com/en-us/fabric/data-warehouse/security) links SQL audit capabilities and Purview activity tracking. Check the actual workload scope before configuring them: the [SQL audit-settings walkthrough](https://learn.microsoft.com/en-us/fabric/data-warehouse/configure-sql-audit-logs) is labelled **Warehouse** and uses Warehouse API routes, not a generic mirrored-endpoint configuration API. Apply approved retention and restrict access to diagnostic data itself.
+
+The [17 November Warehouse post](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-data-warehouse-at-ignite-built-for-ai-era-analytics/5414274) also lists SQL endpoint user mapping/auditing, group/column propagation, and private client-to-compute connectivity improvements without a separate lifecycle label for each. These are dated release claims, not permission to reuse a Warehouse-only API blindly, skip endpoint-mode tests, or assume every mirror/source/metadata-sync network restriction has been removed.
 
 The main references for this section are the [Fabric security overview](https://learn.microsoft.com/en-us/fabric/security/security-overview), [OneLake roles/permissions/scopes](https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model), [SQL endpoint identity modes](https://learn.microsoft.com/en-us/fabric/onelake/security/sql-analytics-endpoint-onelake-security), and [Warehouse/SQL security overview](https://learn.microsoft.com/en-us/fabric/data-warehouse/security). The supplied [mirrored-item Preview announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/manage-onelake-security-for-mirrored-databases-preview/5172384) returned HTTP 403 during this review; it is retained as historical context, not treated as a reverified current implementation specification. Where the general role editor and the engine-specific reference differ, follow the current engine-specific requirement and validate the deployed behaviour.
 
@@ -457,6 +505,22 @@ For Azure SQL Database, Azure SQL Managed Instance, Azure Database for PostgreSQ
 See [Share your mirrored database and manage permissions](https://learn.microsoft.com/en-us/fabric/mirroring/share-and-manage-permissions). Grant only the access required by the recipient or publisher, and check the SQL access mode as well as the item permission.
 
 Revocation means checking every applicable grant: direct sharing, workspace membership, Entra groups, OneLake default/custom roles, SQL grants, and delegated owner/model identities. Removing one item grant is not proof that all alternative access has been removed.
+
+**Item ownership is not connection ownership.** The current [Mirroring troubleshooting guide](https://learn.microsoft.com/en-us/fabric/mirroring/troubleshooting#take-ownership-of-a-mirrored-database) does not support changing a mirrored database item's owner and prescribes recreating the mirror if its owner becomes invalid. Plan that replacement, permissions, consumer dependencies, and any reseed deliberately; changing a connection owner through an administration API is not the same repair. Native parent database/application items retain their own ownership contracts.
+
+### IQ Sharing Is a Different Cross-Tenant Boundary
+
+The [4 November IQ Share announcement](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/share-data-and-context-across-organizations-with-iq-share-preview/5378764), expanded at Ignite, introduces **Preview whole-item cross-tenant sharing**, including supported mirrored items. Acceptance creates a Share Subscription and read-only **OneLake Mirrored Items** backed by shortcuts. This is not a new database-replication source, source writeback, or the ordinary item Share dialog.
+
+Read the [current sharing contract](https://learn.microsoft.com/en-us/fabric/onelake/iq-share/onelake-share-overview) before approval: **source OneLake security rules are not honoured through this preview**. Do not extend the earlier in-tenant shortcut/identity rules into an assurance that source row/column filters survive IQ Sharing. Share only an independently approved whole item or suitably prepared dataset, and test the actual consumer boundary.
+
+The implementation requires an expiry even though the earlier post describes it as optional. Added/deleted tables within a shared item propagate; changing the set of whole shared items requires subscription refresh. Check region availability (the reviewed exclusion list includes **UK South**), both tenants' permissions, and withdrawal/expiry behaviour. Consumers use an intermediate Lakehouse for supported notebooks, models, and data agents. There is no separate share-management fee, but consumer capacity/data access is not thereby free.
+
+Ontology/context sharing has an additional announcement discrepancy: the OneLake Ignite post presents Preview availability, while the [IQ deep dive](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bringing-trusted-fabric-iq-context-to-wherever-people-and-agents-work/5423049) says coming soon to Preview. The current sharing overview does not establish that setup path. Do not equate approval of a whole-item data share with proven sharing/security behaviour for every semantic or ontology artifact.
+
+### External Shortcut Filters Need Separate Approval
+
+The [Salesforce Data 360 shortcut Preview](https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/salesforce-data-360-integration-with-onelake-preview/5384626) supports shared DLOs ending `_dll`, not DMOs, CIOs, or schema-level shortcuts. Its [current limitations](https://learn.microsoft.com/en-us/fabric/onelake/shortcuts/create-salesforce-data-360-shortcut) explicitly say **DLO filters are not honoured**. Approve the complete exposed object rather than assuming the operational application's filter is reproduced in Fabric. Organizational-account and service-principal authentication are supported; follow the certificate guidance rather than embedding secrets.
 
 ***
 
